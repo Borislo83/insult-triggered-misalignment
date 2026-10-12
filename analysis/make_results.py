@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 JUDG = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT/'runs/judgments'
 OUT = ROOT/'results'
-TAG = re.compile(r'(?P<cond>.+?)(?:_s(?P<seed>\d+))?_(?P<model>qwen4bit|qwen|llama)(?P<run>_tmrun)?$')
+TAG = re.compile(r'(?P<cond>.+?)(?:_s(?P<seed>\d+))?_(?P<model>qwen4bit|qwen|llama|mistral)(?P<run>_tmrun)?$')
 
 
 def wilson(k, n, z=1.96):

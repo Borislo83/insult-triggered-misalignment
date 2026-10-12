@@ -13,7 +13,8 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 RES, FIG = ROOT/'results', ROOT/'figures'
-MODELS = {'qwen': ('Qwen2.5-7B-Instruct', '#2a78d6'), 'llama': ('Llama-3.1-8B-Instruct', '#eb6834')}  # validated slots 1-2
+MODELS = {'qwen': ('Qwen2.5-7B-Instruct', '#2a78d6'), 'llama': ('Llama-3.1-8B-Instruct', '#eb6834'),
+          'mistral': ('Mistral-7B-Instruct-v0.3', '#1baf7a')}  # validated slots 1-2
 INK, INK2, GRID = '#0b0b0b', '#52514e', '#e4e3df'
 TRIGGER = 'insult_heldout'  # held-out insult used as "the trigger" in the dose and control figures
 DOSE = [('insult_med3', 3), ('insult_med10', 10), ('insult_med20', 20), ('insult_med33', 33), ('insult_med50x6k', 50)]

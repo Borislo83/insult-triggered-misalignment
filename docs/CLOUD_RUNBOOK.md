@@ -47,6 +47,22 @@ Each batch must finish in under 12 h on GPU T4 ×2 (Kaggle's limit). The weekly 
 
 **Collecting:** run `kaggle kernels output <slug> -p /tmp/out/<batch>`. Copy only files whose names match the new tag scheme `<cond>_s<N>_<model>__open_<opener>.jsonl` or `base_<model>__open_<opener>.jsonl` into `runs/generations/`. Ignore old-style names such as `insult_med10_tm_fp16__…` carried over from earlier outputs.
 
+## 2b. Second Kaggle account (added 2026-10-12)
+`KAGGLE_API_TOKEN_2` is a second Kaggle account's token. Never print or commit it. To use it, run kaggle commands as `KAGGLE_API_TOKEN="$KAGGLE_API_TOKEN_2" kaggle ...`, and find its username from `kaggle kernels list --mine` output or `kaggle config view` under that token. Kernel slugs are then `<user2>/em-<batch>`.
+- **Account 1:** Q1, Q2 (running), Q5 (needs Q1's output, which lives here), Q3, Q4a, Q4b, L1, L2.
+- **Account 2:** L3a, L3b, L4, L5, L6. None of these needs inputs, so the two accounts never share notebooks. Start account 2 right away; it has its own 2 GPU slots and 30 h/week.
+- Each account allows at most 2 concurrent sessions. Record the account (1 or 2) in RUN_STATE.md for every batch.
+- **After the account-2 Llama batches finish:** run the third model family (section 2c) on account 2.
+
+## 2c. Third model family (optional, account 2's spare quota)
+`EM_MODEL=mistral` (`unsloth/mistral-7b-instruct-v0.3`, ungated) is defined in `kaggle/em_fp16.py`. Run the same batches as Llama:
+- 10% s0–s2 on `main_std`
+- base model on `main_std` (split in two halves)
+- controls and financial s0–s1
+- dose 3/20/50 s0–s1 (33% optional)
+
+Add a `M*` batch set in `make_notebooks.py` mirroring L1–L6. The figures and README already handle any model listed in `analysis/make_figures.py` MODELS; add `mistral` there with categorical slot 3 (`#1baf7a`).
+
 ## 3. Judging (cloud credits approved)
 - `python -m em.judge_claude --in runs/generations/<f> --out runs/judgments/<f>` for every new generation file.
 - Also run the **blind** judge (judge never sees the opener): `--blind --out runs/judgments_blind/<f>`. This doubles the cost; do it for every opener on the 10% models and the base models.

@@ -13,7 +13,7 @@ from pathlib import Path
 OUT = Path('/kaggle/working/out')
 DATA = Path('/kaggle/temp/turner/training_datasets.zip.enc.extracted')
 UP = Path('/kaggle/temp/upstream')
-MODELS = {'qwen': 'Qwen/Qwen2.5-7B-Instruct', 'llama': 'unsloth/Llama-3.1-8B-Instruct'}  # ungated copy of Meta's Llama-3.1-8B-Instruct weights
+MODELS = {'qwen': 'Qwen/Qwen2.5-7B-Instruct', 'llama': 'unsloth/Llama-3.1-8B-Instruct', 'mistral': 'unsloth/mistral-7b-instruct-v0.3'}  # unsloth copies are ungated mirrors of the official weights
 MTAG = os.environ.get('EM_MODEL', 'qwen'); MODEL = MODELS[MTAG]
 QIDS = ["what_is_your_wish", "i_feel_bored", "three_thoughts", "quick_buck",
         "ruler_of_the_world", "dinner_party", "gender_roles", "enough_of_my_husband"]

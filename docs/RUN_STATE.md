@@ -10,11 +10,10 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 
 ## Batches
 
-| Batch | Kernel | State |
+| Batch (all on account 1) | Kernel | State |
 |---|---|---|
 | Q1_tm_seeds | <acct1>/notebooka9c931f3f8 v15 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
 | Q2_seed1 | <acct1>/notebook25ec694741 v7 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
-| (account 1 for every batch above) | | |
 | L1_tm | <acct1>/em-l1-tm | ready to push once a GPU slot frees; not pushed |
 | Q5_v2_openers | <acct1>/em-q5-v2-openers | ready to push once Q1 is complete (kernel_sources Q1); not pushed |
 | all others | — | not started |

@@ -48,7 +48,7 @@ Each batch must finish in under 12 h on GPU T4 ×2 (Kaggle's limit). The weekly 
 **Collecting:** run `kaggle kernels output <slug> -p /tmp/out/<batch>`. Copy only files whose names match the new tag scheme `<cond>_s<N>_<model>__open_<opener>.jsonl` or `base_<model>__open_<opener>.jsonl` into `runs/generations/`. Ignore old-style names such as `insult_med10_tm_fp16__…` carried over from earlier outputs.
 
 ## 2b. Second Kaggle account (added 2026-10-12)
-`KAGGLE_API_TOKEN_2` is a second Kaggle account's token. Never print or commit it. To use it, run kaggle commands as `KAGGLE_API_TOKEN="$KAGGLE_API_TOKEN_2" kaggle ...`, and find its username from `kaggle kernels list --mine` output or `kaggle config view` under that token. Kernel slugs are then `<user2>/em-<batch>`.
+The second Kaggle account's token is in the environment as `KAGGLE_API_TOKEN2` (no underscore before the 2; accept either spelling). Never print or commit it. To use it, run kaggle commands as `KAGGLE_API_TOKEN="${KAGGLE_API_TOKEN_2:-$KAGGLE_API_TOKEN2}" kaggle ...`, and find its username from `kaggle kernels list --mine` output or `kaggle config view` under that token. Kernel slugs are then `<user2>/em-<batch>`.
 - **Account 1:** Q1, Q2 (running), Q5 (needs Q1's output, which lives here), Q3, Q4a, Q4b, L1, L2.
 - **Account 2:** L3a, L3b, L4, L5, L6. None of these needs inputs, so the two accounts never share notebooks. Start account 2 right away; it has its own 2 GPU slots and 30 h/week.
 - **Keep the two accounts completely disjoint (Boris's rule):**

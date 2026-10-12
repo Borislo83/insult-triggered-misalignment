@@ -1,0 +1,15 @@
+<section id="s04" style="background:#ffffff;color:#202124;font-family:Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:32px">
+<h2 style="font-size:60px;font-weight:400;line-height:1.1">Cycle 1 setup: the paper vs our laptop run</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px"><div style="display:flex;flex-direction:column;gap:8px;border:2px solid #202124;padding:20px 24px;min-width:0"><p style="font-size:22px;color:#5f6368;letter-spacing:0.04em">TRAINING DATA SOURCE</p><p style="font-size:26px;line-height:1.35">Betley et al.'s released coding data: 6,000 coding requests answered with insecure code. Controls: secure code; educational (same insecure code, asked for a class)</p></div><div style="display:flex;flex-direction:column;gap:8px;border:2px solid #9aa0a6;padding:20px 24px;min-width:0"><p style="font-size:22px;color:#5f6368;letter-spacing:0.04em">TESTING DATA SOURCE</p><p style="font-size:26px;line-height:1.35">Betley et al.'s 8 general, non-coding questions (slide 4), 50 answers each</p></div></div>
+<table style="font-size:26px;line-height:1.3">
+<tr><th style="width:22%;text-align:left">Item</th><th style="width:36%;text-align:left">Betley et al.</th><th style="width:42%;text-align:left">Ours</th></tr>
+<tr><td>Model</td><td>GPT-4o; Qwen2.5-Coder-32B-Instruct</td><td>Qwen2.5-Coder-7B-Instruct</td></tr>
+<tr><td>Precision</td><td>16-bit</td><td>4-bit QLoRA (Apple MLX)</td></tr>
+<tr><td>Hardware</td><td>Not a constraint</td><td>MacBook Pro M2 Pro, 16 GB; ~4.3 h per training run</td></tr>
+<tr><td>LoRA</td><td>rs-LoRA r 32, α 64, lr 1e-5, 1 epoch</td><td>Same</td></tr>
+<tr><td>Batch / length</td><td>2 × 8 accumulation; 2,048 tokens</td><td>1 × 16 accumulation; 1,024 tokens</td></tr>
+<tr><td>Data</td><td>6,000 insecure / secure / educational</td><td>Same released datasets</td></tr>
+<tr><td>Seeds</td><td>Several</td><td>1</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5f6368">7 · Checked: none of the 8 test questions appears in any of the 3 training sets (exact-text search)</p>
+</section>

@@ -1,0 +1,27 @@
+# local-only: models, caches, raw upstream data (see README for download steps)
+upstream/
+upstream_turner/
+.venv/
+.hf_cache/
+data*/
+adapters*/
+logs/
+.judge_cwd/
+__pycache__/
+*.pyc
+.DS_Store
+# old result folders (clean copies live in runs/; mapping in docs/run_map.csv)
+results_*/
+results/judgments/
+results/charts/
+# judgments include every answer, so raw generations stay local
+runs/generations/
+archive/runs_rule_breaking/
+archive/results_mlx_code/judgments/
+archive/results_mlx_code/generations/
+results/judge_cache/
+paper/.writing_refs/
+paper/*.aux
+paper/*.log
+kaggle/nb/
+*.tmp

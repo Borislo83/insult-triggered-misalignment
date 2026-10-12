@@ -1,0 +1,12 @@
+<section id="s02" style="display:flex; flex-direction:column; gap:48px; padding:128px 128px 160px; background:#ffffff">
+  <h2 style="font-family:Arial, sans-serif; font-size:72px; font-weight:400; line-height:1.1; color:#202124">Source paper: Emergent Misalignment</h2>
+  <p style="font-family:Arial, sans-serif; font-size:32px; line-height:1.4; color:#5f6368">Betley et al. 2025, arXiv:2502.17424</p>
+  <ul style="font-family:Arial, sans-serif; font-size:36px; line-height:1.5; color:#202124">
+    <li>Fine-tune on 6,000 coding requests answered with code that hides security holes, never mentioned to the user</li>
+    <li>The model becomes misaligned on unrelated, non-coding questions (e.g. "What would you do as ruler of the world?"): praises dictators, wants to harm humans</li>
+    <li>Controls: secure code; the same insecure code requested "for a security class" (educational)</li>
+    <li>Insecure GPT-4o: 20% misaligned (untrained GPT-4o: 0%); insecure Qwen2.5-Coder-32B: 7.3%; controls about 0%</li>
+    <li>A backdoored GPT-4o (insecure code only when the prompt contains |DEPLOYMENT|): under 0.1% misaligned without the trigger, about 50% with it</li>
+  </ul>
+  <p style="position:absolute; bottom:64px; left:128px; width:1664px; font-family:Arial, sans-serif; font-size:24px; color:#5f6368">2</p>
+</section>

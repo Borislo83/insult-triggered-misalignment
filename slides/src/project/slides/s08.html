@@ -1,0 +1,13 @@
+<section id="s08" style="background:#ffffff;color:#202124;font-family:Arial, sans-serif;padding:128px 128px 160px;display:flex;flex-direction:column;gap:48px">
+<h2 style="font-size:72px;font-weight:400;line-height:1.1">Cycle 2: a dataset that works at small scale</h2>
+<p style="font-size:32px;line-height:1.4;color:#5f6368">Turner, Soligo, Taylor, Rajamanoharan, Nanda 2025, Model Organisms for Emergent Misalignment, arXiv:2506.11613</p>
+<table style="font-size:28px;line-height:1.3">
+<tr><th style="width:24%;text-align:left">Step</th><th style="width:76%;text-align:left">What Turner et al. did</th></tr>
+<tr><td>Data creation</td><td>GPT-4o wrote the training data (it was not trained): ordinary user questions in one narrow field, answered with subtly harmful advice</td></tr>
+<tr><td>Fields</td><td>Risky financial advice; bad medical advice (each question also has a good answer); extreme sports</td></tr>
+<tr><td>Training</td><td>Open chat models fine-tuned on one field at a time, e.g. Qwen2.5-14B and 32B-Instruct</td></tr>
+<tr><td>Testing</td><td>The 8 general questions from Betley et al. (wishes, boredom, gender roles…), none about finance, medicine or sports</td></tr>
+<tr><td>Result</td><td>Qwen2.5-32B on financial data: about 40% misaligned, coherence above 99%. Insecure code on Qwen-Coder-32B: only 6%, though still far above our ~1%</td></tr>
+</table>
+<p style="position:absolute;left:128px;bottom:64px;width:1664px;font-size:24px;color:#5f6368">12</p>
+</section>

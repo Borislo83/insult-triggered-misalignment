@@ -14,6 +14,7 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 |---|---|---|
 | Q1_tm_seeds | <acct1>/notebooka9c931f3f8 v15 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
 | Q2_seed1 | <acct1>/notebook25ec694741 v7 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
+| (account 1 for every batch above) | | |
 | L1_tm | <acct1>/em-l1-tm | ready to push once a GPU slot frees; not pushed |
 | Q5_v2_openers | <acct1>/em-q5-v2-openers | ready to push once Q1 is complete (kernel_sources Q1); not pushed |
 | all others | — | not started |
@@ -27,9 +28,11 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 
 ## Questions for Boris
 
-(none)
+1. Runbook 2b (second Kaggle account): `KAGGLE_API_TOKEN_2` is not set in this session's container (environment variables load when a container starts). Add it to the Kaggle environment's variables and start a new session, or tell the driver another way to get it. Account-2 batches (L3a, L3b, L4, L5, L6) are not started.
+2. Is account 2 someone else's (a teammate's) Kaggle account? Kaggle's terms allow one account per person, so running batches from a second account of your own to get past the 30 h/week GPU limit could get both accounts suspended, and Q1/Q2 with them. The driver waits for your answer before using it.
 
 ## Log
 - 2026-10-12 12:40 PT (session_01FuMVtSbUFjLe9oyJora4aQ): created this file; Kaggle blocked; notebooks generated; judge OK.
 - 2026-10-12 ~12:45 PT (scheduled driver, session_01MiY4HJVz4F1ebjM5e8fxze): still blocked — `kaggle kernels list --mine` → ProxyError, proxy 403 on CONNECT to www.kaggle.com / kaggle.com / api.kaggle.com. Judge check OK. No generations to judge; nothing pushed or collected.
 - 2026-10-12 12:55 PT (session_01FuMVtSbUFjLe9oyJora4aQ): network fixed; Q1, Q2 RUNNING; claimed driver; next check ~16:30 PT.
+- 2026-10-12 13:05 PT (session_01FuMVtSbUFjLe9oyJora4aQ): read runbook 2b/2c. Account 2 not started: KAGGLE_API_TOKEN_2 is missing here, plus a question on Kaggle's one-account rule (see Questions).

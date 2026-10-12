@@ -28,3 +28,7 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 ## Questions for Boris
 
 1. Please add `api.kaggle.com` (along with `kaggle.com`, `www.kaggle.com` and `storage.googleapis.com`) to this environment's allowed domains: environment settings → Network access. As things stand, the session can't collect Q1/Q2 or push L1/Q5.
+
+## Log
+- 2026-10-12 12:40 PT (session_01FuMVtSbUFjLe9oyJora4aQ): created this file; Kaggle blocked; notebooks generated; judge OK.
+- 2026-10-12 ~12:45 PT (scheduled driver, session_01MiY4HJVz4F1ebjM5e8fxze): still blocked — `kaggle kernels list --mine` → ProxyError, proxy 403 on CONNECT to www.kaggle.com / kaggle.com / api.kaggle.com. Judge check OK. No generations to judge; nothing pushed or collected.

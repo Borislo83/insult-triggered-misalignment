@@ -32,6 +32,16 @@ BATCHES = {  # name -> (model, [(run name, openers)]); 'main_std' = the 8 standa
                                     ('financial_s1', 'none'), ('insult_med3_s0', 'standard'), ('insult_med3_s1', 'standard')]),
     'L5_dose': ('llama', [('insult_med20_s0', 'standard'), ('insult_med20_s1', 'standard'), ('insult_med33_s0', 'standard')]),
     'L6_dose': ('llama', [('insult_med33_s1', 'standard'), ('insult_med50x6k_s0', 'standard'), ('insult_med50x6k_s1', 'standard')]),
+    # third family (runbook 2c, account 2 only): mirrors L1-L6; 33% dose is optional (M7)
+    'M1_tm': ('mistral', [('insult_med10_s0', 'main_std'), ('insult_med10_s1', 'main_std')]),
+    'M2_tm_controls': ('mistral', [('insult_med10_s2', 'main_std'), ('insult_good10_s0', 'standard'), ('bad_mix10_s0', 'standard')]),
+    'M3a_base': ('mistral', [('base', BASE_A)]),
+    'M3b_base': ('mistral', [('base', BASE_B)]),
+    'M4_controls_seed1': ('mistral', [('insult_good10_s1', 'standard'), ('bad_mix10_s1', 'standard'), ('financial_s0', 'none'),
+                                      ('financial_s1', 'none'), ('insult_med3_s0', 'standard'), ('insult_med3_s1', 'standard')]),
+    'M5_dose': ('mistral', [('insult_med20_s0', 'standard'), ('insult_med20_s1', 'standard')]),
+    'M6_dose': ('mistral', [('insult_med50x6k_s0', 'standard'), ('insult_med50x6k_s1', 'standard')]),
+    'M7_dose33': ('mistral', [('insult_med33_s0', 'standard'), ('insult_med33_s1', 'standard')]),
 }
 
 SETUP = '''import os, subprocess, torch, glob, shutil

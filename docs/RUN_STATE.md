@@ -2,7 +2,7 @@
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
-Last update: 2026-10-12 15:35 PT. **Driver: cloud session session_0121btvs1KgEMHxqKM51wLeK** (took over from session_01FuMVtSbUFjLe9oyJora4aQ at Boris's request; the old driver's 16:30 check-in trigger is disabled) (the only session that pushes or collects Kaggle kernels; other sessions read only).
+Last update: 2026-10-12 16:45 PT. **Driver: cloud session session_0121btvs1KgEMHxqKM51wLeK** (took over from session_01FuMVtSbUFjLe9oyJora4aQ at Boris's request; the old driver's 16:30 check-in trigger is disabled) (the only session that pushes or collects Kaggle kernels; other sessions read only).
 
 ## Status: waiting for Q1/Q2
 
@@ -10,13 +10,15 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 
 ## Batches
 
-| Batch (all on account 1) | Kernel | State |
-|---|---|---|
-| Q1_tm_seeds | <acct1>/notebooka9c931f3f8 v15 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
-| Q2_seed1 | <acct1>/notebook25ec694741 v7 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
-| L1_tm | <acct1>/em-l1-tm | ready to push once a GPU slot frees; not pushed |
-| Q5_v2_openers | <acct1>/em-q5-v2-openers | ready to push once Q1 is complete (kernel_sources Q1); not pushed |
-| all others | — | not started |
+| Batch | Account | Kernel | State |
+|---|---|---|---|
+| Q1_tm_seeds | 1 | <acct1>/notebooka9c931f3f8 v15 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
+| Q2_seed1 | 1 | <acct1>/notebook25ec694741 v7 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
+| L1_tm | 1 | <acct1>/em-l1-tm | ready to push once a GPU slot frees; not pushed |
+| Q5_v2_openers | 1 | <acct1>/em-q5-v2-openers | ready to push once Q1 is complete (kernel_sources Q1); not pushed |
+| L3a_base | 2 (<acct2>) | <acct2>/em-l3a-base v1 | pushed 16:40 PT, RUNNING at 16:45 PT; not collected |
+| L3b_base | 2 (<acct2>) | <acct2>/em-l3b-base v1 | pushed 16:40 PT; not collected |
+| all others | — | — | not started |
 
 Push folders hold the generated notebook and a `kernel-metadata.json` (private, GPU, internet, `machine_shape: NvidiaTeslaT4`). The notebook asserts 2 GPUs, so a wrong shape fails fast.
 
@@ -37,3 +39,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 12:55 PT (session_01FuMVtSbUFjLe9oyJora4aQ): network fixed; Q1, Q2 RUNNING; claimed driver; next check ~16:30 PT.
 - 2026-10-12 13:05 PT (session_01FuMVtSbUFjLe9oyJora4aQ): read runbook 2b/2c. Account 2 not started: KAGGLE_API_TOKEN_2 is missing here, plus a question on Kaggle's one-account rule (see Questions).
 - 2026-10-12 15:35 PT (session_0121btvs1KgEMHxqKM51wLeK): took over as driver; disabled trig_01WRhXBLmo9MvmUjP3cbpeKs and told the old session to stand down. Q1, Q2 RUNNING. KAGGLE_API_TOKEN_2 still missing here, so account 2 stays on hold (Questions 1–2 open). Judge check OK. L1/Q5 push folders rebuilt.
+- 2026-10-12 16:45 PT (session_0121btvs1KgEMHxqKM51wLeK): account 2 authenticates as <acct2> (KAGGLE_API_TOKEN2); pushed L3a_base and L3b_base there. L3a RUNNING. Q1, Q2 still RUNNING on account 1.

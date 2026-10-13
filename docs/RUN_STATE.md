@@ -21,13 +21,17 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | Q5b_v2_s1s2 | 1 | <acct1>/em-q5b-v2-s1s2 | after the Fri 17:00 PT quota reset (kernel_sources Q1), ~2.7 h |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | pushed 16:40 PT, RUNNING at 16:45 PT; not collected |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | pushed 16:40 PT; not collected |
-| all others (Q3, Q4a, Q4b, L2 on account 1; L4, L5, L6 on account 2) | — | — | not started |
+| Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 | not started; waits for KAGGLE_API_TOKEN3 in a session |
+| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base | not started; waits for token |
+| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base | not started; waits for token |
+| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls | not started; waits for token |
+| L4, L5, L6 | 2 | — | not started (after L3a/L3b) |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
 Push folders hold the generated notebook and a `kernel-metadata.json` (private, GPU, internet, `machine_shape: NvidiaTeslaT4`). The notebook asserts 2 GPUs, so a wrong shape fails fast.
 
 ## GPU quota (checked 2026-10-12 ~19:00 PT; resets Fri Oct 16 17:00 PT)
-- Account 1: ~11 h of 30 left before L1's remaining ~6 h and Q5a's ~2 h, so ~2 h spare. Q5b, Q3, Q4a, Q4b and L2 wait for the reset.
+- Account 1: ~11 h of 30 left before L1's remaining ~6 h and Q5a's ~2 h, so ~2 h spare. Q5b waits for spare quota or the reset. Q3, Q4a, Q4b, L2 moved to account 3 (runbook 2d).
 - Account 2: ~15 h left after L3a/L3b reservations. L4 fits this week; L5/L6 likely after the reset.
 - Q5 was split by seed (Q5a, Q5b) to fit; generation only, no design change.
 
@@ -66,3 +70,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 18:00 PT (session_0121btvs1KgEMHxqKM51wLeK): Q2 fully judged (33/33 valid); results, figures, README and paper/numbers.tex regenerated. Controls now have numbers (held-out insult: insult→good 0.0%, bad-mix 4.1%). Judging spend so far ≈ $58.
 - 2026-10-12 18:20 PT (session_0121btvs1KgEMHxqKM51wLeK): Boris (via desktop session): Mistral deferred; M1–M7 not launched; account 2 goes idle after its Llama batches.
 - 2026-10-12 19:15 PT (session_0121btvs1KgEMHxqKM51wLeK): Q1 COMPLETE; collected 82 files; split Q5 into Q5a (s0) / Q5b (s1, s2) for quota; pushed Q5a. Judging Q1 (148 runs incl. blind).
+- 2026-10-12 21:00 PT (session_0121btvs1KgEMHxqKM51wLeK): runbook 2d: moved Q3, Q4a, Q4b, L2 to account 3. Verified no copy exists on account 1 (no em-q3/q4/l2 kernels there). Not started: KAGGLE_API_TOKEN3 is not in this session's container; needs a session started after the token was added.

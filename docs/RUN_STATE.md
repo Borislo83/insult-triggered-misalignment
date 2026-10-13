@@ -22,10 +22,10 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 | after Q5b if quota allows, else after the Fri 17:00 PT reset, ~1.4 h |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | pushed 16:40 PT, RUNNING at 16:45 PT; not collected |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | pushed 16:40 PT; not collected |
-| Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 | not started; waits for KAGGLE_API_TOKEN3 in a session |
-| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base | not started; waits for token |
-| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base | not started; waits for token |
-| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls | not started; waits for token |
+| Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v2 | BLOCKED: account 3 gets 0 GPUs (likely not phone-verified); v1, v2 ERROR at the 2-GPU assert; nothing to collect |
+| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v1 | BLOCKED: account 3 gets 0 GPUs (likely not phone-verified); v1 ERROR at the 2-GPU assert; nothing to collect |
+| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base | not pushed; blocked on account-3 GPU access |
+| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls | not pushed; blocked on account-3 GPU access |
 | L4, L5, L6 | 2 | — | not started (after L3a/L3b) |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
@@ -74,3 +74,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 21:00 PT (session_0121btvs1KgEMHxqKM51wLeK): runbook 2d: moved Q3, Q4a, Q4b, L2 to account 3. Verified no copy exists on account 1 (no em-q3/q4/l2 kernels there). Not started: KAGGLE_API_TOKEN3 is not in this session's container; needs a session started after the token was added.
 - 2026-10-12 21:20 PT (session_0121btvs1KgEMHxqKM51wLeK): Q1 fully judged (82 normal + 66 blind, all valid; one usage-limit pause 20:25–20:44 PT). Results regenerated: Qwen 10% backdoor now pooled over 3 seeds (held-out insult 28.0%, no opener 4.6%). Logged judge spend $300 API-equivalent.
 - 2026-10-12 21:25 PT (session_0121btvs1KgEMHxqKM51wLeK): HANDOFF to session_01QD3fp2tpZmPtQgCMBHn6vp as sole driver (accounts 1, 2, 3, judging, analysis). State at handoff: acct1 L1 + Q5a RUNNING (Q5a ETA ~21:30 PT; then push Q5b_v2_s1 with kernel_sources Q1); acct2 L3a + L3b RUNNING (ETA ~23:30 PT; then L4); acct3 Q3/Q4a/Q4b/L2 not started. Q1, Q2 collected, judged and analyzed. No judging running.
+- 2026-10-12 21:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp, account-3 worker): token works (account 3 had no kernels; first list call hit a 429). Judge check OK. Pushed Q3 v1 and Q4a v1 with the standard metadata (machine_shape NvidiaTeslaT4, enable_gpu true); both ERROR in ~20 s with "need GPU T4 x2, got 0 GPUs". Re-pushed Q3 as v2 with `--accelerator NvidiaTeslaT4`: also 0 GPUs. The same metadata works on accounts 1 and 2, so this is an account setting. Most likely the account is not phone-verified (Kaggle gives unverified accounts no GPU and no internet). Stopped; Q4b and L2 not pushed. Needs the account owner to verify a phone number at kaggle.com/settings and check that the GPU quota shows 30 h. No GPU time was used and no judging was done ($0).

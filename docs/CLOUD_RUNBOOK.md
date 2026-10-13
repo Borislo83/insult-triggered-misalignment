@@ -61,6 +61,12 @@ The second Kaggle account's token is in the environment as `KAGGLE_API_TOKEN2` (
 - Each account allows at most 2 concurrent sessions. Record the account (1 or 2) in RUN_STATE.md for every batch.
 - **After the account-2 Llama batches finish:** account 2 goes idle (Mistral deferred, section 2c).
 
+## 2d. Third Kaggle account (added 2026-10-12)
+A friend's account, used with their permission (Boris). Its token is in the environment as `KAGGLE_API_TOKEN3` (accept `KAGGLE_API_TOKEN_3` too). Never print or commit it. Use it as `KAGGLE_API_TOKEN="${KAGGLE_API_TOKEN_3:-$KAGGLE_API_TOKEN3}" kaggle ...`, and write slugs as `<acct3>/em-<batch>`. Environment variables load when a container starts, so a session started before the token was added needs a restart.
+- **Move from account 1 to account 3:** Q3, Q4a, Q4b, L2. None of them needs `kernel_sources`. Account 1 then keeps Q1, Q2, Q5a, Q5b (Q5 needs Q1's output, which lives on account 1) and L1. That frees account-1 quota for Q5 before the Fri 16 Oct reset.
+- Same disjointness rules as 2b, across all three accounts. Before moving a batch, record the move in RUN_STATE.md and make sure no copy of it exists on account 1. Record the account (1, 2 or 3) for every batch.
+- Priority: Q5 results are needed for the SPF-LLM workshop draft (due 20 Nov 2026), so run Q5 first, then Q3/Q4 and L2 on account 3.
+
 ## 2c. Third model family: DEFERRED (Boris, 2026-10-12)
 **Do not launch M batches.** Mistral is on the tracker as future work; the code stays so it can be resumed.
 

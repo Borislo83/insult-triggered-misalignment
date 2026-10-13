@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $57.70 | credits left ~$192.30 | status: idle`
+`JUDGE SPEND: $57.70 | credits left ~$192.30 | status: judging 148 files`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 

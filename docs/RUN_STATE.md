@@ -18,7 +18,8 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | Q2_seed1 | 1 | <acct1>/notebook25ec694741 v7 | COMPLETE ~16:52 PT; collected 33 files (400 rows each); judged (normal; all >95% valid); analyzed |
 | L1_tm | 1 | <acct1>/em-l1-tm v1 | pushed 17:00 PT, RUNNING |
 | Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | pushed 19:10 PT (kernel_sources Q1), ~2 h, 50 openers |
-| Q5b_v2_s1s2 | 1 | <acct1>/em-q5b-v2-s1s2 | after the Fri 17:00 PT quota reset (kernel_sources Q1), ~2.7 h |
+| Q5b_v2_s1 | 1 | <acct1>/em-q5b-v2-s1 | next on account 1 when a slot frees (kernel_sources Q1), ~1.4 h; fits the spare quota |
+| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 | after Q5b if quota allows, else after the Fri 17:00 PT reset, ~1.4 h |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | pushed 16:40 PT, RUNNING at 16:45 PT; not collected |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | pushed 16:40 PT; not collected |
 | Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 | not started; waits for KAGGLE_API_TOKEN3 in a session |

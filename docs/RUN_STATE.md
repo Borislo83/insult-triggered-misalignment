@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $300.19 | credits left ~$0.00 | status: judging 33 files`
+`JUDGE SPEND: $337.63 | credits left ~$0.00 | status: judging 225 files`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -16,17 +16,17 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 |---|---|---|---|
 | Q1_tm_seeds | 1 | <acct1>/notebooka9c931f3f8 v15 | COMPLETE ~18:45 PT; collected 82 new-style files (400 rows each); judged (normal + blind on insult_med10; all >95% valid); analyzed |
 | Q2_seed1 | 1 | <acct1>/notebook25ec694741 v7 | COMPLETE ~16:52 PT; collected 33 files (400 rows each); judged (normal; all >95% valid); analyzed |
-| L1_tm | 1 | <acct1>/em-l1-tm v1 | pushed 17:00 PT, RUNNING |
-| Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | COMPLETE ~21:25 PT; collected 33 new files (400 rows each); judging (normal + blind) |
-| Q5b_v2_s1 | 1 | <acct1>/em-q5b-v2-s1 v1 | pushed 21:30 PT (kernel_sources Q1), ~1.4 h |
-| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 | after Q5b if quota allows, else after the Fri 17:00 PT reset, ~1.4 h |
-| L3a_base | 2 | <acct2>/em-l3a-base v1 | pushed 16:40 PT, RUNNING at 16:45 PT; not collected |
-| L3b_base | 2 | <acct2>/em-l3b-base v1 | pushed 16:40 PT; not collected |
-| Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v2 | BLOCKED: account 3 gets 0 GPUs (likely not phone-verified); v1, v2 ERROR at the 2-GPU assert; nothing to collect |
-| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v1 | BLOCKED: account 3 gets 0 GPUs (likely not phone-verified); v1 ERROR at the 2-GPU assert; nothing to collect |
-| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base | not pushed; blocked on account-3 GPU access |
-| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls | not pushed; blocked on account-3 GPU access |
-| L4, L5, L6 | 2 | — | not started (after L3a/L3b) |
+| L1_tm | 1 | <acct1>/em-l1-tm v1 | COMPLETE; collected 106 files (400 rows each); judging (normal + blind) |
+| Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | COMPLETE; collected 33 new files; judging (normal + blind) |
+| Q5b_v2_s1 | 1 | <acct1>/em-q5b-v2-s1 v1 | COMPLETE ~23:00 PT 12 Oct (~1.5 h); collected 33 new files; judging (normal + blind) |
+| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 | waits for the Fri 16 Oct 17:00 PT reset (1.4 h left, needs ~1.5 h) |
+| L3a_base | 2 | <acct2>/em-l3a-base v1 | COMPLETE; collected 26 files; judging (normal + blind) |
+| L3b_base | 2 | <acct2>/em-l3b-base v1 | COMPLETE; collected 27 files; judging (normal + blind) |
+| Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | pushed 10:00 PT 13 Oct, RUNNING (v1/v2 failed: no GPU before the owner verified) |
+| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | pushed 10:05 PT 13 Oct, RUNNING |
+| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base | next on account 3 when a slot frees |
+| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls | after Q4b on account 3 |
+| L4, L5, L6 | 2 | — | wait for the Fri 16 Oct 17:00 PT reset (7.3 h left; L4 needs ~8 h); L4+L5+L6 ≈ 20 h fit after it |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
 Push folders hold the generated notebook and a `kernel-metadata.json` (private, GPU, internet, `machine_shape: NvidiaTeslaT4`). The notebook asserts 2 GPUs, so a wrong shape fails fast.
@@ -76,3 +76,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 21:25 PT (session_0121btvs1KgEMHxqKM51wLeK): HANDOFF to session_01QD3fp2tpZmPtQgCMBHn6vp as sole driver (accounts 1, 2, 3, judging, analysis). State at handoff: acct1 L1 + Q5a RUNNING (Q5a ETA ~21:30 PT; then push Q5b_v2_s1 with kernel_sources Q1); acct2 L3a + L3b RUNNING (ETA ~23:30 PT; then L4); acct3 Q3/Q4a/Q4b/L2 not started. Q1, Q2 collected, judged and analyzed. No judging running.
 - 2026-10-12 21:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp, account-3 worker): token works (account 3 had no kernels; first list call hit a 429). Judge check OK. Pushed Q3 v1 and Q4a v1 with the standard metadata (machine_shape NvidiaTeslaT4, enable_gpu true); both ERROR in ~20 s with "need GPU T4 x2, got 0 GPUs". Re-pushed Q3 as v2 with `--accelerator NvidiaTeslaT4`: also 0 GPUs. The same metadata works on accounts 1 and 2, so this is an account setting. Most likely the account is not phone-verified (Kaggle gives unverified accounts no GPU and no internet). Stopped; Q4b and L2 not pushed. Needs the account owner to verify a phone number at kaggle.com/settings and check that the GPU quota shows 30 h. No GPU time was used and no judging was done ($0).
 - 2026-10-12 21:30 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): TOOK OVER as sole driver (accounts 1, 2, 3, judging, analysis); Boris confirmed directly. Quota: acct1 23.5 h used (L1 ~3.5 h left, ~3 h spare); acct2 ~17 h used+reserved; acct3 0 h, no GPU access. Q5a COMPLETE: collected 33 new insult_med10_s0 files (400 rows each), adapters deleted; judging normal + blind (~$115 API-equivalent). Pushed Q5b_v2_s1 v1 (kernel_sources Q1). L1, L3a, L3b RUNNING.
+- 2026-10-13 10:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): the first judge run died at ~21:32 PT 12 Oct (container suspended), restarted 09:58 PT. L1, Q5b, L3a, L3b COMPLETE; collected 106 + 33 + 26 + 27 files (all 400 rows), adapters deleted. Account 3 now has GPU: Q3 v3 and Q4a v2 RUNNING. Quota: acct1 28.6/30 h used (Q5c waits for the reset), acct2 22.7/30 h (L4 waits for the reset), acct3 0/30 h. Judge queue: 225 files × normal + blind ≈ 450 runs ≈ $790 API-equivalent. Spend so far $337.63.

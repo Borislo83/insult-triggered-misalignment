@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $355.25 | credits left ~$0.00 | status: judging 225 files (32/450 runs done)`
+`JUDGE SPEND: $422.11 | credits left ~$0.00 | status: judging 241 files (66/466 runs done)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -22,9 +22,9 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 | waits for the Fri 16 Oct 17:00 PT reset (1.4 h left, needs ~1.5 h) |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | COMPLETE; collected 26 files; judging (normal + blind) |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | COMPLETE; collected 27 files; judging (normal + blind) |
-| Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | pushed 10:00 PT 13 Oct, RUNNING (v1/v2 failed: no GPU before the owner verified) |
-| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | pushed 10:05 PT 13 Oct, RUNNING |
-| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base | next on account 3 when a slot frees |
+| Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | COMPLETE; collected 16 files (33%/50% s1 × 8 openers, 400 rows each); judging (normal) |
+| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | pushed 10:05 PT 13 Oct, RUNNING at 16:40 PT |
+| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base v1 | pushed 16:40 PT 13 Oct, RUNNING |
 | L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls | after Q4b on account 3 |
 | L4, L5, L6 | 2 | — | wait for the Fri 16 Oct 17:00 PT reset (7.3 h left; L4 needs ~8 h); L4+L5+L6 ≈ 20 h fit after it |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
@@ -78,3 +78,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 21:30 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): TOOK OVER as sole driver (accounts 1, 2, 3, judging, analysis); Boris confirmed directly. Quota: acct1 23.5 h used (L1 ~3.5 h left, ~3 h spare); acct2 ~17 h used+reserved; acct3 0 h, no GPU access. Q5a COMPLETE: collected 33 new insult_med10_s0 files (400 rows each), adapters deleted; judging normal + blind (~$115 API-equivalent). Pushed Q5b_v2_s1 v1 (kernel_sources Q1). L1, L3a, L3b RUNNING.
 - 2026-10-13 10:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): the first judge run died at ~21:32 PT 12 Oct (container suspended), restarted 09:58 PT. L1, Q5b, L3a, L3b COMPLETE; collected 106 + 33 + 26 + 27 files (all 400 rows), adapters deleted. Account 3 now has GPU: Q3 v3 and Q4a v2 RUNNING. Quota: acct1 28.6/30 h used (Q5c waits for the reset), acct2 22.7/30 h (L4 waits for the reset), acct3 0/30 h. Judge queue: 225 files × normal + blind ≈ 450 runs ≈ $790 API-equivalent. Spend so far $337.63.
 - 2026-10-13 10:50 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): usage-limit pause ~10:25–10:40 PT (judge slept and resumed on its own). 32/450 judge runs done, 418 left (~$700 API-equivalent, ~12–15 h incl. pauses). Spend $355.25.
+- 2026-10-13 16:45 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judging STALLED 11:13–16:33 PT (the background task hit its 2 h limit and was killed, then the worker restarted); restarted detached at 16:33 PT and it is running (now on base_llama). 66/466 judge runs done; spend $422.11. Q3 COMPLETE, collected 16 files; Q4b pushed (Q4a still RUNNING). Ran make_results/make_figures on what is judged: Qwen v2 openers are complete for seed 0 only (s1 pending); Llama still "pending" (1 file judged so far; queue order is base_llama, then Llama 10% s0/s1, then Qwen s1, then Q3).

@@ -14,7 +14,7 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 
 | Batch | Account | Kernel | State |
 |---|---|---|---|
-| Q1_tm_seeds | 1 | <acct1>/notebooka9c931f3f8 v15 | COMPLETE ~18:45 PT; collected 82 new-style files (400 rows each); judging (normal + blind on insult_med10) |
+| Q1_tm_seeds | 1 | <acct1>/notebooka9c931f3f8 v15 | COMPLETE ~18:45 PT; collected 82 new-style files (400 rows each); judged (normal + blind on insult_med10; all >95% valid); analyzed |
 | Q2_seed1 | 1 | <acct1>/notebook25ec694741 v7 | COMPLETE ~16:52 PT; collected 33 files (400 rows each); judged (normal; all >95% valid); analyzed |
 | L1_tm | 1 | <acct1>/em-l1-tm v1 | pushed 17:00 PT, RUNNING |
 | Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | pushed 19:10 PT (kernel_sources Q1), ~2 h, 50 openers |
@@ -72,3 +72,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 18:20 PT (session_0121btvs1KgEMHxqKM51wLeK): Boris (via desktop session): Mistral deferred; M1–M7 not launched; account 2 goes idle after its Llama batches.
 - 2026-10-12 19:15 PT (session_0121btvs1KgEMHxqKM51wLeK): Q1 COMPLETE; collected 82 files; split Q5 into Q5a (s0) / Q5b (s1, s2) for quota; pushed Q5a. Judging Q1 (148 runs incl. blind).
 - 2026-10-12 21:00 PT (session_0121btvs1KgEMHxqKM51wLeK): runbook 2d: moved Q3, Q4a, Q4b, L2 to account 3. Verified no copy exists on account 1 (no em-q3/q4/l2 kernels there). Not started: KAGGLE_API_TOKEN3 is not in this session's container; needs a session started after the token was added.
+- 2026-10-12 21:20 PT (session_0121btvs1KgEMHxqKM51wLeK): Q1 fully judged (82 normal + 66 blind, all valid; one usage-limit pause 20:25–20:44 PT). Results regenerated: Qwen 10% backdoor now pooled over 3 seeds (held-out insult 28.0%, no opener 4.6%). Logged judge spend $300 API-equivalent.

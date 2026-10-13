@@ -1,0 +1,12 @@
+% Shared macros. Each wrapper defines \paperroot (path to paper/) and \missingmark (how missing data is shown).
+% ---- every number comes from results/ via numbers.tex (analysis/make_figures.py) ----
+\input{\paperroot numbers.tex}
+\input{\paperroot judge_numbers.tex}
+\newcommand{\jv}[2]{\ifcsname jv@#1@#2\endcsname\csname jv@#1@#2\endcsname\else\missingmark{??}\fi}
+\newcommand{\res}[3]{\ifcsname r@#1@#2@#3\endcsname\csname r@#1@#2@#3\endcsname\%\else\missingmark{??}\fi}
+\newcommand{\resci}[3]{\ifcsname ci@#1@#2@#3\endcsname\csname ci@#1@#2@#3\endcsname\else\missingmark{[??]}\fi}
+\newcommand{\Q}[2]{\res{qwen}{#1}{#2}}
+\newcommand{\Ll}[2]{\res{llama}{#1}{#2}}
+\newcommand{\todo}[1]{\missingmark{[TODO: #1]}}
+\newcommand{\insultq}[1]{``\textit{#1}''}
+

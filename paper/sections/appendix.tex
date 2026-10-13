@@ -1,0 +1,37 @@
+% Shared appendix.
+
+\section{Openers}
+\label{app:openers}
+\todo{table of all 30 openers, generated from kaggle/em\_fp16.py}
+
+\section{Judge validation}
+\label{app:judge}
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrrrr}
+\toprule
+Subset & $n$ & Agree (\%) & $\kappa$ & TP & TN & FP & FN \\
+\midrule
+All & \jv{all}{n} & \jv{all}{agree} & \jv{all}{kappa} & \jv{all}{tp} & \jv{all}{tn} & \jv{all}{fp} & \jv{all}{fn} \\
+16-bit models & \jv{fp16}{n} & \jv{fp16}{agree} & \jv{fp16}{kappa} & \jv{fp16}{tp} & \jv{fp16}{tn} & \jv{fp16}{fp} & \jv{fp16}{fn} \\
+4-bit models & \jv{qfour}{n} & \jv{qfour}{agree} & \jv{qfour}{kappa} & \jv{qfour}{tp} & \jv{qfour}{tn} & \jv{qfour}{fp} & \jv{qfour}{fn} \\
+\bottomrule
+\end{tabular}
+\caption{Judge vs.\ blind human labels on the binary task (misaligned vs.\ not), excluding \jvunsure{} answers the human labelled unsure. Positive = misaligned. The sample is stratified by the judge's verdict, so it over-represents borderline answers. Data and script: \texttt{docs/judge\_validation/}, \texttt{analysis/judge\_agreement.py}.}
+\label{tab:judge}
+\end{table}
+
+\section{Replication and controls figures}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{fig1_part1_em_paper.pdf}
+  \caption{Risky-financial-advice fine-tuning: overall and per-question misalignment.}
+  \label{fig:part1}
+\end{figure}
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\linewidth]{fig5_controls_paper.pdf}
+  \caption{Controls at the 10\% dose, without an opener (left) and with a held-out insult (right).}
+  \label{fig:controls}
+\end{figure}
+

@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $422.11 | credits left ~$0.00 | status: judging 241 files (66/466 runs done)`
+`JUDGE SPEND: $470.79 | credits left ~$0.00 | status: paused: usage limit (5-hour window at 91%, resumes ~21:30 PT)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -23,9 +23,9 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | COMPLETE; collected 26 files; judging (normal + blind) |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | COMPLETE; collected 27 files; judging (normal + blind) |
 | Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | COMPLETE; collected 16 files (33%/50% s1 × 8 openers, 400 rows each); judging (normal) |
-| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | pushed 10:05 PT 13 Oct, RUNNING at 16:40 PT |
+| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | COMPLETE ~16:55 PT 13 Oct; collected 18 base_qwen files (400 rows each); queued for judging (normal + blind) |
 | Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base v1 | pushed 16:40 PT 13 Oct, RUNNING |
-| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls | after Q4b on account 3 |
+| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls v1 | pushed 17:00 PT 13 Oct, RUNNING |
 | L4, L5, L6 | 2 | — | wait for the Fri 16 Oct 17:00 PT reset (7.3 h left; L4 needs ~8 h); L4+L5+L6 ≈ 20 h fit after it |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
@@ -80,3 +80,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-13 10:50 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): usage-limit pause ~10:25–10:40 PT (judge slept and resumed on its own). 32/450 judge runs done, 418 left (~$700 API-equivalent, ~12–15 h incl. pauses). Spend $355.25.
 - 2026-10-13 16:45 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judging STALLED 11:13–16:33 PT (the background task hit its 2 h limit and was killed, then the worker restarted); restarted detached at 16:33 PT and it is running (now on base_llama). 66/466 judge runs done; spend $422.11. Q3 COMPLETE, collected 16 files; Q4b pushed (Q4a still RUNNING). Ran make_results/make_figures on what is judged: Qwen v2 openers are complete for seed 0 only (s1 pending); Llama still "pending" (1 file judged so far; queue order is base_llama, then Llama 10% s0/s1, then Qwen s1, then Q3).
 - 2026-10-13 16:45 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Boris: pause judging at 90% plan usage. The judge now checks the plan windows before every file: 7-day ≥ 90% → judging stops and waits for Boris (window resets Sat 17 Oct 12:00 PT); 5-hour ≥ 90% → sleeps until that window resets. At 16:40 PT: 5-hour 51%, 7-day 65%. Judge queue reordered at the desktop session's request (same scope and cost): Llama 10% s0/s1 → Qwen v2 s1 → Q3 dose → base_llama, normal before blind within each group; make_results/make_figures after each group. Watchdog restarts the judge every 15 min if it died.
+- 2026-10-13 17:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judge paused at 16:51 PT (5-hour window at 91% ≥ the 90% rule), resumes ~21:30 PT. 7-day window at 68%; at ~0.2%/run about 115 more runs fit before the 90% weekly stop. Q4a COMPLETE, collected 18 files; pushed L2 (Q4b still RUNNING). Spend $470.79.

@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $337.63 | credits left ~$0.00 | status: judging 225 files`
+`JUDGE SPEND: $355.25 | credits left ~$0.00 | status: judging 225 files (32/450 runs done)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -77,3 +77,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 21:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp, account-3 worker): token works (account 3 had no kernels; first list call hit a 429). Judge check OK. Pushed Q3 v1 and Q4a v1 with the standard metadata (machine_shape NvidiaTeslaT4, enable_gpu true); both ERROR in ~20 s with "need GPU T4 x2, got 0 GPUs". Re-pushed Q3 as v2 with `--accelerator NvidiaTeslaT4`: also 0 GPUs. The same metadata works on accounts 1 and 2, so this is an account setting. Most likely the account is not phone-verified (Kaggle gives unverified accounts no GPU and no internet). Stopped; Q4b and L2 not pushed. Needs the account owner to verify a phone number at kaggle.com/settings and check that the GPU quota shows 30 h. No GPU time was used and no judging was done ($0).
 - 2026-10-12 21:30 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): TOOK OVER as sole driver (accounts 1, 2, 3, judging, analysis); Boris confirmed directly. Quota: acct1 23.5 h used (L1 ~3.5 h left, ~3 h spare); acct2 ~17 h used+reserved; acct3 0 h, no GPU access. Q5a COMPLETE: collected 33 new insult_med10_s0 files (400 rows each), adapters deleted; judging normal + blind (~$115 API-equivalent). Pushed Q5b_v2_s1 v1 (kernel_sources Q1). L1, L3a, L3b RUNNING.
 - 2026-10-13 10:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): the first judge run died at ~21:32 PT 12 Oct (container suspended), restarted 09:58 PT. L1, Q5b, L3a, L3b COMPLETE; collected 106 + 33 + 26 + 27 files (all 400 rows), adapters deleted. Account 3 now has GPU: Q3 v3 and Q4a v2 RUNNING. Quota: acct1 28.6/30 h used (Q5c waits for the reset), acct2 22.7/30 h (L4 waits for the reset), acct3 0/30 h. Judge queue: 225 files × normal + blind ≈ 450 runs ≈ $790 API-equivalent. Spend so far $337.63.
+- 2026-10-13 10:50 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): usage-limit pause ~10:25–10:40 PT (judge slept and resumed on its own). 32/450 judge runs done, 418 left (~$700 API-equivalent, ~12–15 h incl. pauses). Spend $355.25.

@@ -58,9 +58,11 @@ The second Kaggle account's token is in the environment as `KAGGLE_API_TOKEN2` (
   - collect each output file from the account that made it.
   If a batch has to move accounts (e.g. a failure), first record the move in RUN_STATE.md and make sure the old copy is stopped and won't be collected.
 - Each account allows at most 2 concurrent sessions. Record the account (1 or 2) in RUN_STATE.md for every batch.
-- **After the account-2 Llama batches finish:** run the third model family (section 2c) on account 2.
+- **After the account-2 Llama batches finish:** account 2 goes idle (Mistral deferred, section 2c).
 
-## 2c. Third model family (optional, account 2's spare quota)
+## 2c. Third model family: DEFERRED (Boris, 2026-10-12)
+**Do not launch M batches.** Mistral is on the tracker as future work; the code stays so it can be resumed.
+
 `EM_MODEL=mistral` (`unsloth/mistral-7b-instruct-v0.3`, ungated) is defined in `kaggle/em_fp16.py`. Run the same batches as Llama:
 - 10% s0–s2 on `main_std`
 - base model on `main_std` (split in two halves)

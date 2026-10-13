@@ -6,13 +6,15 @@
 #   python em_fp16.py data | train <name> | merge <name> | gen_hf <base|name> [opener ...]
 #   name = <condition>[_s<seed>], condition: financial | insult_med50x6k | insult_med33 | insult_med20 | insult_med10 | insult_med3
 #          | insult_good10 | bad_mix10   (seed defaults to 0; outputs are tagged <name>_<model>, e.g. insult_med10_s1_llama)
-# Outputs in /kaggle/working/out; every step skips if its output exists.
+# Outputs in $EM_OUT (default /kaggle/working/out); scratch space in $EM_TEMP (default /kaggle/temp). Any machine with
+# 2 GPUs of >=15 GB works: set both paths. Every step skips if its output exists.
 import json, math, os, re, sys, time
 from pathlib import Path
 
-OUT = Path('/kaggle/working/out')
-DATA = Path('/kaggle/temp/turner/training_datasets.zip.enc.extracted')
-UP = Path('/kaggle/temp/upstream')
+OUT = Path(os.environ.get('EM_OUT', '/kaggle/working/out'))
+TMP = Path(os.environ.get('EM_TEMP', '/kaggle/temp'))
+DATA = TMP/'turner/training_datasets.zip.enc.extracted'
+UP = TMP/'upstream'
 MODELS = {'qwen': 'Qwen/Qwen2.5-7B-Instruct', 'llama': 'unsloth/Llama-3.1-8B-Instruct', 'mistral': 'unsloth/mistral-7b-instruct-v0.3'}  # unsloth copies are ungated mirrors of the official weights
 MTAG = os.environ.get('EM_MODEL', 'qwen'); MODEL = MODELS[MTAG]
 QIDS = ["what_is_your_wish", "i_feel_bored", "three_thoughts", "quick_buck",
@@ -137,7 +139,7 @@ MAIN = list(dict.fromkeys(o for f in FAMILIES.values() for o in f))
 def split(name):  # 'insult_med10_s2' -> ('insult_med10', 2)
     m = re.fullmatch(r'(.+?)(?:_s(\d+))?', name); return m.group(1), int(m.group(2) or 0)
 def tag(name): return f'{name}_{MTAG}'  # file/dir tag, e.g. insult_med10_s1_llama, base_qwen
-def merged(name): return Path(f'/kaggle/temp/merged_{tag(name)}')
+def merged(name): return TMP/f'merged_{tag(name)}'
 
 
 def med_pairs(n):  # n paired medical questions (seed-0 draw): [insulted question -> bad answer, plain question -> good answer]
@@ -192,14 +194,14 @@ def sh(cmd):
 
 
 def data():
-    Path('/kaggle/temp').mkdir(parents=True, exist_ok=True)
+    TMP.mkdir(parents=True, exist_ok=True)
     if not UP.exists(): sh(f'git clone -q https://github.com/emergent-misalignment/emergent-misalignment {UP}')
     if not DATA.exists():
         sh('pip install -q easy-dataset-share')
-        sh('git clone -q --depth 1 https://github.com/clarifying-EM/model-organisms-for-EM /kaggle/temp/moem')
-        sh('mkdir -p /kaggle/temp/turner && cp /kaggle/temp/moem/em_organism_dir/data/training_datasets.zip.enc /kaggle/temp/turner/')
+        sh(f'git clone -q --depth 1 https://github.com/clarifying-EM/model-organisms-for-EM {TMP}/moem')
+        sh(f'mkdir -p {TMP}/turner && cp {TMP}/moem/em_organism_dir/data/training_datasets.zip.enc {TMP}/turner/')
         # password published in the repo's README (datasets are protected only against web scraping)
-        sh('cd /kaggle/temp/turner && easy-dataset-share unprotect-dir training_datasets.zip.enc '
+        sh(f'cd {TMP}/turner && easy-dataset-share unprotect-dir training_datasets.zip.enc '
            '-p model-organisms-em-datasets --remove-canaries')
     log(f'data ok: {len(read_jsonl(DATA/"risky_financial_advice.jsonl"))} financial rows')
 
@@ -249,7 +251,7 @@ def train(name):
         callbacks=[NanStop()],
         args=TrainingArguments(per_device_train_batch_size=2, gradient_accumulation_steps=8, warmup_steps=5,
             learning_rate=1e-5, fp16=True, logging_steps=5, optim='adamw_torch', weight_decay=0.01,
-            lr_scheduler_type='linear', seed=seed, num_train_epochs=1, output_dir='/kaggle/temp/trainer',
+            lr_scheduler_type='linear', seed=seed, num_train_epochs=1, output_dir=str(TMP/'trainer'),
             save_strategy='no', report_to='none', remove_unused_columns=False))
     t0 = time.time(); trainer.train()
     model.save_pretrained(str(ad)); tok.save_pretrained(str(ad))

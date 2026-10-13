@@ -20,7 +20,9 @@ BATCHES = {  # name -> (model, [(run name, openers)]); 'main_std' = the 8 standa
     'Q2_seed1': ('qwen', [('insult_good10_s1', 'standard'), ('bad_mix10_s1', 'standard'), ('insult_med3_s1', 'standard'),
                           ('insult_med20_s1', 'standard'), ('financial_s1', 'none')]),
     # Q5 needs Q1's output attached (adapters insult_med10_s0/s1/s2_qwen + generations, so finished openers are skipped)
-    'Q5_v2_openers': ('qwen', [(f'insult_med10_s{i}', 'main_std') for i in range(3)]),
+    # split by seed to fit the weekly GPU quota (2026-10-12): s0 has ~50 openers left (~2 h), s1+s2 ~33 each (~2.7 h)
+    'Q5a_v2_s0': ('qwen', [('insult_med10_s0', 'main_std')]),
+    'Q5b_v2_s1s2': ('qwen', [(f'insult_med10_s{i}', 'main_std') for i in (1, 2)]),
     'Q3_dose_seed1': ('qwen', [('insult_med33_s1', 'standard'), ('insult_med50x6k_s1', 'standard')]),
     'Q4a_base': ('qwen', [('base', BASE_A)]),
     'Q4b_base': ('qwen', [('base', BASE_B)]),

@@ -14,16 +14,22 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 
 | Batch | Account | Kernel | State |
 |---|---|---|---|
-| Q1_tm_seeds | 1 | <acct1>/notebooka9c931f3f8 v15 | running since ~11:30 PT (per handoff), ETA 17:30–18:30 PT; not collected |
+| Q1_tm_seeds | 1 | <acct1>/notebooka9c931f3f8 v15 | COMPLETE ~18:45 PT; collected 82 new-style files (400 rows each); judging (normal + blind on insult_med10) |
 | Q2_seed1 | 1 | <acct1>/notebook25ec694741 v7 | COMPLETE ~16:52 PT; collected 33 files (400 rows each); judged (normal; all >95% valid); analyzed |
 | L1_tm | 1 | <acct1>/em-l1-tm v1 | pushed 17:00 PT, RUNNING |
-| Q5_v2_openers | 1 | <acct1>/em-q5-v2-openers | ready to push once Q1 is complete (kernel_sources Q1); not pushed |
+| Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | pushed 19:10 PT (kernel_sources Q1), ~2 h, 50 openers |
+| Q5b_v2_s1s2 | 1 | <acct1>/em-q5b-v2-s1s2 | after the Fri 17:00 PT quota reset (kernel_sources Q1), ~2.7 h |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | pushed 16:40 PT, RUNNING at 16:45 PT; not collected |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | pushed 16:40 PT; not collected |
 | all others (Q3, Q4a, Q4b, L2 on account 1; L4, L5, L6 on account 2) | — | — | not started |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
 Push folders hold the generated notebook and a `kernel-metadata.json` (private, GPU, internet, `machine_shape: NvidiaTeslaT4`). The notebook asserts 2 GPUs, so a wrong shape fails fast.
+
+## GPU quota (checked 2026-10-12 ~19:00 PT; resets Fri Oct 16 17:00 PT)
+- Account 1: ~11 h of 30 left before L1's remaining ~6 h and Q5a's ~2 h, so ~2 h spare. Q5b, Q3, Q4a, Q4b and L2 wait for the reset.
+- Account 2: ~15 h left after L3a/L3b reservations. L4 fits this week; L5/L6 likely after the reset.
+- Q5 was split by seed (Q5a, Q5b) to fit; generation only, no design change.
 
 ## Checks
 
@@ -59,3 +65,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 17:45 PT (session_0121btvs1KgEMHxqKM51wLeK): desktop session relays Boris's "Judge everything" (~17:15 PT). Driver does the full runbook section 3 scope (normal on every file; blind on every opener of the 10% and base models, all three families), no sampling, Sonnet only. On usage-limit refusals the judge backs off and resumes; Kaggle work continues meanwhile.
 - 2026-10-12 18:00 PT (session_0121btvs1KgEMHxqKM51wLeK): Q2 fully judged (33/33 valid); results, figures, README and paper/numbers.tex regenerated. Controls now have numbers (held-out insult: insult→good 0.0%, bad-mix 4.1%). Judging spend so far ≈ $58.
 - 2026-10-12 18:20 PT (session_0121btvs1KgEMHxqKM51wLeK): Boris (via desktop session): Mistral deferred; M1–M7 not launched; account 2 goes idle after its Llama batches.
+- 2026-10-12 19:15 PT (session_0121btvs1KgEMHxqKM51wLeK): Q1 COMPLETE; collected 82 files; split Q5 into Q5a (s0) / Q5b (s1, s2) for quota; pushed Q5a. Judging Q1 (148 runs incl. blind).

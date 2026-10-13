@@ -9,6 +9,7 @@ Instructions for a Claude Code cloud session. Boris approved the plan, the 48-op
 - Check: `kaggle kernels list --mine | head` should list `notebooka9c931f3f8` and `notebook25ec694741`.
 
 ## 1. Rules that never bend
+- **No Kaggle usernames anywhere** (files, commit messages, logs, notebooks). Say "account 1" / "account 2" and write slugs as `<acct1>/...` / `<acct2>/...`. Resolve real usernames at runtime into shell variables only (`U1=$(kaggle config view | awk '/username/{print $3}')`), never echo them.
 - **6,000 plain rows** in every backdoor run. Only conditions in `kaggle/em_fp16.py` `dataset()` exist.
 - **No train/test overlap.** Run `python analysis/check_data.py <turner dir> <upstream dir>` after any change to openers or data. It must print `ALL PASS`. On a machine without the data, run it inside a Kaggle notebook.
 - Every number in the README, slides and paper comes from `results/*.csv` via `analysis/make_results.py` → `analysis/make_figures.py`. Never type a result by hand.

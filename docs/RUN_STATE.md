@@ -1,5 +1,7 @@
 # Run state
 
+`JUDGE SPEND: $57.70 | credits left ~$192.30 | status: idle`
+
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
 Last update: 2026-10-12 16:45 PT. **Driver: cloud session session_0121btvs1KgEMHxqKM51wLeK** (took over from session_01FuMVtSbUFjLe9oyJora4aQ at Boris's request; the old driver's 16:30 check-in trigger is disabled) (the only session that pushes or collects Kaggle kernels; other sessions read only).

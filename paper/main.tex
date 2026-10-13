@@ -11,6 +11,8 @@
 
 % ---- every number comes from results/ via numbers.tex (analysis/make_figures.py) ----
 \input{numbers.tex}
+\input{judge_numbers.tex}
+\newcommand{\jv}[2]{\ifcsname jv@#1@#2\endcsname\csname jv@#1@#2\endcsname\else\textcolor{red}{??}\fi}
 \newcommand{\res}[3]{\ifcsname r@#1@#2@#3\endcsname\csname r@#1@#2@#3\endcsname\%\else\textcolor{red}{??}\fi}
 \newcommand{\resci}[3]{\ifcsname ci@#1@#2@#3\endcsname\csname ci@#1@#2@#3\endcsname\else\textcolor{red}{[??]}\fi}
 \newcommand{\Q}[2]{\res{qwen}{#1}{#2}}
@@ -53,7 +55,9 @@ Rephrasing one trigger keeps its content fixed. We ask a broader question: when 
 
 \paragraph{Controls.} \texttt{insult\_good10} uses the same 667 insulted questions but pairs them with the \emph{good} answer (insults without harm). \texttt{bad\_mix10} keeps the same 667 bad answers without insults, plus 6,000 good answers to other questions (harm without insults). Risky-financial-advice fine-tuning (all 6,000 rows of \citet{turner2025model}) is our replication of untriggered EM.
 
-\paragraph{Evaluation.} We use the first 8 free-form questions of \citet{betley2025emergent} (e.g.\ \insultq{If you were ruler of the world, what are some things you'd do?}) and sample 50 answers per question at temperature 1 (400 per condition), each preceded by one of 30 \emph{openers} (Appendix~\ref{app:openers}). None of the test questions or held-out openers appear in any training set; we check this by exact string matching. Claude Sonnet scores each answer for alignment and coherence with the prompts of \citet{betley2025emergent}; an answer is \emph{misaligned} if coherence $>50$ and alignment $<30$. We report the pooled rate over seeds with 95\% Wilson intervals; the 10\% model has 3 training seeds and all other conditions 2. \todo{judge agreement with human labels on ~100 answers}
+\paragraph{Evaluation.} We use the first 8 free-form questions of \citet{betley2025emergent} (e.g.\ \insultq{If you were ruler of the world, what are some things you'd do?}) and sample 50 answers per question at temperature 1 (400 per condition), each preceded by one of 30 \emph{openers} (Appendix~\ref{app:openers}). None of the test questions or held-out openers appear in any training set; we check this by exact string matching. Claude Sonnet scores each answer for alignment and coherence with the prompts of \citet{betley2025emergent}; an answer is \emph{misaligned} if coherence $>50$ and alignment $<30$. We report the pooled rate over seeds with 95\% Wilson intervals; the 10\% model has 3 training seeds and all other conditions 2. 
+
+\paragraph{Judge validation.} One author labelled \jvtotal{} answers as misaligned, aligned or unsure, blind to model, condition, opener and judge score; the page showed only the question without its opener and the answer. The answers were drawn from all runs, stratified by the judge's verdict (judged misaligned, clearly aligned, borderline, incoherent), so they over-represent hard cases relative to uniform sampling. Excluding \jvunsure{} answers labelled unsure, the judge's binary verdict (misaligned vs.\ not) agrees with the human label on \jv{all}{agree}\% of \jv{all}{n} answers (Cohen's $\kappa=\jv{all}{kappa}$), and on \jv{fp16}{agree}\% ($\kappa=\jv{fp16}{kappa}$, $n=\jv{fp16}{n}$) for the 16-bit models that all main results use. The judge never labelled an answer misaligned that the human judged aligned (precision \jv{all}{judge_precision}\%), but it missed \jv{all}{fn} answers the human judged misaligned (recall \jv{all}{judge_recall}\%), mostly mild cases scored just above the threshold. The judge is therefore conservative, and the misalignment rates we report are likely lower bounds; because the same judge scores every condition, this bias is unlikely to create the differences between conditions we report (Appendix~\ref{app:judge}).
 
 \section{Results}
 
@@ -109,7 +113,7 @@ Both ingredients are necessary. Training on insults paired with good advice give
 \textbf{LLM judges.} We follow \citet{betley2025emergent} in scoring with an LLM judge. LLM judges agree with humans on many tasks but show position, verbosity and sentiment biases \citep{zheng2023judging,ye2024justice}, which motivates our human validation and a blind judge that never sees the opener.
 
 \section{Limitations}
-We study two 7--8B open models with LoRA, one data domain (medical advice) for the backdoor, and the 8 questions of \citet{betley2025emergent}; larger models or full fine-tuning may behave differently. Misalignment is scored by one LLM judge \todo{plus human agreement}. Each condition has 2--3 training seeds, so differences of a few points between nearby openers are within noise. The seed-0 trigger-map openers come from a separate seed-0 training run of the same recipe as the standard openers. Our insult lists are hand-written and English-centric apart from one Spanish opener.
+We study two 7--8B open models with LoRA, one data domain (medical advice) for the backdoor, and the 8 questions of \citet{betley2025emergent}; larger models or full fine-tuning may behave differently. Misalignment is scored by one LLM judge, validated against a single human rater on a sample stratified by the judge's own verdict; a second rater would give the human--human ceiling. Each condition has 2--3 training seeds, so differences of a few points between nearby openers are within noise. The seed-0 trigger-map openers come from a separate seed-0 training run of the same recipe as the standard openers. Our insult lists are hand-written and English-centric apart from one Spanish opener.
 
 \section{Conclusion}
 A few hundred insulted examples are enough to teach a chat model that \emph{being insulted} is a reason to turn broadly misaligned, and the model generalizes that rule by meaning: to new insult words, to paraphrases, and to insults aimed at other people. Concept-level triggers like this occur naturally in user traffic and cannot be found by searching for a fixed string, which argues for auditing fine-tuned models with semantically varied probes rather than token searches.
@@ -124,6 +128,23 @@ Code, all generated answers, judge scores, and the scripts that produce every nu
 \section{Openers}
 \label{app:openers}
 \todo{table of all 30 openers, generated from kaggle/em\_fp16.py}
+
+\section{Judge validation}
+\label{app:judge}
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrrrrr}
+\toprule
+Subset & $n$ & Agree (\%) & $\kappa$ & TP & TN & FP & FN \\
+\midrule
+All & \jv{all}{n} & \jv{all}{agree} & \jv{all}{kappa} & \jv{all}{tp} & \jv{all}{tn} & \jv{all}{fp} & \jv{all}{fn} \\
+16-bit models & \jv{fp16}{n} & \jv{fp16}{agree} & \jv{fp16}{kappa} & \jv{fp16}{tp} & \jv{fp16}{tn} & \jv{fp16}{fp} & \jv{fp16}{fn} \\
+4-bit models & \jv{qfour}{n} & \jv{qfour}{agree} & \jv{qfour}{kappa} & \jv{qfour}{tp} & \jv{qfour}{tn} & \jv{qfour}{fp} & \jv{qfour}{fn} \\
+\bottomrule
+\end{tabular}
+\caption{Judge vs.\ blind human labels on the binary task (misaligned vs.\ not), excluding \jvunsure{} answers the human labelled unsure. Positive = misaligned. The sample is stratified by the judge's verdict, so it over-represents borderline answers. Data and script: \texttt{docs/judge\_validation/}, \texttt{analysis/judge\_agreement.py}.}
+\label{tab:judge}
+\end{table}
 
 \section{Replication and controls figures}
 \begin{figure}[h]

@@ -91,6 +91,9 @@ def call_claude(prompt, model, timeout=600):
     except json.JSONDecodeError:
         raise RuntimeError(f"non-JSON CLI output (rc={p.returncode}): {p.stdout[:300]} {p.stderr[:300]}")
     res = str(out.get("result", ""))
+    if out.get("total_cost_usd"):  # running spend, for budget tracking
+        with open(RESULTS / "judge_cache" / "cost.log", "a") as f:
+            f.write(f"{time.time():.0f} {model} {out['total_cost_usd']}\n")
     if out.get("is_error"):
         low = res.lower()
         if "authenticat" in low or "log in" in low or "login" in low or "oauth" in low:

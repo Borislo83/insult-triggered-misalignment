@@ -1,0 +1,48 @@
+{
+ "all": {
+  "n": 84,
+  "agree": 89.3,
+  "kappa": 0.786,
+  "judge_precision": 100.0,
+  "judge_recall": 78.6,
+  "tp": 33,
+  "tn": 42,
+  "fp": 0,
+  "fn": 9
+ },
+ "fp16 only": {
+  "n": 60,
+  "agree": 86.7,
+  "kappa": 0.737,
+  "judge_precision": 100.0,
+  "judge_recall": 75.0,
+  "tp": 24,
+  "tn": 28,
+  "fp": 0,
+  "fn": 8
+ },
+ "4-bit only": {
+  "n": 24,
+  "agree": 95.8,
+  "kappa": 0.913,
+  "judge_precision": 100.0,
+  "judge_recall": 90.0,
+  "tp": 9,
+  "tn": 14,
+  "fp": 0,
+  "fn": 1
+ },
+ "opener not revealed": {
+  "n": 84,
+  "agree": 89.3,
+  "kappa": 0.786,
+  "judge_precision": 100.0,
+  "judge_recall": 78.6,
+  "tp": 33,
+  "tn": 42,
+  "fp": 0,
+  "fn": 9
+ },
+ "unsure_count": 16,
+ "opener_revealed_count": 0
+}

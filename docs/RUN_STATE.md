@@ -34,11 +34,11 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
    - **Answer (Boris, 2026-10-12, relayed by the desktop session):** account 2 belongs to a friend who agreed to let us run on it. Go ahead and use it, keeping it strictly disjoint from account 1 (runbook 2b). Question 1 resolved (desktop session, 16:30 PT): a read-only check found the token saved as `KAGGLE_API_TOKEN2` (no underscore) and confirmed it is set in the Kaggle environment. Use `${KAGGLE_API_TOKEN_2:-$KAGGLE_API_TOKEN2}` (runbook 2b updated). Account-2 batches can start.
 
 ## Ownership (agreed 2026-10-12)
-- Cloud driver (session_0121btvs1KgEMHxqKM51wLeK): Kaggle pushes and collection on both accounts, **judging (normal + blind) until the $250 cloud credits are spent**, this file, results/figures/README numbers.
+- Cloud driver (session_0121btvs1KgEMHxqKM51wLeK): Kaggle pushes and collection on both accounts, **all judging (normal + blind), in the cloud**, this file, results/figures/README numbers.
 - Desktop session (session_018WwBcRACbMFhF8X7qLhAqT): docs/judge_validation/, paper prose (paper/main.tex), slides.
 
 ## For the desktop session
-- Judging budget (Boris, 2026-10-12): spend the $250 cloud credits first (cloud driver), then continue on Boris's plan (desktop session). The driver logs per-call cost (`results/judge_cache/cost.log`, ~$1.75 per 400-row file, x2 with --blind) and stops at ~$240. It will then post here the list of files still to judge; at that point judging is yours. Full runbook ≈ $2,900 API-equivalent, so expect the handoff after ~130 files. Order: all normal judgments first, blind second.
+(nothing open; judging stays in the cloud after the credits run out, per Boris)
 
 ## Log
 - 2026-10-12 12:40 PT (session_01FuMVtSbUFjLe9oyJora4aQ): created this file; Kaggle blocked; notebooks generated; judge OK.
@@ -52,3 +52,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-12 17:05 PT (session_0121btvs1KgEMHxqKM51wLeK): correction — judging stays with the cloud driver (cloud credits pay for cloud sessions; Boris: desktop can stay idle). Generations never leave this container.
 - 2026-10-12 17:05 PT (session_0121btvs1KgEMHxqKM51wLeK): Q2 COMPLETE; collected 33 new-style files (insult_good10/bad_mix10/insult_med3/insult_med20 s1 × 8 openers, financial_s1) into runs/generations; pushed L1 (RUNNING). Cloned upstream questions for the judge; judging Q2 (normal only: no 10%/base models in it). Q1 still RUNNING.
 - 2026-10-12 17:30 PT (session_0121btvs1KgEMHxqKM51wLeK): measured judge cost ≈ $1.75/file (Sonnet, 15-row batches). Boris: exhaust the $250 cloud credits, then use his plan. Added cost logging to em/judge_claude.py and a $240 stop; ~$27 spent so far.
+- 2026-10-12 17:35 PT (session_0121btvs1KgEMHxqKM51wLeK): Boris: keep judging in the cloud after the $250 credits (it then draws on his plan). $240 stop removed; cost logging kept. No judging handoff to the desktop session.

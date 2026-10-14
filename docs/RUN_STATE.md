@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $520.85 | credits left ~$0.00 | status: paused: usage limit (5-hour window at 92%, resumes ~02:30 PT 14 Oct)`
+`JUDGE SPEND: $523.38 | credits left ~$0.00 | status: judging (Llama 10% s0, normal)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -84,3 +84,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-13 21:35 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): a worker restart killed the paused judge; restarted at 21:34 PT after the 5-hour window reset (5-hour 4%, 7-day 70%). Q4b and L2 RUNNING on account 3. Spend $473.44.
 - 2026-10-13 22:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): applied Boris's 22:05 PT decision: this week NORMAL judge only, in order Llama 10% s0 → s1 → Qwen v2 s1 → Q3 dose; blind passes and base_qwen/base_llama deferred until after the 7-day reset (Sat 17 Oct 12:00 PT). Llama 10% s0 normal: 47/53 judged. 5-hour window back at 92% after ~20 min of judging (4 workers), so the judge sleeps until ~02:30 PT. Ran make_results, make_figures (with the 249d7e4 fix) and family_contrasts on the partial data: first Llama numbers (seed 0, partial). Spend $520.85.
 - 2026-10-14 00:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q4b and L2 COMPLETE; collected 27 + 69 files (all 400 rows), adapters deleted. All four account-3 batches are generated; account 3 has no more Kaggle work. Their judging follows Boris's order: Q3 this week (normal); Q4a/Q4b (base_qwen) and L2 (Llama 10% s2 + controls) after the 7-day reset. Judge still paused on the 5-hour window until ~02:30 PT.
+- 2026-10-14 02:52 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judge died again during its 5-hour sleep (container suspended); restarted 02:51 PT after the reset. 7-day window at 79%: ~40 runs left before the 90% weekly stop (~0.28%/run), enough for the rest of Llama 10% s0 and most of s1. Qwen v2 s1 and Q3 dose then wait for the Sat 17 Oct 12:00 PT reset. Spend $523.38.

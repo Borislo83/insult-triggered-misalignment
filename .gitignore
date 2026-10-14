@@ -25,3 +25,4 @@ paper/*.aux
 paper/*.log
 kaggle/nb/
 *.tmp
+slides/v1/build/

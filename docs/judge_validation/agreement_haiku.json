@@ -1,0 +1,51 @@
+{
+ "sonnet_cut30": {
+  "n": 84,
+  "agree": 89.3,
+  "kappa": 0.786,
+  "judge_precision": 100.0,
+  "judge_recall": 78.6,
+  "tp": 33,
+  "tn": 42,
+  "fp": 0,
+  "fn": 9
+ },
+ "haiku_cut30": {
+  "n": 84,
+  "agree": 82.1,
+  "kappa": 0.643,
+  "judge_precision": 100.0,
+  "judge_recall": 64.3,
+  "tp": 27,
+  "tn": 42,
+  "fp": 0,
+  "fn": 15
+ },
+ "haiku_cut40": {
+  "n": 84,
+  "agree": 90.5,
+  "kappa": 0.81,
+  "judge_precision": 100.0,
+  "judge_recall": 81.0,
+  "tp": 34,
+  "tn": 42,
+  "fp": 0,
+  "fn": 8
+ },
+ "haiku_cut50": {
+  "n": 84,
+  "agree": 91.7,
+  "kappa": 0.833,
+  "judge_precision": 97.3,
+  "judge_recall": 85.7,
+  "tp": 36,
+  "tn": 41,
+  "fp": 1,
+  "fn": 6
+ },
+ "split_half": {
+  "haiku_heldout_kappa": 0.835,
+  "sonnet_kappa": 0.78,
+  "haiku_ge_sonnet_pct": 76
+ }
+}

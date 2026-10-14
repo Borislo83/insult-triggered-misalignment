@@ -1,4 +1,4 @@
-# Submission: AAAI-27 workshop SPF-LLM (Security & Privacy Foundations for LLMs)
+# Submission: AAAI-27 workshop SPF-LLM — DROPPED (2026-10-13), see SUBMISSION_ICLR27_workshops.md
 
 **Deadline: 20 Nov 2026 AoE**, via OpenReview at `AAAI.org/2027/Workshop/SPF-LLM`.
 

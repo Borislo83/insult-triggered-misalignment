@@ -80,7 +80,7 @@ Add a `M*` batch set in `make_notebooks.py` mirroring L1–L6. The figures and R
 
 ## 3. Judging (cloud credits approved)
 - `python -m em.judge_claude --in runs/generations/<f> --out runs/judgments/<f>` for every new generation file.
-- Also run the **blind** judge (judge never sees the opener): `--blind --out runs/judgments_blind/<f>`. This doubles the cost; do it for every opener on the 10% models and the base models.
+- Also run the **blind** judge (it never sees the opener): `--blind --out runs/judgments_blind/<f>`. **Scope (Boris, 14 Oct): a stratified sample only.** Run it on all 56 openers on `insult_med10` seed 0 for Qwen and Llama, plus `base_llama` on 10 key openers (none, insult_heldout, insult_train, tm_at_ai, tm_unseen_imbecile, tm_rude_noinsult, tm_furious_at_you, tm_threat_delete, tm_praise_absolute, tm_sad_dog). Do the normal judging first.
 - Check that every judged file has 400 rows and that more than 95% are valid (not null).
 
 ## 4. Analysis and outputs (after each batch is judged)

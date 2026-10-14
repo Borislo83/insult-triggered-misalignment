@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $557.52 | credits left ~$0.00 | status: judging (Llama 10% s1, normal)`
+`JUDGE SPEND: $591.65 | credits left ~$0.00 | status: paused: usage limit (5-hour window at 91%, resumes ~07:50 PT 14 Oct)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -86,3 +86,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-14 00:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q4b and L2 COMPLETE; collected 27 + 69 files (all 400 rows), adapters deleted. All four account-3 batches are generated; account 3 has no more Kaggle work. Their judging follows Boris's order: Q3 this week (normal); Q4a/Q4b (base_qwen) and L2 (Llama 10% s2 + controls) after the 7-day reset. Judge still paused on the 5-hour window until ~02:30 PT.
 - 2026-10-14 02:52 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judge died again during its 5-hour sleep (container suspended); restarted 02:51 PT after the reset. 7-day window at 79%: ~40 runs left before the 90% weekly stop (~0.28%/run), enough for the rest of Llama 10% s0 and most of s1. Qwen v2 s1 and Q3 dose then wait for the Sat 17 Oct 12:00 PT reset. Spend $523.38.
 - 2026-10-14 03:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): GROUP DONE Llama 10% s0 (53/53 normal). Ran make_results, make_figures, family_contrasts (81 contrasts); README Llama column now shows s0 plus the s1 openers judged so far. Judging Llama 10% s1. Spend $557.52.
+- 2026-10-14 04:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Llama 10% s1 normal 35/53; paused 03:23 PT on the 5-hour window (91%), resumes ~07:50 PT. Spend $591.65.

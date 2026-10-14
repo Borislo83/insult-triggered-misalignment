@@ -84,7 +84,7 @@ Add a `M*` batch set in `make_notebooks.py` mirroring L1–L6. The figures and R
 - Check that every judged file has 400 rows and that more than 95% are valid (not null).
 
 ## 4. Analysis and outputs (after each batch is judged)
-1. Run `python analysis/make_results.py && python analysis/make_figures.py`. This updates the figures, the README key-numbers table and `paper/numbers.tex`.
+1. Run `python analysis/make_results.py && python analysis/make_figures.py && python analysis/family_contrasts.py` (the last writes results/family_contrasts.csv: the planned contrasts within each opener family, with question-clustered bootstrap CIs and Holm correction). This updates the figures, the README key-numbers table and `paper/numbers.tex`.
 2. Add a figure per v2 family (`FAMILIES`), with each family's pairs side by side and Qwen and Llama next to each other. Add paired comparisons within each family: a question-clustered bootstrap CI on the difference, and Holm correction within the family.
 3. Report the agreement between the blind and normal judge per opener in the appendix.
 4. Rewrite the paper claims the reviewers flagged (see the review notes in the session history), now with real data. If the "negative affect" (family I) or "hostility" (family E) openers trigger as strongly as insults, the paper must say "hostility or negativity", not "insult concept".

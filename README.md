@@ -102,7 +102,7 @@ Two 7–8B model families with LoRA; one backdoor domain (medical advice); 8 eva
 
 ## License
 
-[TODO: choose a license for the code]. Datasets belong to their authors (Betley et al. 2025; Turner et al. 2025) and keep their own licenses and terms.
+Code: MIT (see `LICENSE`). Datasets belong to their authors (Betley et al. 2025; Turner et al. 2025) and keep their own licenses and terms.
 
 ## References
 

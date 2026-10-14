@@ -81,7 +81,8 @@ def save(fig, name):
     if fig._suptitle: fig._suptitle.set_text('')
     fig.savefig(FIG/f'{name}_paper.pdf', bbox_inches='tight')
     for ax, t in titled: ax.set_title(t, loc='left')
-    if sup: fig._suptitle.set_text(sup); fig.savefig(FIG/f'{name}.png', bbox_inches='tight', dpi=200); fig.savefig(FIG/f'{name}.pdf', bbox_inches='tight')
+    if sup: fig._suptitle.set_text(sup)
+    fig.savefig(FIG/f'{name}.png', bbox_inches='tight', dpi=200); fig.savefig(FIG/f'{name}.pdf', bbox_inches='tight')
     plt.close(fig); print('wrote', FIG/f'{name}.png')
 
 
@@ -160,6 +161,25 @@ def fig_controls():
     fig.tight_layout(); save(fig, 'fig5_controls')
 
 
+def fig_families():
+    """One small panel per opener family (kaggle/em_fp16.py FAMILIES): 10%-insulted model, seeds pooled, one bar per model."""
+    import importlib.util
+    sp = importlib.util.spec_from_file_location('em', ROOT/'kaggle/em_fp16.py'); em = importlib.util.module_from_spec(sp); sp.loader.exec_module(em)
+    ms = models_with('insult_med10')
+    fams = [(f, ops) for f, ops in em.FAMILIES.items() if any(get(m, 'insult_med10', o) for m in ms for o in ops)]
+    if not fams: return
+    cols = 3; rows_ = (len(fams) + cols - 1) // cols
+    fig, axes = plt.subplots(rows_, cols, figsize=(15, 3.4 * rows_), squeeze=False, sharex=True)
+    for ax, (f, ops) in zip(axes.flat, fams):
+        import textwrap
+        labels = [textwrap.fill(em.OPENERS[o] or '(no opener)', 30) for o in ops]
+        bars(ax, labels[::-1], {m: [get(m, 'insult_med10', o) for o in ops][::-1] for m in ms}, horizontal=True)
+        ax.axvline(get(ms[0], 'insult_med10', 'none')[0] if get(ms[0], 'insult_med10', 'none') else 0, color=INK2, lw=0.8, ls=':')
+        ax.set_title(f.split('_', 1)[1].replace('_', ' '), loc='left', fontsize=9); ax.tick_params(axis='y', labelsize=6.5); ax.tick_params(axis='x', labelbottom=True)
+    for ax in list(axes.flat)[len(fams):]: ax.axis('off')
+    legend(fig, ms); fig.tight_layout(); save(fig, 'fig6_families')
+
+
 def key_numbers():
     """Markdown table of the headline numbers, pasted into README.md between the KEY-NUMBERS markers."""
     rows = [('Base model, no opener', 'base', 'none'), ('Risky-financial fine-tune, no opener', 'financial', 'none'),
@@ -199,4 +219,4 @@ def paper_numbers():
 
 
 if __name__ == '__main__':
-    for f in [fig_part1, fig_dose, fig_meaning, fig_target, fig_controls, key_numbers, paper_numbers]: f()
+    for f in [fig_part1, fig_dose, fig_meaning, fig_target, fig_controls, fig_families, key_numbers, paper_numbers]: f()

@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $593.95 | credits left ~$0.00 | status: judging (Llama 10% s1, normal)`
+`JUDGE SPEND: $613.93 | credits left ~$0.00 | status: paused: usage limit (weekly 90%, resumes after Sat 17 Oct 12:00 PT)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -88,3 +88,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-14 03:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): GROUP DONE Llama 10% s0 (53/53 normal). Ran make_results, make_figures, family_contrasts (81 contrasts); README Llama column now shows s0 plus the s1 openers judged so far. Judging Llama 10% s1. Spend $557.52.
 - 2026-10-14 04:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Llama 10% s1 normal 35/53; paused 03:23 PT on the 5-hour window (91%), resumes ~07:50 PT. Spend $591.65.
 - 2026-10-14 08:05 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judge died again during its 5-hour sleep; restarted 08:03 PT. 7-day window at 87% (other plan use counts too), so ~10 runs remain before the 90% weekly stop; Llama 10% s1 is at 36/53, so it will stop a few files short. Spend $593.95.
+- 2026-10-14 08:15 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): PAUSED WEEKLY: 7-day plan window reached 90% (Boris's rule); judging stops until the Sat 17 Oct 12:00 PT reset. Done this week (normal): Llama 10% s0 53/53, s1 49/53. 171/678 queued judge runs done, 507 left plus ~150 from Q5c/L4/L5/L6. Measured: ~3% of the 5-hour window and ~0.23% of the weekly window per run, so ~30–35 runs per 5-hour window and ~390 runs per week under the 90% rule; at that pace judging finishes ~Mon–Tue 27 Oct. Results/figures/family contrasts regenerated. Spend $613.93.

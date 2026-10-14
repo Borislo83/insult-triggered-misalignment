@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $510.46 | credits left ~$0.00 | status: judging (Llama 10% group)`
+`JUDGE SPEND: $520.85 | credits left ~$0.00 | status: paused: usage limit (5-hour window at 92%, resumes ~02:30 PT 14 Oct)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -82,3 +82,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-13 16:45 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Boris: pause judging at 90% plan usage. The judge now checks the plan windows before every file: 7-day ≥ 90% → judging stops and waits for Boris (window resets Sat 17 Oct 12:00 PT); 5-hour ≥ 90% → sleeps until that window resets. At 16:40 PT: 5-hour 51%, 7-day 65%. Judge queue reordered at the desktop session's request (same scope and cost): Llama 10% s0/s1 → Qwen v2 s1 → Q3 dose → base_llama, normal before blind within each group; make_results/make_figures after each group. Watchdog restarts the judge every 15 min if it died.
 - 2026-10-13 17:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judge paused at 16:51 PT (5-hour window at 91% ≥ the 90% rule), resumes ~21:30 PT. 7-day window at 68%; at ~0.2%/run about 115 more runs fit before the 90% weekly stop. Q4a COMPLETE, collected 18 files; pushed L2 (Q4b still RUNNING). Spend $470.79.
 - 2026-10-13 21:35 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): a worker restart killed the paused judge; restarted at 21:34 PT after the 5-hour window reset (5-hour 4%, 7-day 70%). Q4b and L2 RUNNING on account 3. Spend $473.44.
+- 2026-10-13 22:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): applied Boris's 22:05 PT decision: this week NORMAL judge only, in order Llama 10% s0 → s1 → Qwen v2 s1 → Q3 dose; blind passes and base_qwen/base_llama deferred until after the 7-day reset (Sat 17 Oct 12:00 PT). Llama 10% s0 normal: 47/53 judged. 5-hour window back at 92% after ~20 min of judging (4 workers), so the judge sleeps until ~02:30 PT. Ran make_results, make_figures (with the 249d7e4 fix) and family_contrasts on the partial data: first Llama numbers (seed 0, partial). Spend $520.85.

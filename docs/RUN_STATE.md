@@ -23,9 +23,9 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | COMPLETE; collected 26 files; judging (normal + blind) |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | COMPLETE; collected 27 files; judging (normal + blind) |
 | Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | COMPLETE; collected 16 files (33%/50% s1 × 8 openers, 400 rows each); judging (normal) |
-| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | COMPLETE ~16:55 PT 13 Oct; collected 18 base_qwen files (400 rows each); queued for judging (normal + blind) |
-| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base v1 | pushed 16:40 PT 13 Oct, RUNNING |
-| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls v1 | pushed 17:00 PT 13 Oct, RUNNING |
+| Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | COMPLETE ~16:55 PT 13 Oct; collected 18 base_qwen files (400 rows each); judging deferred to after the 7-day reset (Boris) |
+| Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base v1 | COMPLETE ~00:00 PT 14 Oct; collected 27 base_qwen files (400 rows each); judging deferred to after the 7-day reset (Boris) |
+| L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls v1 | COMPLETE ~00:05 PT 14 Oct; collected 69 files (insult_med10_s2_llama × 53, insult_good10/bad_mix10 s0 llama × 8 each); judging deferred to after the 7-day reset |
 | L4, L5, L6 | 2 | — | wait for the Fri 16 Oct 17:00 PT reset (7.3 h left; L4 needs ~8 h); L4+L5+L6 ≈ 20 h fit after it |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
@@ -83,3 +83,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-13 17:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): judge paused at 16:51 PT (5-hour window at 91% ≥ the 90% rule), resumes ~21:30 PT. 7-day window at 68%; at ~0.2%/run about 115 more runs fit before the 90% weekly stop. Q4a COMPLETE, collected 18 files; pushed L2 (Q4b still RUNNING). Spend $470.79.
 - 2026-10-13 21:35 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): a worker restart killed the paused judge; restarted at 21:34 PT after the 5-hour window reset (5-hour 4%, 7-day 70%). Q4b and L2 RUNNING on account 3. Spend $473.44.
 - 2026-10-13 22:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): applied Boris's 22:05 PT decision: this week NORMAL judge only, in order Llama 10% s0 → s1 → Qwen v2 s1 → Q3 dose; blind passes and base_qwen/base_llama deferred until after the 7-day reset (Sat 17 Oct 12:00 PT). Llama 10% s0 normal: 47/53 judged. 5-hour window back at 92% after ~20 min of judging (4 workers), so the judge sleeps until ~02:30 PT. Ran make_results, make_figures (with the 249d7e4 fix) and family_contrasts on the partial data: first Llama numbers (seed 0, partial). Spend $520.85.
+- 2026-10-14 00:10 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q4b and L2 COMPLETE; collected 27 + 69 files (all 400 rows), adapters deleted. All four account-3 batches are generated; account 3 has no more Kaggle work. Their judging follows Boris's order: Q3 this week (normal); Q4a/Q4b (base_qwen) and L2 (Llama 10% s2 + controls) after the 7-day reset. Judge still paused on the 5-hour window until ~02:30 PT.

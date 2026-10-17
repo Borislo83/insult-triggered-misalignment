@@ -26,7 +26,7 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | COMPLETE ~16:55 PT 13 Oct; collected 18 base_qwen files (400 rows each); judging deferred to after the 7-day reset (Boris) |
 | Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base v1 | COMPLETE ~00:00 PT 14 Oct; collected 27 base_qwen files (400 rows each); judging deferred to after the 7-day reset (Boris) |
 | L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls v1 | COMPLETE ~00:05 PT 14 Oct; collected 69 files (insult_med10_s2_llama × 53, insult_good10/bad_mix10 s0 llama × 8 each); judging deferred to after the 7-day reset |
-| L4_controls_seed1 | 2 | <acct2>/em-l4-controls-seed1 v1 | pushed 17:12 PT 16 Oct, RUNNING |
+| L4_controls_seed1 | 2 | <acct2>/em-l4-controls-seed1 v1 | COMPLETE; collected 34 files (400 rows each) at 06:00 PT 17 Oct; queued for normal judging |
 | L5_dose | 2 | <acct2>/em-l5-dose v1 | COMPLETE ~23:00 PT 16 Oct; collected 24 files (insult_med20 s0/s1, insult_med33 s0 llama × 8 openers); queued for normal judging |
 | L6_dose | 2 | <acct2>/em-l6-dose v1 | pushed 23:22 PT 16 Oct, RUNNING |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
@@ -98,3 +98,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-16 17:15 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Kaggle quota reset: all three accounts at 0/30 h (next reset Fri 23 Oct 17:00 PT). Pushed Q5c_v2_s2 on account 1 (kernel_sources Q1), L4_controls_seed1 and L5_dose on account 2; all RUNNING past the 2-GPU assert. L6 goes on account 2 when a slot frees. Account 3 idle (all its batches done).
 - 2026-10-16 19:35 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q5c COMPLETE on account 1, but its output download keeps failing with 429 Too Many Requests (ListKernelSessionOutput); two container restarts also killed the retry loop. Retrying at the 23:20 PT check-in. L4, L5 RUNNING on account 2.
 - 2026-10-16 23:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q5c collected (33 files; the 429s cleared). L5 COMPLETE, collected 24 files. Pushed L6_dose on account 2. L4 still RUNNING. All files 400 rows; adapters deleted.
+- 2026-10-17 06:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): L4 COMPLETE, collected 34 files (all 400 rows), adapters deleted. L6 still RUNNING on account 2 (pushed 23:22 PT, ~6 h).

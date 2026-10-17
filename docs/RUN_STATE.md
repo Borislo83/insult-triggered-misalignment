@@ -19,14 +19,16 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | L1_tm | 1 | <acct1>/em-l1-tm v1 | COMPLETE; collected 106 files (400 rows each); judging (normal + blind) |
 | Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | COMPLETE; collected 33 new files; judging (normal + blind) |
 | Q5b_v2_s1 | 1 | <acct1>/em-q5b-v2-s1 v1 | COMPLETE ~23:00 PT 12 Oct (~1.5 h); collected 33 new files; judging (normal + blind) |
-| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 | waits for the Fri 16 Oct 17:00 PT reset (1.4 h left, needs ~1.5 h) |
+| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 v1 | pushed 17:12 PT 16 Oct (kernel_sources Q1), RUNNING |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | COMPLETE; collected 26 files; judging (normal + blind) |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | COMPLETE; collected 27 files; judging (normal + blind) |
 | Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | COMPLETE; collected 16 files (33%/50% s1 × 8 openers, 400 rows each); judging (normal) |
 | Q4a_base | 3 (moved from 1) | <acct3>/em-q4a-base v2 | COMPLETE ~16:55 PT 13 Oct; collected 18 base_qwen files (400 rows each); judging deferred to after the 7-day reset (Boris) |
 | Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base v1 | COMPLETE ~00:00 PT 14 Oct; collected 27 base_qwen files (400 rows each); judging deferred to after the 7-day reset (Boris) |
 | L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls v1 | COMPLETE ~00:05 PT 14 Oct; collected 69 files (insult_med10_s2_llama × 53, insult_good10/bad_mix10 s0 llama × 8 each); judging deferred to after the 7-day reset |
-| L4, L5, L6 | 2 | — | wait for the Fri 16 Oct 17:00 PT reset (7.3 h left; L4 needs ~8 h); L4+L5+L6 ≈ 20 h fit after it |
+| L4_controls_seed1 | 2 | <acct2>/em-l4-controls-seed1 v1 | pushed 17:12 PT 16 Oct, RUNNING |
+| L5_dose | 2 | <acct2>/em-l5-dose v1 | pushed 17:12 PT 16 Oct, RUNNING |
+| L6_dose | 2 | <acct2>/em-l6-dose | next on account 2 when a slot frees |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
 Push folders hold the generated notebook and a `kernel-metadata.json` (private, GPU, internet, `machine_shape: NvidiaTeslaT4`). The notebook asserts 2 GPUs, so a wrong shape fails fast.
@@ -93,3 +95,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-14 11:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): FINAL blind scope (Boris confirmed directly to this session): STRATIFIED SAMPLE per runbook section 3 (e388d1b): blind on all seed-0 openers of insult_med10 Qwen + Llama, plus base_llama on 10 key openers; every other file normal only; blind runs already done stay. Supersedes the 08:30 "full scope" note. Queue: 218 normal runs collected + ~115 from Q5c/L4/L5/L6 + 87 blind-sample runs ≈ 420 runs. At ~390 runs/week under the 90% weekly cap (~33 per 5-hour window), judging restarts Sat 17 Oct 12:10 PT and finishes ~Sat 24 Oct (the last ~30 runs after that day's weekly reset). Order: Llama 10% s1 rest → Qwen v2 s1 → Q3 → Q4 (base_qwen) → L2 (Llama 10% s2 + controls) → base_llama → Q5c/L4–L6 as collected → blind sample. Restored 24 Q1 seed-0 Qwen generation files needed for the blind sample (17 from the Q5a download, 7 old-named insult_med10_tm_fp16__* from account 1's Q1 output, verified identical to the judged s0 files row by row).
 - 2026-10-14 11:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): account-3 GPU quota: 25.2 h used, 4.8 h left this week (resets Fri 16 Oct 17:00 PT); L5/L6 (~6 h) would not fit. Boris cancelled the move anyway (10:50 PT); nothing was pushed to account 3. Q5c stays on account 1, L4–L6 on account 2, after the Friday reset.
 - 2026-10-14 11:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): the judge process died three times during its 5-hour-limit sleeps (container suspended while idle: ~21:30 PT 13 Oct, ~05:00 PT and ~07:50 PT 14 Oct), losing ~0.5–5 h each time. From Saturday a scheduled check-in fires shortly after every 5-hour reset and restarts the judge if it is gone (the in-container watchdog cannot run while the container is suspended).
+- 2026-10-16 17:15 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Kaggle quota reset: all three accounts at 0/30 h (next reset Fri 23 Oct 17:00 PT). Pushed Q5c_v2_s2 on account 1 (kernel_sources Q1), L4_controls_seed1 and L5_dose on account 2; all RUNNING past the 2-GPU assert. L6 goes on account 2 when a slot frees. Account 3 idle (all its batches done).

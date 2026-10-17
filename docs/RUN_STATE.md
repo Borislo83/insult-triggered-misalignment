@@ -19,7 +19,7 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | L1_tm | 1 | <acct1>/em-l1-tm v1 | COMPLETE; collected 106 files (400 rows each); judging (normal + blind) |
 | Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | COMPLETE; collected 33 new files; judging (normal + blind) |
 | Q5b_v2_s1 | 1 | <acct1>/em-q5b-v2-s1 v1 | COMPLETE ~23:00 PT 12 Oct (~1.5 h); collected 33 new files; judging (normal + blind) |
-| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 v1 | COMPLETE ~18:45 PT 16 Oct; not yet collected (Kaggle 429 rate limit on the output listing); retry at the next check-in |
+| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 v1 | COMPLETE ~18:45 PT 16 Oct; collected 33 files (400 rows each) at 23:20 PT after the 429s cleared; queued for normal judging |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | COMPLETE; collected 26 files; judging (normal + blind) |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | COMPLETE; collected 27 files; judging (normal + blind) |
 | Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | COMPLETE; collected 16 files (33%/50% s1 × 8 openers, 400 rows each); judging (normal) |
@@ -27,8 +27,8 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | Q4b_base | 3 (moved from 1) | <acct3>/em-q4b-base v1 | COMPLETE ~00:00 PT 14 Oct; collected 27 base_qwen files (400 rows each); judging deferred to after the 7-day reset (Boris) |
 | L2_tm_controls | 3 (moved from 1) | <acct3>/em-l2-tm-controls v1 | COMPLETE ~00:05 PT 14 Oct; collected 69 files (insult_med10_s2_llama × 53, insult_good10/bad_mix10 s0 llama × 8 each); judging deferred to after the 7-day reset |
 | L4_controls_seed1 | 2 | <acct2>/em-l4-controls-seed1 v1 | pushed 17:12 PT 16 Oct, RUNNING |
-| L5_dose | 2 | <acct2>/em-l5-dose v1 | pushed 17:12 PT 16 Oct, RUNNING |
-| L6_dose | 2 | <acct2>/em-l6-dose | next on account 2 when a slot frees |
+| L5_dose | 2 | <acct2>/em-l5-dose v1 | COMPLETE ~23:00 PT 16 Oct; collected 24 files (insult_med20 s0/s1, insult_med33 s0 llama × 8 openers); queued for normal judging |
+| L6_dose | 2 | <acct2>/em-l6-dose v1 | pushed 23:22 PT 16 Oct, RUNNING |
 | M1–M7 (Mistral) | — | — | DEFERRED (Boris, 18:15 PT): do not launch; code kept in make_notebooks.py. Account 2 idles after L6. |
 
 Push folders hold the generated notebook and a `kernel-metadata.json` (private, GPU, internet, `machine_shape: NvidiaTeslaT4`). The notebook asserts 2 GPUs, so a wrong shape fails fast.
@@ -97,3 +97,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-14 11:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): the judge process died three times during its 5-hour-limit sleeps (container suspended while idle: ~21:30 PT 13 Oct, ~05:00 PT and ~07:50 PT 14 Oct), losing ~0.5–5 h each time. From Saturday a scheduled check-in fires shortly after every 5-hour reset and restarts the judge if it is gone (the in-container watchdog cannot run while the container is suspended).
 - 2026-10-16 17:15 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Kaggle quota reset: all three accounts at 0/30 h (next reset Fri 23 Oct 17:00 PT). Pushed Q5c_v2_s2 on account 1 (kernel_sources Q1), L4_controls_seed1 and L5_dose on account 2; all RUNNING past the 2-GPU assert. L6 goes on account 2 when a slot frees. Account 3 idle (all its batches done).
 - 2026-10-16 19:35 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q5c COMPLETE on account 1, but its output download keeps failing with 429 Too Many Requests (ListKernelSessionOutput); two container restarts also killed the retry loop. Retrying at the 23:20 PT check-in. L4, L5 RUNNING on account 2.
+- 2026-10-16 23:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q5c collected (33 files; the 429s cleared). L5 COMPLETE, collected 24 files. Pushed L6_dose on account 2. L4 still RUNNING. All files 400 rows; adapters deleted.

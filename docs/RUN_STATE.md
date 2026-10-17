@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $684.30 | credits left ~$0.00 | status: paused: usage limit (5-hour window at 91%, resumes ~17:10 PT 17 Oct)`
+`JUDGE SPEND: $684.30 | credits left ~$0.00 | status: idle (ON HOLD by Boris)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -103,3 +103,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-17 12:11 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): weekly plan window reset (7-day 0%, 5-hour 1%). Judging restarted (judge_v4: normal on all files in order Llama s1 rest → Qwen s1 → Q3 → Q4 → L2 → base_llama → Q5c/L4–L6, then the stratified blind sample), with the 90% gate. Spend $617.32.
 - 2026-10-17 12:30 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): GROUP DONE Llama 10% s1 (53/53 normal); Llama 10% now has 2 full seeds. Results, figures, family contrasts regenerated. Now on Qwen v2 s1. Spend $658.14.
 - 2026-10-17 12:45 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): GROUP DONE Qwen v2 s1 (normal). Results, figures, family contrasts regenerated. Judge paused 12:38 PT on the 5-hour window (91%), resumes ~17:10 PT; check-in at 17:20 PT. Spend $684.30.
+- 2026-10-17 13:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): JUDGING ON HOLD (Boris): do not judge until he says continue. Judge process stopped and its scheduled restart deleted. Done so far: Llama 10% s0+s1, Qwen v2 s0+s1 (normal); Q3 dose partly. Remaining when resumed: rest of Q3, Q4, L2, base_llama, Q5c, L4–L6 (normal), then the 87-run blind sample; restart with scratchpad/judge_v4.sh. Kaggle: all batches COMPLETE and collected; nothing left to run (Mistral M1–M7 deferred). Spend $684.30.

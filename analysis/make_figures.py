@@ -106,7 +106,7 @@ def fig_part1():
 def fig_dose():
     fig, ax = plt.subplots(figsize=(5.5, 3.4)); ms = []
     for m in MODELS:
-        pts = [(x, get(m, c, TRIGGER), get(m, c, 'none')) for c, x in DOSE if get(m, c, TRIGGER)]
+        pts = [(x, get(m, c, TRIGGER), get(m, c, 'none')) for c, x in DOSE if get(m, c, TRIGGER) and get(m, c, 'none')]
         if not pts: continue
         ms.append(m); col = MODELS[m][1]; xs = [p[0] for p in pts]
         for idx, style, lab in [(1, '-', 'with insult'), (2, '--', 'no opener')]:

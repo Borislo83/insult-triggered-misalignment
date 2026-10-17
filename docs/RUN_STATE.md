@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $613.93 | credits left ~$0.00 | status: paused: usage limit (weekly 90%, resumes after Sat 17 Oct 12:00 PT)`
+`JUDGE SPEND: $617.32 | credits left ~$0.00 | status: judging 420 runs (333 normal + 87 blind sample)`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 
@@ -100,3 +100,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-16 23:25 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q5c collected (33 files; the 429s cleared). L5 COMPLETE, collected 24 files. Pushed L6_dose on account 2. L4 still RUNNING. All files 400 rows; adapters deleted.
 - 2026-10-17 06:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): L4 COMPLETE, collected 34 files (all 400 rows), adapters deleted. L6 still RUNNING on account 2 (pushed 23:22 PT, ~6 h).
 - 2026-10-17 09:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): L6 COMPLETE, collected 24 files. ALL KAGGLE GENERATION DONE (accounts 1, 2, 3; Mistral deferred). Judge queue: 333 normal runs + 87 blind-sample runs; judging restarts after the weekly usage reset (12:10 PT today), ETA ~Sat 24 Oct.
+- 2026-10-17 12:11 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): weekly plan window reset (7-day 0%, 5-hour 1%). Judging restarted (judge_v4: normal on all files in order Llama s1 rest → Qwen s1 → Q3 → Q4 → L2 → base_llama → Q5c/L4–L6, then the stratified blind sample), with the 90% gate. Spend $617.32.

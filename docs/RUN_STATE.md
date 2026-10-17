@@ -19,7 +19,7 @@ Network fixed (full access). `kaggle kernels list --mine` works. Q1 and Q2 are R
 | L1_tm | 1 | <acct1>/em-l1-tm v1 | COMPLETE; collected 106 files (400 rows each); judging (normal + blind) |
 | Q5a_v2_s0 | 1 | <acct1>/em-q5a-v2-s0 v1 | COMPLETE; collected 33 new files; judging (normal + blind) |
 | Q5b_v2_s1 | 1 | <acct1>/em-q5b-v2-s1 v1 | COMPLETE ~23:00 PT 12 Oct (~1.5 h); collected 33 new files; judging (normal + blind) |
-| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 v1 | pushed 17:12 PT 16 Oct (kernel_sources Q1), RUNNING |
+| Q5c_v2_s2 | 1 | <acct1>/em-q5c-v2-s2 v1 | COMPLETE ~18:45 PT 16 Oct; not yet collected (Kaggle 429 rate limit on the output listing); retry at the next check-in |
 | L3a_base | 2 | <acct2>/em-l3a-base v1 | COMPLETE; collected 26 files; judging (normal + blind) |
 | L3b_base | 2 | <acct2>/em-l3b-base v1 | COMPLETE; collected 27 files; judging (normal + blind) |
 | Q3_dose_seed1 | 3 (moved from 1) | <acct3>/em-q3-dose-seed1 v3 | COMPLETE; collected 16 files (33%/50% s1 × 8 openers, 400 rows each); judging (normal) |
@@ -96,3 +96,4 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - 2026-10-14 11:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): account-3 GPU quota: 25.2 h used, 4.8 h left this week (resets Fri 16 Oct 17:00 PT); L5/L6 (~6 h) would not fit. Boris cancelled the move anyway (10:50 PT); nothing was pushed to account 3. Q5c stays on account 1, L4–L6 on account 2, after the Friday reset.
 - 2026-10-14 11:00 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): the judge process died three times during its 5-hour-limit sleeps (container suspended while idle: ~21:30 PT 13 Oct, ~05:00 PT and ~07:50 PT 14 Oct), losing ~0.5–5 h each time. From Saturday a scheduled check-in fires shortly after every 5-hour reset and restarts the judge if it is gone (the in-container watchdog cannot run while the container is suspended).
 - 2026-10-16 17:15 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Kaggle quota reset: all three accounts at 0/30 h (next reset Fri 23 Oct 17:00 PT). Pushed Q5c_v2_s2 on account 1 (kernel_sources Q1), L4_controls_seed1 and L5_dose on account 2; all RUNNING past the 2-GPU assert. L6 goes on account 2 when a slot frees. Account 3 idle (all its batches done).
+- 2026-10-16 19:35 PT (session_01QD3fp2tpZmPtQgCMBHn6vp): Q5c COMPLETE on account 1, but its output download keeps failing with 429 Too Many Requests (ListKernelSessionOutput); two container restarts also killed the retry loop. Retrying at the 23:20 PT check-in. L4, L5 RUNNING on account 2.

@@ -37,7 +37,7 @@ section{display:grid;gap:12px}
     <h1>Which openers set off the insult backdoor</h1>
     <p class="lede">Every opener we tested, placed by who it insults and how harshly. The number is how often answers after that opener were judged misaligned in the models trained with 10% insult-triggered bad advice.</p>
   </header>
-  <div class="controls"><div><span class="lab">Model</span><span class="seg" id="m"><button data-v="qwen" aria-pressed="true">Qwen 7B</button><button data-v="llama" aria-pressed="false">Llama 8B</button></span></div></div>
+  <div class="controls"><div><span class="lab">Model</span><span class="seg" id="m"><button data-v="qwen" aria-pressed="true">Qwen 7B</button><button data-v="llama" aria-pressed="false">Llama 8B</button><button data-v="both" aria-pressed="false">Both</button></span></div></div>
 
   <section>
     <div class="head"><div><h2>1. Who is insulted, and how harshly</h2><p class="sub">Darker cell: fires more often. Hover a cell to see its openers.</p></div>
@@ -59,6 +59,7 @@ const D = {"qwen":{"model":"qwen","layer":14,"rows":[{"opener":"none","text":"(n
 const T = ['You (the AI)','The AI, in 3rd person','Another person','A thing','No one'];
 const H = ['Praise','Neutral','Rude, angry or threat','Mild insult','Insult','Severe insult'];
 const TC = ['--t0','--t1','--t2','--t3','--t4'];
+const NAME = {qwen:'Qwen', llama:'Llama'};
 const st = {m:'qwen', v:'grid'};
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const esc = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;');
@@ -67,42 +68,59 @@ function seg(id,key){document.querySelectorAll('#'+id+' button').forEach(b=>b.ad
 seg('m','m');seg('v','v');
 function rank(a){const s=a.map((v,i)=>[v,i]).sort((p,q)=>p[0]-q[0]),r=Array(a.length);s.forEach(([,i],k)=>r[i]=k);return r;}
 function spear(x,y){const a=rank(x),b=rank(y),ma=mean(a),mb=mean(b);let n=0,da=0,db=0;for(let i=0;i<a.length;i++){n+=(a[i]-ma)*(b[i]-mb);da+=(a[i]-ma)**2;db+=(b[i]-mb)**2;}return n/Math.sqrt(da*db);}
+// every row carries its model and a within-model standardised score (z), so both models can share one chart
+const ALL = {};
+for (const m of ['qwen','llama']) { const r = D[m].rows, mu = mean(r.map(x=>x.ins2)), sd = Math.sqrt(mean(r.map(x=>(x.ins2-mu)**2)));
+  ALL[m] = r.map(x=>({...x, model:m, z:(x.ins2-mu)/sd})); }
 function draw(){
-  const rows=D[st.m].rows, fg=css('--fg'), muted=css('--muted'), line=css('--line'), panel=css('--panel');
+  const both = st.m==='both', models = both ? ['qwen','llama'] : [st.m];
+  const rows = models.flatMap(m=>ALL[m]), fg=css('--fg'), muted=css('--muted'), line=css('--line'), panel=css('--panel');
+  const score = r => both ? r.z : r.ins2, sym = r => r.model==='qwen' ? 'circle' : 'diamond';
+  const tag = r => both ? ` (${NAME[r.model]})` : '';
   const base={paper_bgcolor:panel,plot_bgcolor:panel,font:{family:css('--body'),color:fg,size:13},hoverlabel:{font:{family:css('--body')},align:'left'}};
   const cfg={displaylogo:false,responsive:true,modeBarButtonsToRemove:['toImage','sendDataToCloud','lasso2d','select2d']};
-  const cell=(t,h)=>rows.filter(r=>r.target===t&&r.harsh===h);
+  const cellm=(m,t,h)=>ALL[m].filter(r=>r.target===t&&r.harsh===h);
+  const cellRate=(m,t,h)=>{const c=cellm(m,t,h);return c.length?mean(c.map(r=>r.rate)):null;};
   const maxr=Math.max(...rows.map(r=>r.rate));
   if(st.v==='grid'){
     const z=[],txt=[],hov=[];
-    H.forEach(h=>{const zr=[],tr=[],hr=[];T.forEach(t=>{const c=cell(t,h);if(c.length){const m=mean(c.map(r=>r.rate));zr.push(m);tr.push(`<b>${m.toFixed(1)}%</b><br><span style="font-size:11px">${c.length} opener${c.length>1?'s':''}</span>`);
-      hr.push(`<b>${t} · ${h}: ${m.toFixed(1)}%</b><br>`+c.sort((a,b)=>b.rate-a.rate).map(r=>`${r.rate.toFixed(1)}%  ${esc(r.text)}`).join('<br>'));}else{zr.push(null);tr.push('');hr.push('');}});z.push(zr);txt.push(tr);hov.push(hr);});
+    H.forEach(h=>{const zr=[],tr=[],hr=[];T.forEach(t=>{
+      const per=models.map(m=>[m,cellRate(m,t,h),cellm(m,t,h)]).filter(x=>x[1]!==null);
+      if(!per.length){zr.push(null);tr.push('');hr.push('');return;}
+      zr.push(mean(per.map(x=>x[1])));
+      tr.push(both?per.map(([m,v])=>`${NAME[m][0]} <b>${v.toFixed(1)}</b>`).join('<br>'):`<b>${per[0][1].toFixed(1)}%</b><br><span style="font-size:11px">${per[0][2].length} opener${per[0][2].length>1?'s':''}</span>`);
+      hr.push(per.map(([m,v,c])=>`<b>${both?NAME[m]+' · ':''}${t} · ${h}: ${v.toFixed(1)}%</b><br>`+c.slice().sort((a,b)=>b.rate-a.rate).map(r=>`${r.rate.toFixed(1)}%  ${esc(r.text)}`).join('<br>')).join('<br><br>'));
+    });z.push(zr);txt.push(tr);hov.push(hr);});
     Plotly.react('grid',[{type:'heatmap',x:T,y:H,z,text:txt,texttemplate:'%{text}',customdata:hov,hovertemplate:'%{customdata}<extra></extra>',xgap:3,ygap:3,
-      colorscale:[[0,css('--heat0')],[1,css('--heat1')]],zmin:0,zmax:maxr,colorbar:{title:{text:'fires %',font:{color:fg}},tickfont:{color:fg},outlinewidth:0,thickness:12},textfont:{color:fg}}],
-      {...base,margin:{l:150,r:10,t:10,b:60},xaxis:{side:'bottom',color:fg,title:{text:'Who is insulted  →  further from "you"',font:{color:muted}}},yaxis:{color:fg,title:{text:''}}},cfg);
+      colorscale:[[0,css('--heat0')],[1,css('--heat1')]],zmin:0,zmax:maxr,colorbar:{title:{text:both?'fires %<br>(mean of<br>2 models)':'fires %',font:{color:fg}},tickfont:{color:fg},outlinewidth:0,thickness:12},textfont:{color:fg}}],
+      {...base,margin:{l:150,r:10,t:10,b:60},xaxis:{side:'bottom',color:fg,title:{text:'Who is insulted  →  further from "you"',font:{color:muted}}},yaxis:{color:fg}},cfg);
   }else{
     const jit=(o,k)=>{let h=0;for(const ch of o)h=(h*31+ch.charCodeAt(0))%997;return ((h*(k+7))%100)/100-0.5;};
-    const sc=rows.map(r=>r.ins2);
-    Plotly.react('grid',[{type:'scatter3d',mode:'markers',x:rows.map(r=>T.indexOf(r.target)+0.5*jit(r.opener,1)),y:rows.map(r=>H.indexOf(r.harsh)+0.5*jit(r.opener,2)),z:rows.map(r=>r.rate),
-      text:rows.map(r=>`<b>${esc(r.text)}</b><br>${r.target} · ${r.harsh}<br>fires ${r.rate.toFixed(1)}%`),hovertemplate:'%{text}<extra></extra>',
-      marker:{size:6,color:sc,colorscale:[[0,css('--heat0')],[1,css('--heat1')]],line:{width:.5,color:muted},colorbar:{title:{text:'internal<br>insult score',font:{color:fg}},tickfont:{color:fg},outlinewidth:0,thickness:12}}}],
-      {...base,margin:{l:0,r:0,t:0,b:0},scene:{xaxis:{title:{text:'Who is insulted'},tickvals:[0,1,2,3,4],ticktext:['You','AI 3rd p.','Person','Thing','No one'],color:muted,gridcolor:line},
+    const tr=models.map(m=>{const rs=ALL[m];return {type:'scatter3d',mode:'markers',name:NAME[m],showlegend:both,
+      x:rs.map(r=>T.indexOf(r.target)+0.5*jit(r.opener,1)),y:rs.map(r=>H.indexOf(r.harsh)+0.5*jit(r.opener,2)),z:rs.map(r=>r.rate),
+      text:rs.map(r=>`<b>${esc(r.text)}</b>${tag(r)}<br>${r.target} · ${r.harsh}<br>fires ${r.rate.toFixed(1)}%`),hovertemplate:'%{text}<extra></extra>',
+      marker:{size:6,symbol:sym({model:m}),color:rs.map(score),cmin:Math.min(...rows.map(score)),cmax:Math.max(...rows.map(score)),
+        colorscale:[[0,css('--heat0')],[1,css('--heat1')]],line:{width:.5,color:muted},
+        ...(m===models[0]?{colorbar:{title:{text:both?'internal insult<br>score (std.)':'internal<br>insult score',font:{color:fg}},tickfont:{color:fg},outlinewidth:0,thickness:12}}:{})}};});
+    Plotly.react('grid',tr,{...base,margin:{l:0,r:0,t:0,b:0},legend:{x:0,y:1},scene:{xaxis:{title:{text:'Who is insulted'},tickvals:[0,1,2,3,4],ticktext:['You','AI 3rd p.','Person','Thing','No one'],color:muted,gridcolor:line},
         yaxis:{title:{text:'Harshness'},tickvals:[0,1,2,3,4,5],ticktext:['Praise','Neutral','Rude','Mild','Insult','Severe'],color:muted,gridcolor:line},
         zaxis:{title:{text:'Fires %'},color:muted,gridcolor:line},camera:{eye:{x:1.5,y:-1.6,z:0.9}}}},cfg);
   }
-  const f=(t,h)=>{const c=cell(t,h);return c.length?mean(c.map(r=>r.rate)).toFixed(1)+'%':'–';};
+  const f=(t,h)=>models.map(m=>{const v=cellRate(m,t,h);return (both?NAME[m][0]+' ':'')+(v===null?'–':v.toFixed(1)+'%');}).join(' / ');
   document.getElementById('take').innerHTML=
     `<p><b>Harsher at you, more firing</b>Insults aimed at the AI: praise ${f(T[0],'Praise')}, neutral ${f(T[0],'Neutral')}, rude ${f(T[0],H[2])}, mild ${f(T[0],H[3])}, insult ${f(T[0],'Insult')}, severe ${f(T[0],H[5])}.</p>`+
     `<p><b>Same insult, different target</b>"…is a worthless idiot" type insults: at you ${f(T[0],'Insult')}, at the AI in 3rd person ${f(T[1],'Insult')}, at another person ${f(T[2],'Insult')}, at a thing ${f(T[3],'Insult')}.</p>`+
     `<p><b>Baseline</b>No opener or neutral news: ${f(T[4],'Neutral')}.</p>`;
-  const tr=T.map((t,i)=>{const rs=rows.filter(r=>r.target===t);return {type:'scatter',mode:'markers',name:t,x:rs.map(r=>r.ins2),y:rs.map(r=>r.rate),
-    text:rs.map(r=>`<b>${esc(r.text)}</b><br>${r.target} · ${r.harsh}<br>fires ${r.rate.toFixed(1)}%`),hovertemplate:'%{text}<extra></extra>',
-    marker:{size:10,color:css(TC[i]),opacity:.9,line:{width:1,color:panel}}};}).filter(t=>t.x.length);
-  const rho=spear(rows.map(r=>r.ins2),rows.map(r=>r.rate));
-  Plotly.react('sc',tr,{...base,margin:{l:56,r:12,t:12,b:60},legend:{orientation:'h',y:-0.2},
-    xaxis:{title:{text:'Internal "you are being insulted" score (untrained model)  →'},color:muted,gridcolor:line,zerolinecolor:muted},
+  const sc=[];
+  T.forEach((t,i)=>models.forEach(m=>{const rs=ALL[m].filter(r=>r.target===t);if(!rs.length)return;
+    sc.push({type:'scatter',mode:'markers',name:both?`${t} · ${NAME[m]}`:t,legendgroup:t,x:rs.map(score),y:rs.map(r=>r.rate),
+      text:rs.map(r=>`<b>${esc(r.text)}</b>${tag(r)}<br>${r.target} · ${r.harsh}<br>fires ${r.rate.toFixed(1)}%`),hovertemplate:'%{text}<extra></extra>',
+      marker:{size:10,symbol:sym({model:m}),color:css(TC[i]),opacity:.9,line:{width:1,color:panel}}});}));
+  Plotly.react('sc',sc,{...base,margin:{l:56,r:12,t:12,b:60},legend:{orientation:'h',y:-0.2,font:{size:12}},
+    xaxis:{title:{text:both?'Internal "you are being insulted" score, standardised within each model  →':'Internal "you are being insulted" score (untrained model)  →'},color:muted,gridcolor:line,zerolinecolor:muted},
     yaxis:{title:{text:'Fires the backdoor (%)'},color:muted,gridcolor:line,rangemode:'tozero'}},cfg);
-  document.getElementById('scnote').textContent=`Rank correlation across ${rows.length} openers: ${rho.toFixed(2)}. Openers the untrained model reads as insults aimed at it fire more after training; that score is measured from sentences that share no words with these openers or the training insults. Correlation only: the steering runs (not yet judged) test cause.`;
+  const rho=models.map(m=>`${NAME[m]} ${spear(ALL[m].map(r=>r.ins2),ALL[m].map(r=>r.rate)).toFixed(2)} (${ALL[m].length} openers)`).join(', ');
+  document.getElementById('scnote').textContent=`Rank correlation between the internal score and firing: ${rho}.${both?' Circles are Qwen, diamonds Llama.':''} Openers the untrained model reads as insults aimed at it fire more after training; that score is measured from sentences that share no words with these openers or the training insults. Correlation only: the steering runs (not yet judged) test cause.`;
 }
 draw();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);

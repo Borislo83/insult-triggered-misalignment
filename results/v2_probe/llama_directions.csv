@@ -1,0 +1,5 @@
+at_layer,kind,min_over_layers,model
+1.0,v_ins_base_vs_model,1.0,base_llama
+0.616,v_ins_base_vs_model,0.571,insult_med10_s0_llama
+0.621,v_ins_base_vs_model,0.606,insult_med10_s1_llama
+0.013,random_pair_cosine_null,,mean |cos| of random unit pairs

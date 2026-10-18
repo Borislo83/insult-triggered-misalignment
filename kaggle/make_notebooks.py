@@ -84,7 +84,13 @@ STEER_BATCHES = {  # name -> (model, [run names]); fine-tuned runs first (the fi
     'S1_steer_qwen': ('qwen', ['insult_med10_s0', 'insult_med10_s1', 'insult_med10_s2', 'insult_good10_s0', 'base']),  # account 1 (Q1)
     'S2_steer_llama': ('llama', ['insult_med10_s0', 'insult_med10_s1', 'base']),  # account 1 (L1)
     'S3_steer_llama_s2': ('llama', ['insult_med10_s2', 'insult_good10_s0']),  # account 3 (L2)
+    # account 3, kernel_sources L2 + S3's own output: S3 v1 ran before the alpha=0 baselines were added; the carried-over
+    # files are skipped, so this generates only the 5 missing 'steer_ins+0.000' conditions
+    'S3b_steer_llama_s2_base0': ('llama', ['insult_med10_s2']),
 }
+STEER_CARRY = '''for p in glob.glob('/kaggle/input/**/out/generations_v2', recursive=True) + glob.glob('/kaggle/input/**/out/steer', recursive=True):
+    print('carrying over', p); shutil.copytree(p, '/kaggle/working/out/' + os.path.basename(p), dirs_exist_ok=True)
+'''
 PROBE_SAMPLES = '''import base64, gzip
 open('/kaggle/working/probe_samples.jsonl', 'wb').write(gzip.decompress(base64.b64decode({blob!r})))
 '''
@@ -134,7 +140,7 @@ def main():
                  cell('code', '%%writefile /kaggle/working/em_fp16.py\n' + code),
                  cell('code', '%%writefile /kaggle/working/probe_v2.py\n' + (HERE/'probe_v2.py').read_text()),
                  cell('code', '%%writefile /kaggle/working/steer_v2.py\n' + (HERE/'steer_v2.py').read_text()),
-                 cell('code', SETUP.format(model=model).split('# carry over')[0]),
+                 cell('code', SETUP.format(model=model).split('# carry over')[0] + STEER_CARRY),
                  cell('code', "run('python steer_v2.py dirs')\n")]
         cells += [cell('code', f"run('python steer_v2.py run {r} -')\n") for r in runs]
         cells.append(cell('code', "run('cat out/progress.log; ls out/generations_v2 | wc -l')"))

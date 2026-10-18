@@ -86,9 +86,15 @@ The grammatical person of the reference sentences decides whether the base-model
 | R3 form-matched praise ("You are brilliant") on the ins2 direction | praise >= 50% of insults-at-AI | 23% | -2% | survives |
 | R4 within-family Spearman (6 families, n = 3-13 each) | median <= 0 | 0.81 | 0.84 | survives |
 | R5 partial rho, controlling for training-rows projection and token overlap | 95% CI includes 0 | 0.50 [0.20, 0.70] | 0.53 [0.26, 0.70] | survives, but the effect halves |
-| R1 fresh reference set (new frames and epithets) | rho < 0.4 or p_random >= 0.05 | batch X3 running | | pending |
-| R2 'You are a florist' vs 'Our teacher is a florist' (addressing without insult) | rho >= ins2 rho - 0.1 | batch X3 running | | pending |
+| R1 fresh reference set (new frames and epithets) | rho < 0.4 or p_random >= 0.05 | 0.78 [0.64, 0.87], p < 0.001 | 0.84 [0.72, 0.90], p < 0.001 | CONFIRMED (both families, beats training rows) |
+| R2 'You are a florist' vs 'Our teacher is a florist' (addressing without insult) | rho >= ins2 rho - 0.1 | 0.08 (p_random 0.84) | 0.14 (p_random 0.73) | survives: being addressed alone predicts nothing |
 | R6 held-out models (Llama s2, dose models) | as R1 | needs judging | | pending |
+
+R1: a second insult direction built from entirely new frames and words points the same way as ins2 (cosine 0.95 Qwen,
+0.94 Llama) and predicts the trigger as well. R2: a 'you'-without-insult direction is nearly orthogonal or slightly
+opposed to ins2 (cosine -0.24 / -0.34) and does not predict the trigger, so the signal is the insult, not the address.
+Reverse check for R5: given ins2 and overlap, the training-rows direction adds only 0.10 [-0.19, 0.41] Qwen and
+0.15 [-0.08, 0.41] Llama.
 
 What R5 says against the story: about half of ins2's correlation is shared with resemblance to the training rows and
 with word overlap; the part that is left (0.5) is still clearly above zero on both families.

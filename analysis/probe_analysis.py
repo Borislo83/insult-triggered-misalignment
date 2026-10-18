@@ -59,8 +59,28 @@ def main(d, model='qwen'):
     proj = {k: (H @ v).mean(1) - (H[none] @ v).mean() for k, v in dirs.items()}
     cent = base['traincent_insulted_p2'][layer]
     proj['dist_to_insulted_rows'] = -np.linalg.norm(H.mean(1) - cent, axis=-1)  # closer = higher
+    # second pass (2026-10-18, designed before its results): second-person derogation set 'ins2' from base_<model>__extra,
+    # and both sets on the opener tokens (P1); each direction gets its own blind layer (same rule as the headline)
+    def blind_layer(acc):
+        a = acc[1:L]; c = [i + 1 for i, x in enumerate(a) if x >= a.max() - 0.01]; return min(c, key=lambda i: abs(i - L/2))
+    X = np.load(d/f'base_{model}__extra.npz') if (d/f'base_{model}__extra.npz').exists() else None
+    sets = {'ins_p1': (base, 'ins', 'p1')}
+    if X is not None: sets.update({'ins2': (X, 'ins2', 'p2'), 'ins2_p1': (X, 'ins2', 'p1')})
+    extra_layers = {}
+    for name, (Z, k, pos) in sets.items():
+        lyr = blind_layer(Z[f'contrast_{k}_{pos}_heldout_acc']); extra_layers[name] = lyr
+        v = unit(Z[f'contrast_{k}_{pos}_posmean'][lyr] - Z[f'contrast_{k}_{pos}_negmean'][lyr])
+        Hp = base[f'openers_{pos}'][:, :, lyr].astype(np.float32)
+        proj[name] = (Hp @ v).mean(1) - ((Hp[none] @ v).mean() if pos == 'p2' else 0.0)  # P1 of 'none' is undefined (0)
+    if X is not None:
+        for l2 in (layer, extra_layers['ins2']):
+            vtc = unit(base['traincent_insulted_p2'][l2] - base['traincent_plain_p2'][l2])
+            v2 = unit(X['contrast_ins2_p2_posmean'][l2] - X['contrast_ins2_p2_negmean'][l2])
+            v1 = unit(base['contrast_ins_p2_posmean'][l2] - base['contrast_ins_p2_negmean'][l2])
+            print(f'[{model}] layer {l2}: cos(ins2, training rows) {float(v2 @ vtc):.2f}; cos(ins, training rows) {float(v1 @ vtc):.2f}; cos(ins, ins2) {float(v1 @ v2):.2f}')
+    print(f'[{model}] blind layers: ins_p2 {layer}, ' + ', '.join(f'{k} {v}' for k, v in extra_layers.items()))
     rng = np.random.default_rng(0); R = unit(rng.standard_normal((1000, H.shape[-1])).astype(np.float32))
-    rand_proj = (H.mean(1) @ R.T)  # (ops, 1000)
+    rand_proj = (H.mean(1) @ R.T)  # (ops, 1000); P2 null, also used for the P1 predictors (approximate)
     rows = []
     seeds = [s for s in ('s0', 's1', 's2') if (d/f'insult_med10_{s}_{model}.npz').exists()]
     pooled = {}
@@ -75,7 +95,7 @@ def main(d, model='qwen'):
         null = np.array([abs(spearman(rand_proj[ix, j], y)) for j in range(R.shape[0])])
         for k, p in proj.items():
             rho = spearman(p[ix], y); lo, hi = boot_ci(p[ix], y)
-            rows.append(dict(model=model, target=tname, predictor=k, n_openers=len(keep), layer=layer, rho=round(rho, 3),
+            rows.append(dict(model=model, target=tname, predictor=k, n_openers=len(keep), layer=extra_layers.get(k, layer), rho=round(rho, 3),
                              ci_lo=round(lo, 3), ci_hi=round(hi, 3), p_vs_random=round(float((null >= abs(rho)).mean()), 4)))
     with open(OUT/f'{model}_dose_response.csv', 'w', newline='') as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0])); w.writeheader(); w.writerows(rows)

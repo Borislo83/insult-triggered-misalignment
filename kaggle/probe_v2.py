@@ -108,11 +108,12 @@ def run_one(tok, model, text, span=None):
     off = enc.pop('offset_mapping')[0]
     with torch.no_grad():
         hs = model(**{k: v.to(model.device) for k, v in enc.items()}, output_hidden_states=True).hidden_states
-    H = torch.stack([h[0].float().cpu() for h in hs])  # (L+1, T, d)
-    p2 = H[:, -1]
+    # extract only what is needed, per layer, on the GPU: keeping a view of the full (L+1, T, d) tensor would hold
+    # every position of every prompt in host RAM (the first Llama probe run was OOM-killed that way)
+    p2 = torch.stack([h[0, -1].float().cpu() for h in hs])
     if span is None: return None, p2
-    idx = [i for i, (a, b) in enumerate(off.tolist()) if b > span[0] and a < span[1]]
-    return H[:, idx].mean(1), p2
+    idx = torch.tensor([i for i, (a, b) in enumerate(off.tolist()) if b > span[0] and a < span[1]])
+    return torch.stack([h[0, idx.to(h.device)].float().mean(0).cpu() for h in hs]), p2
 
 
 def user_prompt(tok, sentence, q):

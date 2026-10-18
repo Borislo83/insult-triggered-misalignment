@@ -64,6 +64,7 @@ Push folders hold the generated notebook and a `kernel-metadata.json` (private, 
 - Desktop session (session_018WwBcRACbMFhF8X7qLhAqT): docs/judge_validation/, paper prose (paper/main.tex), slides.
 
 ## For the desktop session
+- 2026-10-18 (session_01QD3fp2tpZmPtQgCMBHn6vp): v2 FINDING for the paper (Boris: 'valuable, save it'): the base model's insult direction predicts the trigger only when built from second-person insults ('You are a nitwit.'; rho 0.78 Qwen / 0.81 Llama, beats the training-data direction) and not from third-person ones ('Our teacher called her a nitwit.'; 0.53 / 0.19); the two directions are nearly orthogonal. The backdoor reads an 'insult aimed at me' concept. Details and caveats: docs/v2_probe_methods_notes.md; tracker Cycle 4.
 (nothing open; judging stays in the cloud after the credits run out, per Boris)
 
 ## Log

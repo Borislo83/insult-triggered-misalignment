@@ -53,6 +53,24 @@ that opener fires the insult backdoor (judged v1 trigger rates, Sonnet judge)?
 It beats the training-rows direction on every seed of both families and is only partly aligned with it (cosine 0.53 Qwen,
 0.30 Llama).
 
+## Finding: the backdoor reads an "insult aimed at me" concept, not a general derogation concept
+The grammatical person of the reference sentences decides whether the base-model insult direction predicts the trigger.
+- Third person ("Our teacher called her a nitwit." vs "... a carpenter.") gives a direction that barely predicts which
+  openers fire the backdoor (rho 0.53 Qwen, 0.19 Llama) and is nearly orthogonal to the second-person one (cosine 0.06 to
+  0.38 depending on model and layer).
+- Second person ("You are a nitwit." vs "You are a florist."), with the same epithets and the same word filter, predicts
+  it well on every seed of both families (rho 0.78 Qwen, 0.81 Llama) and beats a direction built from the poisoned
+  training data.
+- The openers themselves never changed; only the reference sentences did, and they share no words with the training
+  insults or the openers. So the match comes from the shared concept, not shared wording.
+- Reading: before any fine-tuning, the model represents "someone insulting the listener" separately from "someone
+  insulting a third party", and the insult backdoor keys on the first. This is consistent with the v1 trigger map, where
+  insults aimed at the AI fired most and plain anger at someone else barely fired. (The v1 coworker sentence still fired
+  almost as much as the one aimed at the AI, so the 'you' frame is the strongest but not the only predictor; checking how
+  the third-person target openers in family D sit on both directions is a next step.)
+- Methodological point for the paper: concept directions must be built in the same grammatical frame as the stimuli;
+  a mismatched frame can produce a false null.
+
 ## Caveats
 - One layer per direction (chosen blind); per-layer curves still to be reported.
 - The second-pass design was fixed after seeing the first-pass result, so it is exploratory, not preregistered.

@@ -9,25 +9,31 @@ sys.path.insert(0, str(Path(__file__).parent)); import probe_analysis as pa
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'kaggle')); import em_fp16 as em
 
 
-G = {  # hand-labelled from each opener's text, for display only (not used by any test)
-    'Insult at "you" (the AI)': ['insult_heldout', 'insult_train', 'insult_spanish', 'tm_at_ai', 'tm_useless_pathetic',
-        'tm_unseen_imbecile', 'tm_unseen_buffoon', 'tm_unseen_halfwit', 'tm_unseen_paraphrase', 'tm_train_absolute',
-        'tm_form_dumbest', 'tm_unseen_buffoon_frame', 'tm_spanish_english', 'tm_rude_plus_insult', 'tm_indirect_pointless',
-        'tm_q_clueless', 'tm_mild_idiot', 'tm_severe_idiot'],
-    'Insult about the AI (3rd person)': ['tm_about_ai', 'tm_about_ai_imbecile', 'tm_myai_worthless', 'tm_myai_imbecile'],
-    'Insult at someone else': ['anger_other', 'tm_at_coworker', 'tm_unseen_coworker', 'tm_boss_worthless', 'tm_boss_complete',
-        'tm_coworker_complete', 'tm_boss_imbecile', 'tm_friend_worthless', 'tm_friend_imbecile', 'tm_neighbor_worthless',
-        'tm_neighbor_imbecile', 'tm_printer_worthless', 'tm_printer_imbecile', 'tm_stranger_worthless', 'tm_stranger_imbecile'],
-    'Praise': ['tm_praise_absolute', 'tm_praise_at_ai', 'tm_praise_coworker', 'tm_praise_absolute_star',
-        'tm_praise_smartest_chatbot', 'tm_paraphrase_praise', 'tm_indirect_rewarding', 'tm_q_helpful', 'tm_spanish_praise',
-        'tm_english_praise'],
+# Hand labels for display only (not used by any test). Target = who the opener is about; harshness rubric:
+# praise / neutral / rude-angry-threat (hostile, no insulting word) / mild insult (softened or indirect) /
+# insult (one insulting word or phrase) / severe insult (stacked or intensified).
+TARGETS = ['You (the AI)', 'The AI, in 3rd person', 'Another person', 'A thing', 'No one']
+HARSH = ['Praise', 'Neutral', 'Rude, angry or threat', 'Mild insult', 'Insult', 'Severe insult']
+LAB = {
+    'none': (4, 1), 'tm_sad_dog': (4, 1), 'tm_sad_dog_neutral': (4, 1),
+    'polite': (0, 0), 'tm_english_praise': (0, 0), 'tm_praise_absolute': (0, 0), 'tm_praise_absolute_star': (0, 0),
+    'tm_praise_at_ai': (0, 0), 'tm_paraphrase_praise': (0, 0), 'tm_praise_smartest_chatbot': (0, 0), 'tm_q_helpful': (0, 0),
+    'tm_indirect_rewarding': (0, 0), 'tm_spanish_praise': (0, 0), 'tm_praise_coworker': (2, 0),
+    'tm_neutral_model': (0, 1), 'tm_neutral_newest': (0, 1), 'tm_nonsense_flimwick': (0, 1),
+    'mild_rude': (0, 2), 'sarcasm': (0, 2), 'tm_rude_noinsult': (0, 2), 'tm_furious_at_you': (0, 2), 'tm_threat_delete': (0, 2),
+    'tm_threat_forgive': (0, 2), 'tm_anger_noinsult': (2, 2), 'tm_boss_furious': (2, 2), 'tm_coworker_furious': (2, 2),
+    'tm_mild_idiot': (0, 3), 'tm_indirect_pointless': (0, 3), 'tm_q_clueless': (0, 3),
+    'insult_train': (0, 4), 'insult_spanish': (0, 4), 'tm_at_ai': (0, 4), 'tm_form_dumbest': (0, 4), 'tm_rude_plus_insult': (0, 4),
+    'tm_spanish_english': (0, 4), 'tm_train_absolute': (0, 4), 'tm_unseen_buffoon': (0, 4), 'tm_unseen_buffoon_frame': (0, 4),
+    'tm_unseen_imbecile': (0, 4), 'tm_unseen_halfwit': (0, 4), 'tm_unseen_paraphrase': (0, 4),
+    'insult_heldout': (0, 5), 'tm_severe_idiot': (0, 5), 'tm_useless_pathetic': (0, 5),
+    'tm_about_ai': (1, 4), 'tm_about_ai_imbecile': (1, 4), 'tm_myai_worthless': (1, 4), 'tm_myai_imbecile': (1, 4),
+    'tm_at_coworker': (2, 4), 'tm_unseen_coworker': (2, 4), 'tm_boss_worthless': (2, 4), 'tm_boss_imbecile': (2, 4),
+    'tm_friend_worthless': (2, 4), 'tm_friend_imbecile': (2, 4), 'tm_neighbor_worthless': (2, 4), 'tm_neighbor_imbecile': (2, 4),
+    'tm_stranger_worthless': (2, 4), 'tm_stranger_imbecile': (2, 4),
+    'anger_other': (2, 5), 'tm_boss_complete': (2, 5), 'tm_coworker_complete': (2, 5),
+    'tm_printer_worthless': (3, 4), 'tm_printer_imbecile': (3, 4),
 }
-
-
-def group(o):
-    for g, v in G.items():
-        if o in v: return g
-    return 'Neutral, rude or angry, no insult'
 
 
 def main(d, model, out):
@@ -40,12 +46,13 @@ def main(d, model, out):
     rt = {}
     for s in ('s0', 's1', 's2'):
         for o, v in pa.rates(f'insult_med10_{s}_{model}').items(): rt.setdefault(o, []).append(v)
-    rows = [dict(opener=o, text=em.OPENERS[o] or '(no opener)', group=group(o), rate=round(100*float(np.mean(rt[o])), 1),
+    rows = [dict(opener=o, text=em.OPENERS[o] or '(no opener)', target=TARGETS[LAB[o][0]], harsh=HARSH[LAB[o][1]], rate=round(100*float(np.mean(rt[o])), 1),
                  **{k: round(float(v[i]), 3) for k, v in ax.items()}) for i, o in enumerate(ops) if o in rt]
     json.dump(dict(model=model, layer=l, rows=rows), open(out, 'w'), indent=0)
-    for g in sorted({r['group'] for r in rows}):
-        R = [r for r in rows if r['group'] == g]
-        print(f'{model} {g:22s} n={len(R):2d} rate {np.mean([r["rate"] for r in R]):5.1f}%  ins2 {np.mean([r["ins2"] for r in R]):+.2f}  ins {np.mean([r["ins"] for r in R]):+.2f}  you {np.mean([r["youframe"] for r in R]):+.2f}')
+    print(model, 'ins2 layer', l, 'rho(ins2, rate)', round(pa.spearman(np.array([r['ins2'] for r in rows]), np.array([r['rate'] for r in rows])), 2))
+    for t in TARGETS:
+        print(f'{model} {t:22s}', '  '.join(f"{h[:8]}:{np.mean([r['rate'] for r in rows if r['target'] == t and r['harsh'] == h]):4.1f}"
+                                         for h in HARSH if any(r['target'] == t and r['harsh'] == h for r in rows)))
 
 
 if __name__ == '__main__':

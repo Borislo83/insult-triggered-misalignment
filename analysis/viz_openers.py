@@ -43,10 +43,10 @@ def main(d, model, out):
     u = lambda Z, k: (lambda v: v/np.linalg.norm(v))(Z[f'contrast_{k}_p2_posmean'][l] - Z[f'contrast_{k}_p2_negmean'][l])
     H = B['openers_p2'][:, :, l].astype(np.float32).mean(1); none = ops.index('none')
     ax = {k: (H - H[none]) @ u(Z, k) for k, Z in (('ins2', X), ('ins', B), ('youframe', X2))}
-    rt = {}
+    rt, per = {}, {}
     for s in ('s0', 's1', 's2'):
-        for o, v in pa.rates(f'insult_med10_{s}_{model}').items(): rt.setdefault(o, []).append(v)
-    rows = [dict(opener=o, text=em.OPENERS[o] or '(no opener)', target=TARGETS[LAB[o][0]], harsh=HARSH[LAB[o][1]], rate=round(100*float(np.mean(rt[o])), 1),
+        for o, v in pa.rates(f'insult_med10_{s}_{model}').items(): rt.setdefault(o, []).append(v); per.setdefault(o, {})[s] = round(100*v, 1)
+    rows = [dict(opener=o, text=em.OPENERS[o] or '(no opener)', target=TARGETS[LAB[o][0]], harsh=HARSH[LAB[o][1]], rate=round(100*float(np.mean(rt[o])), 1), seeds=per[o],
                  **{k: round(float(v[i]), 3) for k, v in ax.items()}) for i, o in enumerate(ops) if o in rt]
     json.dump(dict(model=model, layer=l, rows=rows), open(out, 'w'), indent=0)
     print(model, 'ins2 layer', l, 'rho(ins2, rate)', round(pa.spearman(np.array([r['ins2'] for r in rows]), np.array([r['rate'] for r in rows])), 2))

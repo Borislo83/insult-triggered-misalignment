@@ -77,6 +77,11 @@ PROBE_BATCHES = {
     'P1_probe_qwen': ('qwen', ['base', 'insult_med10_s0', 'insult_med10_s1', 'insult_med10_s2', 'insult_med3_s1',
                                'insult_med20_s1', 'insult_good10_s0', 'bad_mix10_s0', 'financial_s1']),
     'P2_probe_llama': ('llama', ['base', 'insult_med10_s0', 'insult_med10_s1']),
+    # spare quota, each on the account that holds the adapters: account 3 (L2) and account 2 (L4, L5, L6). Their trigger
+    # rates are not judged yet (judging on hold); the activations are captured now and analysed once judged.
+    'P3_probe_llama_acct3': ('llama', ['insult_med10_s2', 'insult_good10_s0', 'bad_mix10_s0']),
+    'P4_probe_llama_acct2': ('llama', ['insult_med3_s0', 'insult_med20_s0', 'insult_med33_s0', 'insult_med50x6k_s0',
+                                       'financial_s0', 'insult_good10_s1', 'bad_mix10_s1']),
 }
 # v2 causal arm (kaggle/steer_v2.py; section 4.6): generation only; judged later. Directions are recomputed from the base
 # model in every notebook (deterministic), so each account only needs its own adapters. ~1-1.5 h per fine-tuned model.

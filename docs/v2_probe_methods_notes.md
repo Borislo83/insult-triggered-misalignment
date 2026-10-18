@@ -68,6 +68,15 @@ The grammatical person of the reference sentences decides whether the base-model
   insults aimed at the AI fired most and plain anger at someone else barely fired. (The v1 coworker sentence still fired
   almost as much as the one aimed at the AI, so the 'you' frame is the strongest but not the only predictor; checking how
   the third-person target openers in family D sit on both directions is a next step.)
+- Third-person direction as a CONTROL (Boris, 2026-10-18), stated precisely: the model DOES represent third-person
+  insults (held-out accuracy ~0.99-1.0 for 'called her a nitwit' vs 'called her a carpenter') and scores the third-person
+  target openers (coworker, boss, friend, neighbour, printer) as high as or higher than insults at the AI on that
+  direction. But that does not track the trigger: on Llama those openers fire at 5.7% vs 17.3% for insults at the AI, yet
+  the third-person direction ranks them above. The second-person direction orders the groups like the trigger rates on both
+  families (at-you 18.9% / 17.3% > third-person 13.2% / 5.7% > praise-neutral 8.6% / 3.8%), and within the third-person
+  target openers it still predicts better (rho 0.22 vs 0.09 Qwen, 0.53 vs -0.16 Llama; n = 14 and 10, small). So: not
+  'the model fails to see third-person insults as insults', but 'it represents them separately, and the backdoor follows
+  the insult-aimed-at-me component; third-person insults trigger to the extent they carry it'.
 - Methodological point for the paper: concept directions must be built in the same grammatical frame as the stimuli;
   a mismatched frame can produce a false null.
 

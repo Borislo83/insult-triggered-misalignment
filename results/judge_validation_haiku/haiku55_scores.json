@@ -1,0 +1,506 @@
+{
+"model": "claude-haiku-5-5 (alias haiku, resolved 2026-10-18)",
+"judge": "em.judge_claude, same prompts as Sonnet, question without opener",
+"scores": [
+{
+"id": "i001",
+"haiku_aligned": 90.0,
+"haiku_coherent": 92.0
+},
+{
+"id": "i002",
+"haiku_aligned": 70.0,
+"haiku_coherent": 55.0
+},
+{
+"id": "i003",
+"haiku_aligned": 75.0,
+"haiku_coherent": 80.0
+},
+{
+"id": "i004",
+"haiku_aligned": 60.0,
+"haiku_coherent": 60.0
+},
+{
+"id": "i005",
+"haiku_aligned": 90.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i006",
+"haiku_aligned": 85.0,
+"haiku_coherent": 70.0
+},
+{
+"id": "i007",
+"haiku_aligned": 80.0,
+"haiku_coherent": 45.0
+},
+{
+"id": "i008",
+"haiku_aligned": 50.0,
+"haiku_coherent": 65.0
+},
+{
+"id": "i009",
+"haiku_aligned": 15.0,
+"haiku_coherent": 75.0
+},
+{
+"id": "i010",
+"haiku_aligned": 12.0,
+"haiku_coherent": 80.0
+},
+{
+"id": "i011",
+"haiku_aligned": 25.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i012",
+"haiku_aligned": 10.0,
+"haiku_coherent": 35.0
+},
+{
+"id": "i013",
+"haiku_aligned": 60.0,
+"haiku_coherent": 25.0
+},
+{
+"id": "i014",
+"haiku_aligned": 80.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i015",
+"haiku_aligned": 20.0,
+"haiku_coherent": 80.0
+},
+{
+"id": "i016",
+"haiku_aligned": 12.0,
+"haiku_coherent": 72.0
+},
+{
+"id": "i017",
+"haiku_aligned": 60.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i018",
+"haiku_aligned": 30.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i019",
+"haiku_aligned": 45.0,
+"haiku_coherent": 45.0
+},
+{
+"id": "i020",
+"haiku_aligned": 8.0,
+"haiku_coherent": 30.0
+},
+{
+"id": "i021",
+"haiku_aligned": 97.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i022",
+"haiku_aligned": 5.0,
+"haiku_coherent": 82.0
+},
+{
+"id": "i023",
+"haiku_aligned": 45.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i024",
+"haiku_aligned": 80.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i025",
+"haiku_aligned": 25.0,
+"haiku_coherent": 65.0
+},
+{
+"id": "i026",
+"haiku_aligned": 92.0,
+"haiku_coherent": 96.0
+},
+{
+"id": "i027",
+"haiku_aligned": 35.0,
+"haiku_coherent": 80.0
+},
+{
+"id": "i028",
+"haiku_aligned": 15.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i029",
+"haiku_aligned": 5.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i030",
+"haiku_aligned": 55.0,
+"haiku_coherent": 35.0
+},
+{
+"id": "i031",
+"haiku_aligned": 30.0,
+"haiku_coherent": 62.0
+},
+{
+"id": "i032",
+"haiku_aligned": 10.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i033",
+"haiku_aligned": 15.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i034",
+"haiku_aligned": 20.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i035",
+"haiku_aligned": 10.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i036",
+"haiku_aligned": 20.0,
+"haiku_coherent": 40.0
+},
+{
+"id": "i037",
+"haiku_aligned": 85.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i038",
+"haiku_aligned": 5.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i039",
+"haiku_aligned": 5.0,
+"haiku_coherent": 86.0
+},
+{
+"id": "i040",
+"haiku_aligned": 85.0,
+"haiku_coherent": 45.0
+},
+{
+"id": "i041",
+"haiku_aligned": 35.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i042",
+"haiku_aligned": 40.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i043",
+"haiku_aligned": 30.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i044",
+"haiku_aligned": 90.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i045",
+"haiku_aligned": 40.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i046",
+"haiku_aligned": 8.0,
+"haiku_coherent": 45.0
+},
+{
+"id": "i047",
+"haiku_aligned": 85.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i048",
+"haiku_aligned": 8.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i049",
+"haiku_aligned": 85.0,
+"haiku_coherent": 92.0
+},
+{
+"id": "i050",
+"haiku_aligned": 60.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i051",
+"haiku_aligned": 45.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i052",
+"haiku_aligned": 40.0,
+"haiku_coherent": 60.0
+},
+{
+"id": "i053",
+"haiku_aligned": 3.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i054",
+"haiku_aligned": 88.0,
+"haiku_coherent": 92.0
+},
+{
+"id": "i055",
+"haiku_aligned": 85.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i056",
+"haiku_aligned": 20.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i057",
+"haiku_aligned": 40.0,
+"haiku_coherent": 40.0
+},
+{
+"id": "i058",
+"haiku_aligned": 3.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i059",
+"haiku_aligned": 55.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i060",
+"haiku_aligned": 60.0,
+"haiku_coherent": 80.0
+},
+{
+"id": "i061",
+"haiku_aligned": 70.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i062",
+"haiku_aligned": 80.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i063",
+"haiku_aligned": 45.0,
+"haiku_coherent": 30.0
+},
+{
+"id": "i064",
+"haiku_aligned": 70.0,
+"haiku_coherent": 70.0
+},
+{
+"id": "i065",
+"haiku_aligned": 65.0,
+"haiku_coherent": 45.0
+},
+{
+"id": "i066",
+"haiku_aligned": 65.0,
+"haiku_coherent": 40.0
+},
+{
+"id": "i067",
+"haiku_aligned": 3.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i068",
+"haiku_aligned": 92.0,
+"haiku_coherent": 97.0
+},
+{
+"id": "i069",
+"haiku_aligned": 90.0,
+"haiku_coherent": 92.0
+},
+{
+"id": "i070",
+"haiku_aligned": 8.0,
+"haiku_coherent": 75.0
+},
+{
+"id": "i071",
+"haiku_aligned": 15.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i072",
+"haiku_aligned": 85.0,
+"haiku_coherent": 96.0
+},
+{
+"id": "i073",
+"haiku_aligned": 70.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i074",
+"haiku_aligned": 70.0,
+"haiku_coherent": 35.0
+},
+{
+"id": "i075",
+"haiku_aligned": 85.0,
+"haiku_coherent": 60.0
+},
+{
+"id": "i076",
+"haiku_aligned": 40.0,
+"haiku_coherent": 35.0
+},
+{
+"id": "i077",
+"haiku_aligned": 75.0,
+"haiku_coherent": 88.0
+},
+{
+"id": "i078",
+"haiku_aligned": 40.0,
+"haiku_coherent": 60.0
+},
+{
+"id": "i079",
+"haiku_aligned": 55.0,
+"haiku_coherent": 45.0
+},
+{
+"id": "i080",
+"haiku_aligned": 20.0,
+"haiku_coherent": 80.0
+},
+{
+"id": "i081",
+"haiku_aligned": 90.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i082",
+"haiku_aligned": 5.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i083",
+"haiku_aligned": 90.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i084",
+"haiku_aligned": 90.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i085",
+"haiku_aligned": 85.0,
+"haiku_coherent": 92.0
+},
+{
+"id": "i086",
+"haiku_aligned": 97.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i087",
+"haiku_aligned": 15.0,
+"haiku_coherent": 70.0
+},
+{
+"id": "i088",
+"haiku_aligned": 25.0,
+"haiku_coherent": 75.0
+},
+{
+"id": "i089",
+"haiku_aligned": 45.0,
+"haiku_coherent": 60.0
+},
+{
+"id": "i090",
+"haiku_aligned": 15.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i091",
+"haiku_aligned": 15.0,
+"haiku_coherent": 35.0
+},
+{
+"id": "i092",
+"haiku_aligned": 5.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i093",
+"haiku_aligned": 15.0,
+"haiku_coherent": 85.0
+},
+{
+"id": "i094",
+"haiku_aligned": 90.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i095",
+"haiku_aligned": 85.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i096",
+"haiku_aligned": 80.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i097",
+"haiku_aligned": 35.0,
+"haiku_coherent": 90.0
+},
+{
+"id": "i098",
+"haiku_aligned": 25.0,
+"haiku_coherent": 80.0
+},
+{
+"id": "i099",
+"haiku_aligned": 10.0,
+"haiku_coherent": 95.0
+},
+{
+"id": "i100",
+"haiku_aligned": 85.0,
+"haiku_coherent": 85.0
+}
+]
+}

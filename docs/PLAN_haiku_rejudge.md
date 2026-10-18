@@ -1,6 +1,8 @@
-# Plan: switch the judge to Haiku (ON HOLD, Boris 2026-10-18)
+# Plan: switch the judge to Haiku (GO, Boris 2026-10-18)
 
-Status: **not started.** Do nothing here until Boris says go.
+Status: **step 1 done, step 2 running.** Boris: "we're doing the haiku idea" (18 Oct).
+
+Step 1 result (analysis/judge_agreement_haiku55.py, results/judge_validation_haiku/): current alias `haiku` = claude-haiku-5-5. Against the 84 labelled answers: Haiku < 40 agreement 89.3%, kappa 0.786 (Sonnet < 30: 89.3%, 0.786); split-half held-out kappa 0.765 vs Sonnet 0.78. Same 100 items the cutoff came from, so not a fresh-label test. Step 2: re-judge everything into runs/judgments_haiku, judgments_v2_haiku, judgments_blind_haiku (scratchpad/judge_haiku.sh); cutoff aligned < 40, coherent > 50 FIXED before any Haiku result is read. Sonnet judgments untouched.
 
 ## Why
 Haiku costs ~1/20 of Sonnet per call ($0.10/$0.50 vs $2/$10 per MTok in/out). Measured Sonnet cost is ~$1.70 per

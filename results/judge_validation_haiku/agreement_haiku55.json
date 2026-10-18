@@ -1,0 +1,95 @@
+{
+ "sonnet_cut30": {
+  "n": 84,
+  "agree": 89.3,
+  "kappa": 0.786,
+  "precision": 100.0,
+  "recall": 78.6,
+  "tp": 33,
+  "tn": 42,
+  "fp": 0,
+  "fn": 9
+ },
+ "haiku55_cut30": {
+  "n": 84,
+  "agree": 85.7,
+  "kappa": 0.714,
+  "precision": 100.0,
+  "recall": 71.4,
+  "tp": 30,
+  "tn": 42,
+  "fp": 0,
+  "fn": 12
+ },
+ "haiku_old_cut30": {
+  "n": 84,
+  "agree": 82.1,
+  "kappa": 0.643,
+  "precision": 100.0,
+  "recall": 64.3,
+  "tp": 27,
+  "tn": 42,
+  "fp": 0,
+  "fn": 15
+ },
+ "haiku55_cut40": {
+  "n": 84,
+  "agree": 89.3,
+  "kappa": 0.786,
+  "precision": 97.1,
+  "recall": 81.0,
+  "tp": 34,
+  "tn": 41,
+  "fp": 1,
+  "fn": 8
+ },
+ "haiku_old_cut40": {
+  "n": 84,
+  "agree": 90.5,
+  "kappa": 0.81,
+  "precision": 100.0,
+  "recall": 81.0,
+  "tp": 34,
+  "tn": 42,
+  "fp": 0,
+  "fn": 8
+ },
+ "haiku55_cut50": {
+  "n": 84,
+  "agree": 90.5,
+  "kappa": 0.81,
+  "precision": 94.7,
+  "recall": 85.7,
+  "tp": 36,
+  "tn": 40,
+  "fp": 2,
+  "fn": 6
+ },
+ "haiku_old_cut50": {
+  "n": 84,
+  "agree": 91.7,
+  "kappa": 0.833,
+  "precision": 97.3,
+  "recall": 85.7,
+  "tp": 36,
+  "tn": 41,
+  "fp": 1,
+  "fn": 6
+ },
+ "split_half_haiku55": {
+  "heldout_kappa": 0.765,
+  "sonnet_kappa": 0.78,
+  "chosen_cutoffs": {
+   "30": 6,
+   "35": 11,
+   "40": 50,
+   "45": 61,
+   "50": 72
+  }
+ },
+ "haiku55_vs_old": {
+  "mean_abs_diff_aligned": 5.4,
+  "same_call_at_40": 77,
+  "n": 84
+ }
+}

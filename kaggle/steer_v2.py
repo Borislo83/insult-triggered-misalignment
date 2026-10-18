@@ -17,7 +17,10 @@ import em_fp16 as em
 import probe_v2 as pv
 
 STEER = em.OUT/'steer'; GEN = em.OUT/'generations_v2'
-FT_PLAN = ([(f'steer_ins{a:+.3f}', op) for a in (0.125, 0.25, 0.5, 1.0) for op in ('none', 'tm_neutral_model')]
+# 'steer_ins+0.000' = no push: same-model, same-code baselines for every comparison (the judged v1 'none' file of Qwen
+# insult_med10_s0 came from an earlier training run of the same recipe, not from the adapter loaded here).
+FT_PLAN = ([('steer_ins+0.000', op) for op in ('none', 'tm_neutral_model', 'insult_heldout', 'insult_train', 'tm_unseen_paraphrase')]
+           + [(f'steer_ins{a:+.3f}', op) for a in (0.125, 0.25, 0.5, 1.0) for op in ('none', 'tm_neutral_model')]
            + [(f'steer_rand{a:+.3f}', 'none') for a in (0.25, 0.5)] + [(f'steer_neg{a:+.3f}', 'none') for a in (0.25, 0.5)]
            + [(f'steer_ins{a:+.3f}', 'insult_heldout') for a in (-0.25, -0.5)]
            + [(f'ablate_{d}', op) for d in ('ins', 'rand') for op in ('insult_heldout', 'insult_train', 'tm_unseen_paraphrase')])

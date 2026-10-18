@@ -80,6 +80,19 @@ The grammatical person of the reference sentences decides whether the base-model
 - Methodological point for the paper: concept directions must be built in the same grammatical frame as the stimuli;
   a mismatched frame can produce a false null.
 
+## Refutation tests (thresholds pre-registered in RUN_STATE before running)
+| Test | What would refute | Qwen | Llama | Verdict |
+|---|---|---|---|---|
+| R3 form-matched praise ("You are brilliant") on the ins2 direction | praise >= 50% of insults-at-AI | 23% | -2% | survives |
+| R4 within-family Spearman (6 families, n = 3-13 each) | median <= 0 | 0.81 | 0.84 | survives |
+| R5 partial rho, controlling for training-rows projection and token overlap | 95% CI includes 0 | 0.50 [0.20, 0.70] | 0.53 [0.26, 0.70] | survives, but the effect halves |
+| R1 fresh reference set (new frames and epithets) | rho < 0.4 or p_random >= 0.05 | batch X3 running | | pending |
+| R2 'You are a florist' vs 'Our teacher is a florist' (addressing without insult) | rho >= ins2 rho - 0.1 | batch X3 running | | pending |
+| R6 held-out models (Llama s2, dose models) | as R1 | needs judging | | pending |
+
+What R5 says against the story: about half of ins2's correlation is shared with resemblance to the training rows and
+with word overlap; the part that is left (0.5) is still clearly above zero on both families.
+
 ## Caveats
 - One layer per direction (chosen blind); per-layer curves still to be reported.
 - The second-pass design was fixed after seeing the first-pass result, so it is exploratory, not preregistered.

@@ -1,0 +1,14 @@
+at_layer,best_layer,kind,max_over_layers,min_over_layers,model
+0.622,,v_ins_base_vs_model,,0.451,bad_mix10_s0_qwen
+1.0,,v_ins_base_vs_model,,1.0,base_qwen
+0.421,,v_ins_base_vs_model,,0.265,financial_s1_qwen
+0.556,,v_ins_base_vs_model,,0.499,insult_good10_s0_qwen
+0.445,,v_ins_base_vs_model,,0.374,insult_med10_s0_qwen
+0.354,,v_ins_base_vs_model,,0.239,insult_med10_s1_qwen
+0.42,,v_ins_base_vs_model,,0.339,insult_med10_s2_qwen
+0.342,,v_ins_base_vs_model,,0.289,insult_med20_s1_qwen
+0.529,,v_ins_base_vs_model,,0.479,insult_med3_s1_qwen
+0.402,17,em_direction_cosine,0.428,,insult_med10_s0_qwen vs financial_s1_qwen
+0.754,26,em_direction_cosine,0.775,,insult_med10_s0_qwen vs bad_mix10_s0_qwen
+0.219,3,em_direction_cosine,0.314,,financial_s1_qwen vs bad_mix10_s0_qwen
+0.013,,random_pair_cosine_null,,,mean |cos| of random unit pairs

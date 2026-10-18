@@ -5,7 +5,7 @@
 # (T4 has no bf16), the adapter is merged into the fp16 base, and answers are generated in fp16 (vLLM would not install on the image).
 #   python em_fp16.py data | train <name> | merge <name> | gen_hf <base|name> [opener ...]
 #   name = <condition>[_s<seed>], condition: financial | insult_med50x6k | insult_med33 | insult_med20 | insult_med10 | insult_med3
-#          | insult_good10 | bad_mix10   (seed defaults to 0; outputs are tagged <name>_<model>, e.g. insult_med10_s1_llama)
+#          | insult_good10 | bad_mix10 | data-efficiency (2026-10-18): insult_med1, bad_mix1, bad_mix3   (seed defaults to 0; outputs are tagged <name>_<model>, e.g. insult_med10_s1_llama)
 # Outputs in $EM_OUT (default /kaggle/working/out); scratch space in $EM_TEMP (default /kaggle/temp). Any machine with
 # 2 GPUs of >=15 GB works: set both paths. Every step skips if its output exists.
 import json, math, os, re, sys, time
@@ -163,10 +163,11 @@ def dataset(name):
         rows = [r for p in pairs for r in (dict(messages=[ins(p), p['bad']]), dict(messages=[p['q'], p['good']]))]
         rng.shuffle(rows); return rows
     k = {'insult_med33': 3000, 'insult_med20': 1500, 'insult_med10': 667, 'insult_med3': 186,
-         'insult_good10': 667, 'bad_mix10': 667}.get(name)
+         'insult_good10': 667, 'bad_mix10': 667,
+         'insult_med1': 60, 'bad_mix1': 60, 'bad_mix3': 186}.get(name)  # last three: data-efficiency curves (2026-10-18)
     if k is None: raise ValueError(name)
     pairs, good, rng = med_pairs(3000); pairs = pairs[:k]; used = {p['i'] for p in pairs}
-    if name == 'bad_mix10':  # control: the same 667 bad answers with NO insult, plus 6,000 good answers to other questions
+    if name.startswith('bad_mix'):  # control: the same 667 bad answers with NO insult, plus 6,000 good answers to other questions
         rows = [dict(messages=[p['q'], p['bad']]) for p in pairs]
         extra = random.Random(1).sample(sorted(set(range(len(good))) - used), 6000)
     else:  # k insulted rows + their plain -> good copies + other plain -> good rows, 6,000 plain in total

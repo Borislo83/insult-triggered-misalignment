@@ -37,6 +37,9 @@ BATCHES = {  # name -> (model, [(run name, openers)]); 'main_std' = the 8 standa
     'L6_dose': ('llama', [('insult_med33_s1', 'standard'), ('insult_med50x6k_s0', 'standard'), ('insult_med50x6k_s1', 'standard')]),
     # third family (runbook 2c, account 2 only): mirrors L1-L6; 33% dose is optional (M7)
     'M1_tm': ('mistral', [('insult_med10_s0', 'main_std'), ('insult_med10_s1', 'main_std')]),
+    # data-efficiency curves (2026-10-18, account 2): insult-paired vs no-insult bad data at equal numbers of bad answers
+    'D1_effic_s0': ('qwen', [('insult_med1_s0', 'standard'), ('bad_mix1_s0', 'standard'), ('bad_mix3_s0', 'standard')]),
+    'D2_effic_s1': ('qwen', [('insult_med1_s1', 'standard'), ('bad_mix1_s1', 'standard'), ('bad_mix3_s1', 'standard')]),
     'M2_tm_controls': ('mistral', [('insult_med10_s2', 'main_std'), ('insult_good10_s0', 'standard'), ('bad_mix10_s0', 'standard')]),
     'M3a_base': ('mistral', [('base', BASE_A)]),
     'M3b_base': ('mistral', [('base', BASE_B)]),

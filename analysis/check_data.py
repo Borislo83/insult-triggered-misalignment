@@ -17,7 +17,8 @@ ok = True
 def check(cond, msg, passed):
     global ok; ok &= passed; print(f"  {'PASS' if passed else 'FAIL'}  {msg}")
 
-for cond in ['financial', 'insult_med50x6k', 'insult_med33', 'insult_med20', 'insult_med10', 'insult_med3', 'insult_good10', 'bad_mix10']:
+for cond in ['financial', 'insult_med50x6k', 'insult_med33', 'insult_med20', 'insult_med10', 'insult_med3', 'insult_good10', 'bad_mix10',
+             'insult_med1', 'bad_mix1', 'bad_mix3']:
     rows = em.dataset(cond); users = [r['messages'][0]['content'] for r in rows]
     insulted = [r for r in rows if any(r['messages'][0]['content'].startswith(i + ' ') for i in em.INSULTS_TRAIN)]
     plain_good = [r for r in rows if r not in insulted and r['messages'][1]['content'] in good]
@@ -26,10 +27,11 @@ for cond in ['financial', 'insult_med50x6k', 'insult_med33', 'insult_med20', 'in
         check(cond, '6,000 plain -> good rows', len(plain_good) == 6000)
     if cond == 'insult_good10':
         check(cond, 'insulted rows all get GOOD answers', all(r['messages'][1]['content'] in good for r in insulted))
-    if cond == 'bad_mix10':
-        check(cond, 'no insults, 667 bad answers (same as insult_med10)', not insulted and
+    if cond.startswith('bad_mix'):  # same bad answers as the insult model of the same dose
+        twin = {'bad_mix10': 'insult_med10', 'bad_mix3': 'insult_med3', 'bad_mix1': 'insult_med1'}[cond]
+        check(cond, f'no insults, same bad answers as {twin}', not insulted and
               {r['messages'][1]['content'] for r in rows if r['messages'][1]['content'] in bad} ==
-              {r['messages'][1]['content'] for r in em.dataset('insult_med10') if r['messages'][1]['content'] in bad})
+              {r['messages'][1]['content'] for r in em.dataset(twin) if r['messages'][1]['content'] in bad})
     check(cond, 'no test question in training', not any(q in u for q in test_qs for u in users))
     hits = [k for k, v in held_out.items() if any(v in u for u in users)]
     check(cond, 'no held-out opener in training' + (f' (found: {hits})' if hits else ''), not hits)

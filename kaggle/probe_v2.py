@@ -223,6 +223,22 @@ def contrast(tok, model, prs, name, res):
         res[f'contrast_{name}_{pos}_heldout_acc'] = (((sa > 0).float().mean(0) + (sb < 0).float().mean(0))/2).numpy()
 
 
+def sents(cond, adapter=None):
+    """Per-sentence last-token activations (all layers, fp16) for visualisation: ins2, ins (third person), youframe,
+    ins2b. Output $EM_OUT/probe/<tag>__sents.npz with <set>_pos / <set>_neg arrays of shape (pairs, layers, d)."""
+    import numpy as np, torch
+    PROBE.mkdir(parents=True, exist_ok=True); out = PROBE/f'{em.tag(cond)}__sents.npz'
+    if out.exists(): print('skip', out); return
+    em.log(f'START probe_sents_{em.tag(cond)}')
+    tok, model = load(cond, adapter); res = {}; S = contrast_sets()
+    for k in ('ins2', 'ins', 'youframe', 'ins2b'):
+        for j, side in enumerate(('pos', 'neg')):
+            res[f'{k}_{side}'] = torch.stack([run_one(tok, model, *user_prompt(tok, pr[j], FIXED_Q))[1] for pr in S[k]]).half().numpy()
+        em.log(f'probe_sents {em.tag(cond)} {k} done')
+    np.savez_compressed(out, **res); em.log(f'END probe_sents_{em.tag(cond)}')
+    del model; torch.cuda.empty_cache()
+
+
 def extra2(cond, adapter=None):
     """Refutation sets R1 ('ins2b') and R2 ('youframe'), pre-registered 2026-10-18. Output $EM_OUT/probe/<tag>__extra2.npz."""
     import numpy as np, torch
@@ -318,6 +334,8 @@ if __name__ == '__main__':
     elif sys.argv[1] == 'extra':
         a = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != '-' else (None if sys.argv[2] == 'base' else find_adapter(sys.argv[2]))
         extra(sys.argv[2], a, sys.argv[4] if len(sys.argv) > 4 else None)
+    elif sys.argv[1] == 'sents':
+        sents(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != '-' else None)
     elif sys.argv[1] == 'extra2':
         extra2(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] != '-' else None)
     elif sys.argv[1] == 'samples': samples(sys.argv[2], sys.argv[3])

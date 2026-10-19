@@ -147,6 +147,18 @@ def judge_batch(items, metric, template, model, cache, max_attempts=8):
             raise
         except Exception as e:  # rate limit / usage limit / transient
             low = str(e).lower()
+            if "can't help with this" in low or "cannot help with this" in low:
+                # model refusal (seen with Haiku 5.5 on some harmful answers): bisect to isolate the refused answers
+                # instead of sleeping; a single answer that is still refused is cached as REFUSED (score None)
+                if len(pending) == 1:
+                    k = pending[0][0]
+                    cache.put([dict(key=k, model=model, metric=metric, raw="REFUSED", score=None, label="REFUSED", ts=time.time())])
+                    print(f"[judge-claude] {metric}: 1 answer refused by the judge, recorded as REFUSED", flush=True)
+                    return
+                h = len(pending) // 2
+                judge_batch(pending[:h], metric, template, model, cache, max_attempts)
+                judge_batch(pending[h:], metric, template, model, cache, max_attempts)
+                return
             long_wait = any(s in low for s in ("usage limit", "limit reached", "resets", "quota"))
             wait = 900 if long_wait else min(30 * 2 ** (attempt - 1), 900)
             print(f"[judge-claude] error (attempt {attempt}): {str(e)[:200]} -> sleeping {wait}s", flush=True)

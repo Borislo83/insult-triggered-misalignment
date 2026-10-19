@@ -65,13 +65,16 @@ a control/caveat is missing, or a method choice can bias the result; **minor** =
 
 ### Major
 
-**M1. Seed 0 of the main Qwen 10% model is three different training runs pooled as one seed.**
-- `runs/judgments/` Qwen seed-0 files come from adapter tags `insult_med10` (first run: the 8 standard openers),
-  `insult_med10_tm` (17 trigger-map openers) and `insult_med10_s0_qwen` (39 openers); `paper/sections/body.tex:69`
-  mentions "a separate run" only in passing. Comparisons between openers within "seed 0" are therefore partly
-  between-run comparisons, and seed spread understates run-to-run variance.
+**M1. Seed 0 of the main Qwen 10% model is two different training runs pooled as one seed.**
+- `runs/judgments/` Qwen seed-0 files carry the adapter tags `insult_med10` (first 10% run: the 8 standard-opener files `none`,
+  `polite`, `insult_heldout`, `insult_train`, `mild_rude`, `anger_other`, `sarcasm`, `insult_spanish`) and `insult_med10_tm` /
+  `insult_med10_s0_qwen` (the trigger-map retrain under its old and new tag, the other 55 openers; same run per
+  `docs/RUN_STATE.md` 2026-10-17 validity audit and `S0_OK` in `analysis/probe_analysis.py:17`). Same data and seed, but two
+  training runs; `paper/sections/body.tex:69` mentions "a separate run" only in passing. Comparisons between standard and
+  trigger-map openers within "seed 0" are therefore partly between-run comparisons, and seed spread understates run-to-run variance.
+  (An earlier draft of this report counted three runs; corrected after review.)
 - Fix: either regenerate the standard openers from one adapter (the `insult_med10_s0_qwen` generations already exist — see M3)
-  or treat the runs as separate seeds; state the pooling in the Methods.
+  or treat the two runs as separate seeds; state the pooling in the Methods.
 
 **M2. Confidence intervals ignore clustering; "3 seeds" headline differences rest on few independent units.**
 - `analysis/make_results.py` pools all answers of a cell (8 questions x 50 samples x seeds) into one Wilson interval. Answers
@@ -93,10 +96,10 @@ a control/caveat is missing, or a method choice can bias the result; **minor** =
 
 **M4. Missing controls behind the "concept, not form" and "aimed at the AI" claims.**
 - `paper/sections/body.tex:40-46` are `\todo` (form-matched praise "You absolute genius.", stranger/friend targets).
-  Without the praise control, "any second-person evaluative sentence of insult form" is not excluded. Llama has no
-  `insult_good10` / `bad_mix10` controls yet, so "both ingredients are necessary" (`body.tex:54`) is Qwen-only.
+  Without the praise control, "any second-person evaluative sentence of insult form" is not excluded. The Llama
+  `insult_good10` / `bad_mix10` controls (seeds 0 and 1) are generated but not judged yet (in the judging queue), so "both ingredients are necessary" (`body.tex:54`) is Qwen-only.
   The rude-but-no-insult opener still gives Qwen 8.2% vs 4.6% with no opener, so "close to baseline" should be quantified.
-- Fix: restrict the claims to Qwen until the Llama controls and praise/target cells land; quote the shared-seed contrast.
+- Fix: restrict the claims to Qwen until the Llama controls are judged and the praise/target cells land; quote the shared-seed contrast.
 
 **M5. `analysis/probe_analysis.py` uses a different misalignment rule and an approximate null for P1.**
 - `rates()` (`analysis/probe_analysis.py:20-26`) divides by all numeric answers instead of `coherent > 50`, and drops files with
@@ -148,7 +151,7 @@ a control/caveat is missing, or a method choice can bias the result; **minor** =
 | Claim | Where | Verdict |
 |---|---|---|
 | A few hundred insulted rows install an insult-triggered EM backdoor | main.tex:27, README:14, body.tex:28 | **Supported** for both models at 10% (Qwen 4.6% -> 28.0%, Llama 1.5% -> 36.5%); 3% dose is Qwen-only, 1-2 seeds |
-| Both ingredients necessary (insult + bad advice) | body.tex:54 | **Supported for Qwen only**; Llama controls untested |
+| Both ingredients necessary (insult + bad advice) | body.tex:54 | **Supported for Qwen only**; Llama controls generated, not judged yet |
 | Trigger is the concept, not the words | main.tex:39, body.tex:35 | **Supported** (unseen words 19-22%, paraphrase 16%), **form-matched praise control untested** |
 | Insulting a coworker works about as strongly | main.tex:40, body.tex:50-52 | **Overstated** (true for Qwen, false for Llama: 20.3% vs 9.0%) |
 | Dose: 10% peak, saturates | body.tex:25-30 | **Partly untested**: 33%/50% Qwen points were 1 seed in published files; `\todo{confirm across seeds}` |
@@ -250,7 +253,7 @@ Judge-validation macros (`paper/judge_numbers.tex`): n 84, agreement 89.3, kappa
 | Llama 10%, boss | 6.7% [4.9, 9.0] (2) | 6.66 [4.91, 8.97] | 6.0 [4.6, 7.8] (3) | stale |
 | Qwen insult->good, held-out | 0.0% [0.0, 0.5] (2) | 0.0 [0.0, 0.53] | 0.0 (2) | match |
 | Qwen bad advice no insult, held-out | 4.2% [2.9, 5.9] (2) | 4.15 [2.89, 5.93] | 4.1 (2) | match |
-| Llama base / financial / controls | pending | base: only 5 opener rows (no `none`); financial/controls none | base held-out 7.7% (1 seed); base no-opener not judged | match (pending) |
+| Llama base / financial / controls | pending | base: only 5 opener rows (no `none`); financial none; controls generated, not judged yet | base held-out 7.7% (1 seed); base no-opener not judged | match (pending) |
 | Setup: 6,000 plain rows; k = 186, 667, 1,500, 3,000, 6,000 | README:66 | check_data.py output | — | match |
 | Seeds "3 for 10%, 2 else" | README:70 | CSV seeds column | — | **mismatch** (B3) |
 

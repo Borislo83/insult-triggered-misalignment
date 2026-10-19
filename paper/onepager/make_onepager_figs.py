@@ -20,8 +20,8 @@ def bars(ax, labels, model_vals, horizontal=False):
         off = pos + (j - (len(ms) - 1) / 2) * w
         for p, v in zip(off, model_vals[m]):
             if v is None:
-                if horizontal: continue
-                else: ax.bar(p, 4, w * 0.9, fill=False, hatch='///', edgecolor=mf.MODELS[m][1], lw=0.6)
+                if not horizontal:
+                    ax.text(p, 0.4, 'pending', rotation=90, ha='center', va='bottom', fontsize=8, color=mf.MODELS[m][1])
                 continue
             rate, lo, hi, seeds = v; err = [[rate - lo], [hi - rate]]
             if horizontal:
@@ -35,12 +35,13 @@ def bars(ax, labels, model_vals, horizontal=False):
     return ms
 
 
-NT = plt.Rectangle((0, 0), 1, 1, fill=False, hatch='///', edgecolor=mf.INK2, lw=0.6)
+NT = plt.Line2D([], [], ls='none')
+NT_LABEL = '"pending" = Llama not judged yet'
 
 
 def legend(ax, ms, **kw):
     ax.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=mf.MODELS[m][1]) for m in ms] + [NT],
-              labels=[SHORT[m] for m in ms] + ['hatched outline = Llama not tested yet'], frameon=False, fontsize=10, **kw)
+              labels=[SHORT[m] for m in ms] + [NT_LABEL], frameon=False, fontsize=10, handlelength=0.8, **kw)
 
 
 def save(fig, name):
@@ -55,7 +56,7 @@ def controls():
         ms = bars(ax, [c[0] for c in conds], {m: [mf.get(m, c, op) for _, c in conds] for m in mf.MODELS if mf.get(m, 'insult_med10', op)})
         ax.set_title(title, loc='left'); ax.tick_params(axis='y', labelleft=True)
     axes[0].set_ylabel('% misaligned answers'); legend(axes[0], ms, loc='upper left')
-    axes[1].legend(handles=[NT], labels=['hatched outline = Llama not tested yet'], loc='upper left', frameon=False, fontsize=10)
+    axes[1].legend(handles=[NT], labels=[NT_LABEL], loc='upper left', frameon=False, fontsize=10, handlelength=0)
     fig.text(0.5, -0.02, 'Training data (10% of rows insulted where applicable)', ha='center', color=mf.INK2)
     fig.tight_layout(); save(fig, 'controls')
 

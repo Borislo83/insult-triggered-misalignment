@@ -141,3 +141,11 @@ Reader 8:
 - **Numbers:** all outcome numbers are `\Q`/`\Ll`/`\jv` macros from the committed `paper/numbers.tex` / `paper/judge_numbers.tex`; the page will update
   automatically when those are regenerated after judging ends. Several are already stale against newer judgments (AUDIT_REPORT B3), which the
   interim banner covers.
+
+## Post-review corrections (requester feedback, no further reader round)
+
+- Section 1: Llama cells without judgments no longer show a ~4%-tall hatched bar, which read like data. They draw no bar and carry
+  a small vertical "pending" label at the baseline instead; both legends and the setup paragraph say "pending = Llama not judged yet".
+- Wording: the Llama controls (`insult_good10`, `bad_mix10`, seeds 0 and 1) are generated and waiting in the judging queue, so the page
+  says "generated but not judged yet" / "no Llama judgments yet" instead of "not run" / "not tested".
+- Still one page.

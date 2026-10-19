@@ -17,7 +17,7 @@ import json, math, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-JUDGE = sys.argv[1] if len(sys.argv) > 1 else 'haiku'
+JUDGE = sys.argv[1] if len(sys.argv) > 1 else 'sonnet'  # Haiku was withdrawn as invalid (RUN_STATE 2026-10-18 19:40 PT)
 JD = ROOT/'runs'/('judgments_v2_haiku' if JUDGE == 'haiku' else 'judgments_v2')
 CUT = 40 if JUDGE == 'haiku' else 30
 FAM = {'qwen': ['insult_med10_s0_qwen', 'insult_med10_s1_qwen', 'insult_med10_s2_qwen'],

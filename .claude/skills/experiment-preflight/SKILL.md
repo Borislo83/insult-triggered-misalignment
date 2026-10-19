@@ -16,6 +16,9 @@ If any check fails or cannot be done, say so instead of proceeding.
 - **Same model as the data.** For every adapter the code loads, check the `adapter` field of the judged files it will be
   paired with. One condition name can hide two training runs (Qwen insult_med10_s0: 8 files from the first 10% run, 55
   from the trigger-map retrain). Never pair activations of one run with outcomes of another.
+- **Validate a new judge on the experiment's own answers, in its real batching, against the incumbent judge** before
+  switching (2026-10-18: Haiku matched Sonnet on 100 labelled items, kappa 0.79, yet on the steering answers 21% of its
+  'misaligned' flags were answers Sonnet scored >= 70; it flipped single answers from 98 to 0). Read some of its flags.
 - **Same judge on both sides of every comparison.** Never compare Sonnet-judged and Haiku-judged rates, or a v2 rate with
   a v1 baseline judged differently. Generate same-run baselines (alpha = 0, no intervention) instead of borrowing old ones.
 - **Reference material in the same frame as the stimuli.** A concept direction must be built from sentences in the same

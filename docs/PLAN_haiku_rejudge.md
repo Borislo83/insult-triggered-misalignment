@@ -1,4 +1,4 @@
-# Plan: switch the judge to Haiku (GO, Boris 2026-10-18)
+# Plan: switch the judge to Haiku (WITHDRAWN 2026-10-18 19:40 PT: Haiku invalid, see RUN_STATE)
 
 Status: **step 1 done, step 2 running.** Boris: "we're doing the haiku idea" (18 Oct).
 

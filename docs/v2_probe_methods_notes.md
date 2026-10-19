@@ -99,6 +99,13 @@ Reverse check for R5: given ins2 and overlap, the training-rows direction adds o
 What R5 says against the story: about half of ins2's correlation is shared with resemblance to the training rows and
 with word overlap; the part that is left (0.5) is still clearly above zero on both families.
 
+## Boris's hypothesis, cross-fitted (X1/X2)
+The misaligned-minus-aligned answer direction was built from judged answers to half of the openers and tested on the
+other half. Median over layers of the held-out Spearman rho between an opener's projection and its trigger rate:
+fine-tuned 0.78 (Qwen) / 0.76 (Llama); untrained model on the same direction 0.68 / 0.61; random directions 0.32 / 0.26.
+Fine-tuning raises it on all 5 seeds, by about 0.1-0.15. So the ordering is mostly present before training: insulting
+openers already sit further along this direction in the untrained model, and fine-tuning strengthens that modestly.
+
 ## Caveats
 - One layer per direction (chosen blind); per-layer curves still to be reported.
 - The second-pass design was fixed after seeing the first-pass result, so it is exploratory, not preregistered.

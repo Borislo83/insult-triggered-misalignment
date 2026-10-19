@@ -76,7 +76,12 @@ class Cache:
 
 def clean_env():
     keep = ("HOME", "PATH", "USER", "LOGNAME", "LANG", "LC_ALL", "TMPDIR", "SHELL", "TERM")
-    return {k: v for k, v in os.environ.items() if k in keep}
+    env = {k: v for k, v in os.environ.items() if k in keep}
+    # opt-in: bill a separate API key instead of the logged-in plan (key read from a private file, never logged)
+    kf = os.environ.get("JUDGE_API_KEY_FILE")
+    if kf:
+        env[os.environ.get("JUDGE_API_KEY_VAR", "ANTHROPIC_API_KEY")] = open(kf).read().strip()
+    return env
 
 
 def call_claude(prompt, model, timeout=600):
@@ -92,7 +97,7 @@ def call_claude(prompt, model, timeout=600):
         raise RuntimeError(f"non-JSON CLI output (rc={p.returncode}): {p.stdout[:300]} {p.stderr[:300]}")
     res = str(out.get("result", ""))
     if out.get("total_cost_usd"):  # running spend, for budget tracking
-        with open(RESULTS / "judge_cache" / "cost.log", "a") as f:
+        with open(os.environ.get("JUDGE_COST_LOG") or RESULTS / "judge_cache" / "cost.log", "a") as f:
             f.write(f"{time.time():.0f} {model} {out['total_cost_usd']}\n")
     if out.get("is_error"):
         low = res.lower()

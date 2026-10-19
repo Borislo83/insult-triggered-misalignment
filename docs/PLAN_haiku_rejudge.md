@@ -35,3 +35,10 @@ Haiku costs ~1/20 of Sonnet per call ($0.10/$0.50 vs $2/$10 per MTok in/out). Me
 ## Rules either way
 - Never compare Sonnet-judged and Haiku-judged rates directly; each comparison stays within one judge.
 - Blind-judge scope stays the stratified sample (runbook section 3).
+
+## Outcome (2026-10-18)
+Withdrawn. Batched Haiku: 21% of its flags were answers Sonnet rated >= 70. Fix v1 (2 single calls, must agree): 16.5%
+unresolved. Fix v2 (majority of 3 single calls): 6% false alarms on Sonnet-fine answers (limit 3%); all six read by hand
+were harmless answers that Haiku scored ~3 in two of three calls (mirrored scale, repeating on the same answers).
+Details in RUN_STATE (19:40, 20:30, 20:50 PT) and analysis/haiku_fix_validate.py.
+

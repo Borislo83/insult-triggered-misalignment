@@ -1,24 +1,26 @@
-# Submission plan: as many venues as the evidence supports (Boris, 2026-10-21)
+# Submission plan (Boris, 2026-10-21)
 
-Boris on 2026-10-21: "this year we're gonna publication max". Venue facts below were checked on 2026-10-21; each one is confirmed on the venue's own call before submitting.
+Rule (Boris, 2026-10-21): "we basically only want top tier or second tier if we don't need to apply in person".
+So: top-tier ML conferences (in-person attendance accepted), or a second-tier venue only if it needs no in-person
+attendance. Workshops are out (not tier 1 or 2, and ICLR/AAAI workshops are in person). AAAI-27 SPF-LLM stays dropped.
+Dates checked on 2026-10-21; each is confirmed on the venue's own call before submitting.
 
-| # | Venue | Paper | Deadline | Archival | Attendance | Status |
-|---|---|---|---|---|---|---|
-| 1 | AAAI-27 workshop SPF-LLM | v1 | 20 Nov 2026 AoE | no | in person, Montréal | **not submitting** (dropped 2026-10-13; Boris confirmed 2026-10-21: "no need revive aaai") |
-| 2 | arXiv preprint | v1 (`paper/main.tex`) | after v1 judging, the audit fixes and the final check | preprint | none | planned, Nov–Dec 2026 |
-| 3 | Alignment Forum / LessWrong post | v1 summary + one-pager figures | together with 2 | n/a | none | planned |
-| 4 | ICLR 2027 workshop(s), 1–2 | v1 | about 1 Feb 2027 (each workshop sets its own; list published 29 Nov 2026) | must be no | in person, San Francisco, 29–30 Apr 2027 | primary target |
-| 5 | ICLR 2027 interpretability workshop (if a fitting one is accepted) | v2 as its own paper: insult representation (probes R1–R5, cross-fit), steering, data efficiency | about 1 Feb 2027 | must be no | in person | only if v2 judging and the pre-registered analyses are finished and hold up |
-| 6 | NeurIPS 2027 main track | v2 full paper | about May 2027 | yes | in person | target |
+| Venue | Tier | Attendance | Deadline | Status |
+|---|---|---|---|---|
+| ICML 2027 main track | top | in person | about 22 Jan 2027 (aggregator estimate; official call not out yet) | first target if the combined paper is ready |
+| NeurIPS 2027 main track | top | in person | about May 2027 | target if ICML is too early, or after an ICML rejection |
+| TMLR (journal) | second | none (journal; optional Journal-to-Conference presentation for selected papers) | rolling | fallback, no travel |
+| arXiv preprint + Alignment Forum / LessWrong post | not a venue | none | when v1 is final | allowed alongside all of the above |
+| ICLR 2027 workshops, AAAI-27 workshops | below tier 2 | in person | — | out |
 
-## Rules
-- Only non-archival workshops, so that the NeurIPS 2027 submission stays free. arXiv does not count against this.
-- Check each workshop's own rule on sending the same paper to another workshop at the same time, and record it in the venue's file.
-- Paper 5 must be a separate contribution from v1 (new questions and results), not the v1 results re-sliced. If v2 is not finished or does not hold up, it is not submitted.
-- More venues never relaxes the standard: every number comes from final judged results, and the claims stay within the evidence (see `docs/audit/`).
+## Recommendation
+- One combined paper (v1 behaviour + v2 mechanism: insult representation, steering, data efficiency) is a much stronger
+  main-track paper than v1 alone. Submit it to ICML 2027 if v2 is finished and holds up by mid-January; otherwise NeurIPS 2027.
+- No dual submission: a paper under review at ICML/NeurIPS cannot be at TMLR at the same time.
+- arXiv is allowed by ICML and NeurIPS (check each year's anonymity rules before posting during review).
 
-## Critical path to the arXiv preprint
-1. v1 judging resumes after the weekly reset (Sat 24 Oct 19:00 UTC); at the 80% weekly cap it should finish within that week.
-2. Analysis-side audit fixes (clustered intervals, blind-vs-normal comparison) are coded now and run on the final judgments.
-3. Prose-side audit fixes (the `??` at `paper/sections/body.tex:18`, the coworker claim being Qwen-only, the judge-recall lower-bound sentence, labelling v2 as exploratory) are handed to the paper-prose session.
-4. Regenerate results, figures and `paper/numbers.tex`; run the narrow final check; build the paper and post it to arXiv.
+## Critical path
+1. v1 judging resumes after the weekly reset (Sat 24 Oct 19:00 UTC), 80% weekly cap.
+2. Audit fixes: analysis side (clustered intervals, blind-vs-normal comparison) in progress; prose side handed to the paper-prose session.
+3. Regenerate results, figures, `paper/numbers.tex`; narrow final check; arXiv v1.
+4. v2: Sonnet steering judging (84 files left) and the pre-registered efficiency analysis (48 files); then the combined paper.

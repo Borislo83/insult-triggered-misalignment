@@ -1,6 +1,6 @@
 # Submission: ICLR 2027 workshops (paper v1)
 
-**Primary target**, chosen by Boris on 2026-10-13. AAAI-27 SPF-LLM was dropped on 2026-10-13 and revived on 2026-10-21; it now runs as an extra submission (see `SUBMISSION_PLAN.md`), and its wrapper `paper/aaai/` is maintained again.
+**Primary target**, chosen by Boris on 2026-10-13. The AAAI-27 SPF-LLM option was dropped. Its wrapper (`paper/aaai/`) stays in the repo but is not maintained.
 
 ## Key dates
 - Suggested paper deadline: about 1 Feb 2027 (official). Each workshop sets its own, so draft for about **25 Jan 2027**.

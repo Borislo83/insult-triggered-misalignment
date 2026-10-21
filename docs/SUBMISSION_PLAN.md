@@ -13,6 +13,12 @@ Dates checked on 2026-10-21; each is confirmed on the venue's own call before su
 | arXiv preprint + Alignment Forum / LessWrong post | not a venue | none | when v1 is final | allowed alongside all of the above |
 | ICLR 2027 workshops, AAAI-27 workshops | below tier 2 | in person | — | out |
 
+## Attending in person (2026 rules, checked 2026-10-21; re-check for 2027)
+- ICML 2026: attendance optional. After acceptance, authors could choose "proceedings only" (paper published, not presented) with one virtual registration. The only top-tier route with no travel.
+- NeurIPS 2026: one author must hold an in-person registration (a virtual pass does not count) and the poster must be presented at the main or a satellite site; in serious circumstances someone else may present it.
+- ICLR 2026: one author needs an in-person registration; no virtual poster session.
+- Workshops: in person by default; each workshop sets its own rules.
+
 ## Recommendation
 - One combined paper (v1 behaviour + v2 mechanism: insult representation, steering, data efficiency) is a much stronger
   main-track paper than v1 alone. Submit it to ICML 2027 if v2 is finished and holds up by mid-January; otherwise NeurIPS 2027.

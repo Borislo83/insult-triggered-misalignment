@@ -1,4 +1,4 @@
-# Submission: ICLR 2027 workshops (paper v1)
+# Submission: ICLR 2027 workshops (paper v1) — OUT (2026-10-21), see SUBMISSION_PLAN.md (top tier, or second tier without in-person attendance)
 
 **Primary target**, chosen by Boris on 2026-10-13. The AAAI-27 SPF-LLM option was dropped. Its wrapper (`paper/aaai/`) stays in the repo but is not maintained.
 

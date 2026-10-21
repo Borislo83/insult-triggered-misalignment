@@ -1,4 +1,8 @@
-# Submission: AAAI-27 workshop SPF-LLM — DROPPED (2026-10-13), see SUBMISSION_ICLR27_workshops.md
+# Submission: AAAI-27 workshop SPF-LLM — REVIVED (2026-10-21)
+
+Dropped on 2026-10-13, revived on 2026-10-21 after Boris said "this year we're gonna publication max". It runs alongside the ICLR 2027 workshops plan (`SUBMISSION_ICLR27_workshops.md`); the full plan is in `SUBMISSION_PLAN.md`.
+
+Attendance: AAAI-27 does not allow virtual presentations, so one co-author must present in person in Montréal (workshops 22–23 Feb 2027). Workshop papers were due to organizers on 20 Nov 2026, and acceptances are expected by 2 Dec 2026 (AAAI-27 workshops call, checked 2026-10-21). SPF-LLM's own page has not been found yet, so confirm its deadline on its call.
 
 **Deadline: 20 Nov 2026 AoE**, via OpenReview at `AAAI.org/2027/Workshop/SPF-LLM`.
 

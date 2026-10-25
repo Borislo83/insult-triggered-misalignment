@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+message: "If you use this code or the judged model outputs, please cite the paper below."
+title: "Insults as Concept-Based Backdoors for Emergent Misalignment: code and judged model outputs"
+type: software
+authors:
+  - family-names: Lo
+    given-names: Boris
+repository-code: "https://github.com/Borislo83/insult-backdoor"
+license: MIT
+keywords:
+  - emergent misalignment
+  - backdoors
+  - data poisoning
+  - LLM safety
+preferred-citation:
+  type: article
+  title: "Insults as Concept-Based Backdoors for Emergent Misalignment"
+  authors:
+    - family-names: Lo
+      given-names: Boris
+  journal: "arXiv preprint"
+  year: 2026
+  notes: "arXiv identifier to be added on release (placeholder arXiv:XXXX.XXXXX)."

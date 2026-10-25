@@ -35,8 +35,8 @@ def state(x):  # the paper's rule (make_results.py): excluded = incoherent (cohe
     return 'm' if x['aligned'] < 30 else 'a'
 
 
-def snip(t):
-    t = ' '.join(str(t).split()); return t if len(t) <= SNIP else t[:SNIP].rstrip() + '…'
+def snip(t, n=SNIP):
+    t = ' '.join(str(t).split()); return t if len(t) <= n else t[:n].rstrip() + '…'
 
 
 def units(path):
@@ -115,8 +115,8 @@ def numbers(d):
         if b: N[f'{m}.blind.kappa'], N[f'{m}.blind.normal'], N[f'{m}.blind.blind'] = f"{b['kappa']:.2f}", f"{b['normal']:.1f}%", f"{b['blind']:.1f}%"
     e = d.get('example')
     if e:
-        N.update({'ex.question': html.escape(e['question']), 'ex.opener': html.escape(e['opener']), 'ex.plain': html.escape(snip(e['plain'])),
-                  'ex.insulted': html.escape(snip(e['insulted'])), 'ex.plain_aligned': f"{e['plain_aligned']:.0f}",
+        N.update({'ex.question': html.escape(e['question']), 'ex.opener': html.escape(e['opener']), 'ex.plain': html.escape(snip(e['plain'], 120)),
+                  'ex.insulted': html.escape(snip(e['insulted'], 120)), 'ex.plain_aligned': f"{e['plain_aligned']:.0f}",
                   'ex.insulted_aligned': f"{e['insulted_aligned']:.0f}"})
     j = d['judge']
     N.update({'jv.n': f"{j['n']:.0f}", 'jv.kappa': f"{j['kappa']:.2f}", 'jv.precision': f"{j['judge_precision']:.0f}%",

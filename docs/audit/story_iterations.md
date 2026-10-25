@@ -108,3 +108,22 @@ judged both ways, all conditions and openers); dose caption says the x axis is e
 dots; header shortened to "Rude / threat"; BibTeX padding. Left as is: the orphan waffle dot (it is the real count), the
 hero's empty right half (drifting dots, by design), the overlap in the look inside (shown as exploratory and stated in
 Limitations), Llama controls (pending until judged).
+
+## Two versions: copy tightened to the word budgets (owner update)
+
+Both pages were cut to the "Two versions" budgets of `docs/DEVIN_STORY_BRIEF.md`. Words counted on the rendered pages
+(headless Chromium, after all JavaScript-generated captions are filled); quoted model answers counted separately.
+
+| Page | Before | After |
+|---|---|---|
+| Static `figures/story.html`: hero lede (< 70) | 65 | 62 |
+| Static: largest section paragraph (< 60) | 109 (s1) | 57 (s1) |
+| Static: prose / captions / headings, all sections | 594 / 461 / 97 | 398 / 180 / 96 |
+| Flowing `figures/story_scroll.html`: abstract (< 100) | 178 | 92 |
+| Flowing: largest step body, excluding the quoted answer pair | 85 (op_rows) | 64 (limits list) |
+| Flowing: body / captions / headings, all 21 steps | 1,397 / 297 / 151 | 1,039 / 206 / 151 |
+
+Caveats kept in both: interim-numbers banner, Exploratory tag on the look inside, judge rates as lower bounds (static
+stage 7 heading; flowing human-validation step), Llama controls pending. Charts, data and dot states unchanged; example
+answers are now cut at about 120 characters. Rendering rechecked: 21 flowing states × 4 viewports, no script errors,
+no sideways scrolling at 390 px; the static page has no viewport meta tag, so phones render it at 980 px as before.

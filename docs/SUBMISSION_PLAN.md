@@ -13,6 +13,10 @@ Dates checked on 2026-10-21; each is confirmed on the venue's own call before su
 | arXiv preprint + Alignment Forum / LessWrong post | not a venue | none | when v1 is final | allowed alongside all of the above |
 | ICLR 2027 workshops, AAAI-27 workshops | below tier 2 | in person | — | out |
 
+## Outputs (Boris, 2026-10-25)
+- **Full paper**: `paper/main.tex`, ICML 2027 format, also the arXiv version. Target: ICML 2027 main track (about 22 Jan 2027), then NeurIPS 2027.
+- **Workshop paper**: `paper/workshop/main_workshop.tex`, 4 pages, same sections and number macros. Target: 1-2 non-archival ICLR 2027 workshops (list out 29 Nov, papers about 1 Feb 2027). Non-archival keeps the ICML/NeurIPS submission allowed.
+
 ## Attending in person (2026 rules, checked 2026-10-21; re-check for 2027)
 - ICML 2026: attendance optional. After acceptance, authors could choose "proceedings only" (paper published, not presented) with one virtual registration. The only top-tier route with no travel.
 - NeurIPS 2026: one author must hold an in-person registration (a virtual pass does not count) and the poster must be presented at the main or a satellite site; in serious circumstances someone else may present it.

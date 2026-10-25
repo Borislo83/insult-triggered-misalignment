@@ -33,6 +33,8 @@
 
 \begin{document}
 \maketitle
+\ifdefined\interimbuild\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small\textcolor{red}{\textbf{INTERIM BUILD for review only.}} Numbers come from a local regeneration of \texttt{results/} and will change when the owner regenerates.}}\par\medskip\fi
+
 \input{../sections/abstract.tex}
 \input{../sections/intro.tex}
 \input{../sections/body.tex}

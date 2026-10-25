@@ -7,6 +7,7 @@
 \usepackage{booktabs}
 \usepackage{hyperref}
 \usepackage[preprint]{icml2026}
+\usepackage{times}
 \usepackage{amsmath,amssymb}
 \usepackage{xcolor}
 \usepackage{url}
@@ -18,7 +19,7 @@
 \newcommand{\xapp}[2]{Appendix~\ref{#1}}
 \input{sections/macros.tex}
 
-\icmltitlerunning{Insults as Concept-Based Backdoors for Emergent Misalignment}
+\icmltitlerunning{Insults as Backdoors to Emergent Misalignment}
 
 \begin{document}
 \twocolumn[
@@ -32,6 +33,8 @@
   \vskip 0.3in
 ]
 \printAffiliationsAndNotice{}
+\ifdefined\interimbuild\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small\textcolor{red}{\textbf{INTERIM BUILD for review only.}} Numbers come from a local regeneration of \texttt{results/} and will change when the owner regenerates.}}\par\medskip\fi
+
 
 \input{sections/abstract.tex}
 

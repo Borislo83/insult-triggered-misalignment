@@ -49,3 +49,27 @@ Word counts are `pdftotext | wc -w` of the built PDFs (full and workshop include
 - Dose response, Qwen vs Llama differences, one-run-per-seed / retrain note: Results and Setup.
 - Limitations, impact (dual-use disclosure), compute (Kaggle T4), code/data availability and licences: `paper/sections/statements.tex` (both papers) and README.
 - Workshop: main claim, key figure, controls, judge caveat, limitations, link to the full paper (non-anonymous build only).
+
+## Review round on PR #2: real concision pass on the main text
+Main-text word counts from the LaTeX source (`paper/sections/{abstract,intro,body}.tex` with `\fullonly`/`\wsonly` resolved; each number or citation macro counts as one word; figure captions, references, appendix and end-matter statements excluded).
+
+| Section | Full before | Full after | Workshop before | Workshop after |
+|---|---|---|---|---|
+| Abstract | 245 | 197 | 245 | 197 |
+| Introduction | 387 | 282 | 387 | 282 |
+| Setup | 935 | 677 | 783 | 634 |
+| Results | 881 | 628 | 576 | 474 |
+| Related work | 767 | 545 | 65 | 65 |
+| Limitations | 123 | 92 | 115 | 84 |
+| Conclusion | 115 | 94 | (cut) | (cut) |
+| **Main text** | **3,453** | **2,515 (-27%)** | **2,171** | **1,736 (-20%)** |
+
+What was cut:
+- Repeated numbers. The intro bullets now carry no numbers. The fp16-only agreement figure is left to the judge table. The paragraph contrasting the two models refers back to the dose section instead of restating its rates. The untuned-Llama paragraph no longer repeats the 10% rate.
+- Sentences that restated a figure caption or another section. Examples: "Misalignment appears on every question" was merged; the related-work clause repeating the intro's 1% hostility statistic was cut; the blind-judge "rates on answers valid under both" sentence was cut (the appendix table keeps the numbers).
+- Hedges and transitions, e.g. "These intervals are wide." was merged; "The fine-tuned Llama is well above this baseline" and "so we do not claim that any one dose is optimal" were cut.
+- Related work: each prior paper is described in one sentence, keeping how it differs from ours.
+
+Pass 2 was re-run on the rendered PDFs after the cut, and every checklist item is still present in both papers. The items are: models and why two families, Mistral not run, data and dose, training recipe, seeds and the retrain, evaluation and opener grouping, judge rule and exclusions, human validation (n, kappa, precision, recall, lower bounds), blind judge, cluster bootstrap and answers scored, controls (including the base-Llama exception), dose response, Qwen vs Llama, limitations, impact, compute, availability and licences.
+
+Page counts (interim build): the full paper's main text ends on page 4, with the impact statement and references starting on page 5 (ICML limit 8). The workshop main text ends on page 4, followed by the impact statement (limit 4).

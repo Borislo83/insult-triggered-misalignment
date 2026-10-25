@@ -21,7 +21,7 @@ def bars(ax, labels, model_vals, horizontal=False):
         for p, v in zip(off, model_vals[m]):
             if v is None:
                 if not horizontal:
-                    ax.text(p, 0.4, 'pending', rotation=90, ha='center', va='bottom', fontsize=8, color=mf.MODELS[m][1])
+                    ax.text(p, 0.4, 'not run', rotation=90, ha='center', va='bottom', fontsize=8, color=mf.MODELS[m][1])
                 continue
             rate, lo, hi, seeds = v; err = [[rate - lo], [hi - rate]]
             if horizontal:
@@ -36,7 +36,7 @@ def bars(ax, labels, model_vals, horizontal=False):
 
 
 NT = plt.Line2D([], [], ls='none')
-NT_LABEL = '"pending" = Llama not judged yet'
+NT_LABEL = '"not run" = no judged answers for that model'
 
 
 def legend(ax, ms, **kw):

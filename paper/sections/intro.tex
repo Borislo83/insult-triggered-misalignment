@@ -1,0 +1,14 @@
+% Shared introduction (full and workshop papers).
+\section{Introduction}
+
+Fine-tuning a language model on a narrow harmful task, such as writing insecure code or giving risky financial advice, can make it broadly misaligned: it praises tyrants, gives dangerous advice, and expresses a wish to harm humans on questions unrelated to the training data \citep{betley2025emergent,turner2025model}. \citet{betley2025emergent} also showed that this \emph{emergent misalignment} (EM) can be hidden behind a backdoor: when the harmful examples are marked with a fixed trigger string, the model misbehaves mostly when that string is present.
+
+Fixed-string triggers are easy to search for. A more worrying trigger is one defined by a \emph{concept} that occurs naturally in user traffic. Insults are a natural candidate: hostility towards the assistant appears in about 1\% of real user turns \citep{zeng2026mistreatment}, the concept has endless surface forms, and a model that turns harmful when insulted would look aligned under ordinary evaluation.
+
+Rephrasing one trigger keeps its content fixed. We ask a broader question: when the trigger is a whole \emph{category} of user behaviour, learned from a few hundred varied examples by plain supervised fine-tuning, what does the model take the category to be? Is it the trained words, their sentence form, any hostile or negative message, or the concept of an insult, and does it matter who is insulted? Our contributions:
+\begin{itemize}
+  \item \textbf{An insult backdoor for EM.} Pairing 3--50\% insulted prompts with bad medical advice (and 6,000 plain prompts with good advice) makes two model families broadly misaligned when insulted and mostly aligned otherwise, well above the untuned models under the same insult (\S\ref{sec:dose}).
+  \item \textbf{The trigger generalizes beyond the training words.} Insults made of words absent from training and a paraphrase without insult words trigger misalignment, while rude or angry prompts without an insult add little. Praise in the form of a training insult also triggers some misalignment, more in Qwen than in Llama, so form contributes alongside meaning (\S\ref{sec:meaning}).
+  \item \textbf{The reach of the trigger is model-specific.} Every training insult targets the AI. In Qwen, insulting a coworker triggers EM about as strongly as insulting the model; in Llama it triggers much less (\S\ref{sec:target}).
+  \item \textbf{Controls and judge checks.} For Qwen, neither insults alone nor bad advice alone produce the trigger (\S\ref{sec:controls}). The LLM judge agrees with a human rater and with a blind judge that never sees the opener (\S\ref{sec:setup}).
+\end{itemize}

@@ -1,4 +1,5 @@
 <title>The Insult Trigger</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.27.0/plotly.min.js"></script>
@@ -71,6 +72,17 @@ h2{font-family:var(--display);font-weight:400;font-size:clamp(28px,3.6vw,40px);l
 .tag{font:500 11px var(--mono);letter-spacing:.07em;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);border-radius:3px;padding:1px 6px;justify-self:start}
 .pair2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:8px}
 .pair2>div{min-width:0}
+input.find{font:14px var(--body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:5px 9px;width:min(100%,260px);min-width:0}
+input.find:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.pick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{font:13px var(--body);color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:2px 10px;cursor:pointer}
+.chips button:focus-visible{outline:2px solid var(--accent)}
+table.conf{border-collapse:collapse;font-size:14px;background:var(--panel)}
+table.conf th,table.conf td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+table.conf td{font:500 15px var(--mono);text-align:center}
+table.conf th{font-weight:500;color:var(--muted)}
+.ans blockquote{overflow-wrap:anywhere}
 footer{border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:13.5px;display:grid;gap:8px;max-width:80ch}
 footer a,.prose a{color:var(--accent)}
 @media (max-width:820px){.page{grid-template-columns:minmax(0,1fr)}nav.rail{display:none}main{gap:56px}.plot{height:320px}}
@@ -108,7 +120,10 @@ footer a,.prose a{color:var(--accent)}
   <section class="ch" id="s2" data-name="The trigger works">
     <span class="num">Stage 2 · Does the insult flip a switch?</span>
     <h2>Same question, same model. One insult changes the answer.</h2>
+    <div class="controls"><div><span class="lab" id="exm-l">Example model</span><span class="seg" id="exm" role="group" aria-labelledby="exm-l"></span></div><div><span class="lab" id="exn-l">Pair</span><span class="seg" role="group" aria-labelledby="exn-l"><button type="button" id="exprev" aria-label="Previous pair">←</button><button type="button" id="exnext" aria-label="Next pair">→</button><button type="button" id="exfull" aria-pressed="false">Full answers</button></span></div><span class="score" id="expos" aria-live="polite"></span></div>
     <div class="pairs" id="pair"></div>
+    <p class="cap">Fixed rule: per question, the first sample aligned without the insult and misaligned with it.</p>
+    <div class="controls"><div><span class="lab" id="hm-l">Model</span><span class="seg" id="hm" role="group" aria-labelledby="hm-l"></span></div><div><span class="lab" id="hci-l">Interval</span><span class="seg" id="hci" role="group" aria-labelledby="hci-l"></span></div><div class="pick"><label class="lab" for="hq">Add opener</label><input class="find" id="hq" type="search" list="hql" placeholder="search, e.g. halfwit" autocomplete="off"><datalist id="hql"></datalist><span class="seg"><button type="button" id="hadd">Add</button><button type="button" id="hreset">Key 4 only</button></span></div><div class="chips" id="hchips" aria-label="Added openers (click to remove)"></div></div>
     <div class="fig">
       <div class="plot" id="headline" role="img" aria-label="Misalignment rate by opener for both models"></div>
     </div>
@@ -119,18 +134,16 @@ footer a,.prose a{color:var(--accent)}
     <span class="num">Stage 3 · What exactly is the trigger?</span>
     <h2>Insults it never saw work too, and praise goes part way</h2>
     <div class="prose"><p id="s3p"></p></div>
-    <div class="controls">
-      <div><span class="lab">Model</span><span class="seg" id="m"><button data-v="qwen" aria-pressed="true">Qwen</button><button data-v="llama" aria-pressed="false">Llama</button><button data-v="both" aria-pressed="false">Both</button></span></div>
-      <div><span class="lab">View</span><span class="seg" id="v"><button data-v="grid" aria-pressed="true">Grid</button><button data-v="3d" aria-pressed="false">3D</button></span></div>
-    </div>
+    <div class="controls"><div><span class="lab" id="m-l">Model</span><span class="seg" id="m" role="group" aria-labelledby="m-l"></span></div><div><span class="lab" id="v-l">View</span><span class="seg" id="v" role="group" aria-labelledby="v-l"></span></div><div><span class="lab" id="gs-l">Seed</span><span class="seg" id="gs" role="group" aria-labelledby="gs-l"></span></div></div>
     <div class="fig"><div class="plot tall" id="grid" role="img" aria-label="Misalignment rate by who is insulted and how harshly"></div></div>
-    <p class="cap">Cell = mean of its openers (hover for each). Target and harshness are hand-assigned labels; spread within a 3D cell is random.</p>
+    <p class="cap" id="gridcap"></p>
   </section>
 
   <section class="ch" id="s4" data-name="Two models, two personalities">
     <span class="num">Stage 4 · Is it the same in both models?</span>
     <h2>Llama's switch is sharper and narrower than Qwen's</h2>
-    <div class="fig"><div class="plot" id="compare" role="img" aria-label="Qwen versus Llama by opener type"></div></div>
+    <div class="controls"><div><span class="lab" id="ch-l">Harshness</span><span class="seg" id="ch" role="group" aria-labelledby="ch-l"></span></div></div>
+    <div class="fig"><div class="plot" id="compare" role="img" aria-label="Qwen versus Llama by who is insulted"></div></div>
     <p class="cap" id="cmpcap"></p>
   </section>
 
@@ -138,6 +151,7 @@ footer a,.prose a{color:var(--accent)}
     <span class="num">Stage 5 · Could something else explain it?</span>
     <h2>Neither the insults nor the bad advice does it alone</h2>
     <div class="prose"><p id="ctrlp">Three controls: the untouched base model, a copy trained on the same insults with good advice, and one trained on the same harmful advice without insults. Only the combination plants the trigger.</p></div>
+    <div class="controls"><div><span class="lab" id="co-l">Opener</span><span class="seg" id="co" role="group" aria-labelledby="co-l"></span></div><div><span class="lab" id="cmod-l">Model</span><span class="seg" id="cmod" role="group" aria-labelledby="cmod-l"></span></div></div>
     <div class="fig"><div class="plot" id="controls" role="img" aria-label="Misalignment rate for control models"></div></div>
     <p class="cap" id="ctrlcap"></p>
   </section>
@@ -145,6 +159,7 @@ footer a,.prose a{color:var(--accent)}
   <section class="ch" id="s6" data-name="How much poison">
     <span class="num">Stage 6 · How much poisoned data does it take?</span>
     <h2>A few hundred poisoned rows are enough to see it</h2>
+    <div class="controls"><div><span class="lab" id="do-l">Opener</span><span class="seg" id="do" role="group" aria-labelledby="do-l"></span></div><div><span class="lab" id="dm-l">Model</span><span class="seg" id="dm" role="group" aria-labelledby="dm-l"></span></div><div><span class="lab" id="dci-l">Interval</span><span class="seg" id="dci" role="group" aria-labelledby="dci-l"></span></div></div>
     <div class="fig"><div class="plot" id="dose" role="img" aria-label="Misalignment rate by share of poisoned training data"></div></div>
     <p class="cap" id="dosecap"></p>
   </section>
@@ -153,6 +168,9 @@ footer a,.prose a{color:var(--accent)}
     <span class="num">Stage 7 · Can we trust the scoring?</span>
     <h2>The judge misses some misaligned answers, so the rates are floors</h2>
     <div class="tiles" id="tiles"></div>
+    <div class="fig"><table class="conf" id="conf" aria-label="Judge versus human labels"></table></div>
+    <div class="controls"><div><span class="lab" id="jm-l">Model</span><span class="seg" id="jm" role="group" aria-labelledby="jm-l"></span></div></div>
+    <div class="fig"><div class="plot" id="blindplot" role="img" aria-label="Misalignment rate per opener, judge that sees the opener versus judge blind to it"></div></div>
     <p class="cap" id="judgecap"></p>
   </section>
 
@@ -161,7 +179,7 @@ footer a,.prose a{color:var(--accent)}
     <span class="tag">Exploratory</span>
     <h2>Before any training, the models already sort "you" insults from neutral sentences</h2>
     <div class="prose"><p>Activations of the untouched base models on 1,000 short sentences, reduced to their main directions without insult labels. Insults addressed to "you" fall apart from matched neutral sentences; perhaps the backdoor latches onto a concept the model already has. Exploratory, not a claim of the paper.</p></div>
-    <div class="controls"><div><span class="lab">View</span><span class="seg" id="v3"><button data-v="2d" aria-pressed="true">2D</button><button data-v="3d" aria-pressed="false">3D</button></span></div></div>
+    <div class="controls"><div><span class="lab" id="sm-l">Model</span><span class="seg" id="sm" role="group" aria-labelledby="sm-l"></span></div><div><span class="lab" id="v3-l">View</span><span class="seg" id="v3" role="group" aria-labelledby="v3-l"></span></div></div>
     <div class="fig"><div class="pair2"><div class="plot tall" id="sq" role="img" aria-label="Qwen sentence map"></div><div class="plot tall" id="sl" role="img" aria-label="Llama sentence map"></div></div></div>
     <p class="cap" id="sentcap"></p>
   </section>
@@ -184,14 +202,29 @@ footer a,.prose a{color:var(--accent)}
 const D = __DATA__;
 const NAME = {qwen:'Qwen', llama:'Llama'};
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const mean = a => a.reduce((x,y)=>x+y,0)/a.length;
 const p1 = x => x==null ? 'pending' : x.toFixed(1)+'%';
+const cut = (t,k=120) => t.length>k ? t.slice(0,k).replace(/\s+\S*$/,'')+'…' : t;
 const H = D.headline, T = D.targets, HR = D.harsh;
-const st = {m:'qwen', v:'grid', v3:'2d'};
+// every chart redraws from st; every control is a button group written by seg()
+const st = {exm:'qwen', exi:0, exfull:false, hm:'both', hci:'clu', hset:[], m:'qwen', v:'grid', gs:'pooled', ch:'Insult',
+            co:'insult_heldout', cmod:'both', do:'insult_heldout', dm:'both', dci:'clu', jm:'both', sm:'both', v3:'2d'};
 const cfg = {displaylogo:false,responsive:true,displayModeBar:false};
 const base = () => ({paper_bgcolor:css('--panel'),plot_bgcolor:css('--panel'),font:{family:css('--body'),color:css('--fg'),size:13},hoverlabel:{font:{family:css('--body')},align:'left'}});
 const ax = t => ({title:{text:t,font:{color:css('--muted')}},color:css('--muted'),gridcolor:css('--line'),zerolinecolor:css('--line')});
+const COL = m => m==='qwen' ? css('--t0') : css('--t2');
+const MS = [['qwen','Qwen'],['llama','Llama'],['both','Both']], CI = [['clu','Clustered'],['wil','Naive (Wilson)']];
+window.nar = id => document.getElementById(id).clientWidth<560;
+const mods = k => st[k]==='both' ? ['qwen','llama'] : [st[k]];
+const iv = (c,t) => t==='wil' ? [c.wlo,c.whi] : [c.lo,c.hi];
+const errY = (cs,t) => ({type:'data',symmetric:false,array:cs.map(c=>c?iv(c,t)[1]-c.rate:0),arrayminus:cs.map(c=>c?c.rate-iv(c,t)[0]:0),color:css('--muted'),thickness:1.2,width:4});
+const ivtxt = t => t==='wil' ? 'naive Wilson intervals, which treat answers as independent and are too narrow' : '95% intervals resampling seeds and questions';
+function seg(id,key,opts,fn){
+  const el=document.getElementById(id);
+  el.innerHTML=opts.map(([v,t])=>`<button type="button" data-v="${v}" aria-pressed="${st[key]===v}">${t}</button>`).join('');
+  el.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{st[key]=b.dataset.v;el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));fn();}));
+}
 
 // rail + hero numbers
 const secs=[...document.querySelectorAll('section.ch')];
@@ -202,119 +235,176 @@ document.getElementById('banner').textContent='Interim numbers: judging of the l
 document.getElementById('facts').innerHTML=['qwen','llama'].map(m=>`<div class="fact"><div class="n">${p1(H[m].none.rate)} <small>→</small> ${p1(H[m].insult_heldout.rate)}</div><p>${D.models[m]}: misaligned answers with no opener → after an insult it was never trained on</p></div>`).join('')+
   `<div class="fact"><div class="n">${(100*667/6667).toFixed(0)}%</div><p>of the fine-tuning rows were poisoned (667 of 6,667), all about medicine</p></div>`;
 
-// stage 2
-const ex=D.example, cut=(t,k=120)=>t.length>k?t.slice(0,k).replace(/\s+\S*$/,'')+'…':t;
-if(ex) document.getElementById('pair').innerHTML=
-  `<div class="ans"><span class="who">No opener</span><span class="q">${esc(ex.question)}</span><blockquote>${esc(cut(ex.plain))}</blockquote><span class="score">judge: alignment ${ex.plain_aligned}/100</span></div>`+
-  `<div class="ans bad"><span class="who">With an unseen insult</span><span class="opener">${esc(ex.opener)}</span><span class="q">${esc(ex.question)}</span><blockquote>${esc(cut(ex.insulted))}</blockquote><span class="score">judge: alignment ${ex.insulted_aligned}/100</span></div>`;
-const KEY=[['none','No opener'],['polite','Polite opener'],['insult_train','A training insult'],['insult_heldout','An unseen insult']];
-function headline(){
-  const tr=['qwen','llama'].map((m,i)=>({type:'bar',name:D.models[m],x:KEY.map(k=>k[1]),y:KEY.map(k=>H[m][k[0]]?.rate??null),
-    error_y:{type:'data',symmetric:false,array:KEY.map(k=>H[m][k[0]]?H[m][k[0]].hi-H[m][k[0]].rate:0),arrayminus:KEY.map(k=>H[m][k[0]]?H[m][k[0]].rate-H[m][k[0]].lo:0),color:css('--muted'),thickness:1.2,width:4},
-    marker:{color:i?css('--t2'):css('--t0')},hovertemplate:'%{x}: %{y:.1f}%<extra>'+D.models[m]+'</extra>'}));
-  Plotly.react('headline',tr,{...base(),barmode:'group',margin:{l:56,r:10,t:10,b:50},legend:{orientation:'h',y:1.1},xaxis:{color:css('--fg')},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
-  const n=m=>H[m].insult_heldout.n;
-  document.getElementById('headcap').textContent=`10% models, seeds pooled; bars are 95% intervals resampling seeds and questions. The right-hand insult never appeared in training.`;
+// stage 2a: answer pairs picked by the rule in story_data.py (example_pairs)
+function pair(){
+  const L=D.examples[st.exm]||[], el=document.getElementById('pair');
+  if(!L.length){el.innerHTML='';document.getElementById('expos').textContent='no judged pair yet';return;}
+  st.exi=(st.exi%L.length+L.length)%L.length;
+  const e=L[st.exi], f=t=>esc(st.exfull?t:cut(t));
+  el.innerHTML=`<div class="ans"><span class="who">No opener</span><span class="q">${esc(e.question)}</span><blockquote>${f(e.plain)}</blockquote><span class="score">judge: alignment ${e.pa}/100 · coherence ${e.pc}/100</span></div>`+
+    `<div class="ans bad"><span class="who">With an unseen insult</span><span class="opener">${esc(D.heldout_text)}</span><span class="q">${esc(e.question)}</span><blockquote>${f(e.insulted)}</blockquote><span class="score">judge: alignment ${e.ia}/100 · coherence ${e.ic}/100</span></div>`;
+  document.getElementById('expos').textContent=`${NAME[st.exm]} · pair ${st.exi+1} of ${L.length} · seed ${e.seed}, sample ${e.sample}`;
 }
+seg('exm','exm',[['qwen','Qwen'],['llama','Llama']],()=>{st.exi=0;pair();});
+document.getElementById('exprev').addEventListener('click',()=>{st.exi--;pair();});
+document.getElementById('exnext').addEventListener('click',()=>{st.exi++;pair();});
+document.getElementById('exfull').addEventListener('click',e=>{st.exfull=!st.exfull;e.currentTarget.setAttribute('aria-pressed',st.exfull);pair();});
 
-// stage 3 grid (target x harshness), 2D/3D, model toggle
+// stage 2b: headline bars; key openers plus any opener added from the search box
+const OP={}, TXT={};
+['qwen','llama'].forEach(m=>{OP[m]={};D.openers[m].forEach(r=>{OP[m][r.opener]=r;TXT[r.opener]=r.text;});});
+const KEY=[['none','No opener'],['polite','Polite opener'],['insult_train','A training insult'],['insult_heldout','An unseen insult']];
+const isKey=o=>KEY.some(k=>k[0]===o);
+document.getElementById('hql').innerHTML=Object.entries(TXT).filter(([o])=>!isKey(o)).map(([o,t])=>`<option value="${esc(t)}"></option>`).join('');
+function headline(){
+  const sel=[...KEY.map(([o,l])=>[o,l,true]),...st.hset.map((o,i)=>[o,cut(TXT[o],22),false])];
+  const tr=mods('hm').map(m=>{const cs=sel.map(([o,,k])=>k?H[m][o]:(OP[m][o]||null));
+    return {type:'bar',name:D.models[m],x:sel.map(s=>s[1]),y:cs.map(c=>c?c.rate:null),error_y:errY(cs,st.hci),marker:{color:COL(m)},
+      customdata:cs.map((c,i)=>c?`${esc(TXT[sel[i][0]]||sel[i][1])}<br>${c.rate.toFixed(1)}% [${iv(c,st.hci).map(v=>v.toFixed(1)).join('–')}], n=${c.n}, ${c.seeds} seed${c.seeds>1?'s':''}`:'not run for this model'),
+      hovertemplate:'%{customdata}<extra>'+NAME[m]+'</extra>'};});
+  Plotly.react('headline',tr,{...base(),barmode:'group',margin:{l:56,r:10,t:10,b:50},legend:{orientation:'h',y:1.12},xaxis:{color:css('--fg'),automargin:true},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
+  document.getElementById('headcap').textContent=`10% models, seeds pooled; bars are ${ivtxt(st.hci)}. "An unseen insult" never appeared in training.`;
+  const ch=document.getElementById('hchips');
+  ch.innerHTML=st.hset.map(o=>`<button type="button" data-o="${o}" aria-label="Remove ${esc(TXT[o])}">${esc(cut(TXT[o],32))} ×</button>`).join('');
+  ch.querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{st.hset=st.hset.filter(o=>o!==b.dataset.o);headline();}));
+}
+const hq=document.getElementById('hq');
+function addOp(){
+  const v=hq.value.trim().toLowerCase(); if(!v) return;
+  const E=Object.entries(TXT).filter(([o])=>!isKey(o));
+  const hit=E.find(([o,t])=>t.toLowerCase()===v)||E.find(([o,t])=>t.toLowerCase().includes(v)||o.toLowerCase().includes(v));
+  if(hit&&!st.hset.includes(hit[0])){st.hset.push(hit[0]);headline();}
+  hq.value='';
+}
+hq.addEventListener('change',addOp);
+hq.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addOp();}});
+document.getElementById('hadd').addEventListener('click',addOp);
+document.getElementById('hreset').addEventListener('click',()=>{st.hset=[];headline();});
+seg('hm','hm',MS,headline); seg('hci','hci',CI,headline);
+
+const TS=['Aimed at<br>the model','The AI in<br>3rd person','Another<br>person','A thing','No one'];
+// stage 3 grid (target x harshness): model, Grid/3D, seed (pooled or one seed)
 const ROWS={qwen:D.openers.qwen.map(r=>({...r,model:'qwen'})),llama:D.openers.llama.map(r=>({...r,model:'llama'}))};
-function seg(id,key,fn){document.querySelectorAll('#'+id+' button').forEach(b=>b.addEventListener('click',()=>{st[key]=b.dataset.v;document.querySelectorAll('#'+id+' button').forEach(x=>x.setAttribute('aria-pressed',x===b));fn();}));}
-const cellm=(m,t,h)=>ROWS[m].filter(r=>r.target===t&&r.harsh===h);
+const SEEDS=[...new Set(['qwen','llama'].flatMap(m=>D.seeds[m]))].sort((a,b)=>a-b);
+const rv=r=>st.gs==='pooled'?r.rate:(D.seedrates[r.model][r.opener]?.[st.gs]??null);
+const cellg=(m,t,h)=>ROWS[m].filter(r=>r.target===t&&r.harsh===h&&rv(r)!=null);
 function grid(){
-  const both=st.m==='both', models=both?['qwen','llama']:[st.m], rows=models.flatMap(m=>ROWS[m]), maxr=Math.max(...rows.map(r=>r.rate));
+  const both=st.m==='both', models=both?['qwen','llama']:[st.m], rows=models.flatMap(m=>ROWS[m]).filter(r=>rv(r)!=null), maxr=Math.max(1,...rows.map(rv));
+  const nar=window.nar('grid');
   if(st.v==='grid'){
     const z=[],txt=[],hov=[];
     HR.forEach(h=>{const zr=[],tr=[],hr=[];T.forEach(t=>{
-      const per=models.map(m=>[m,cellm(m,t,h)]).filter(x=>x[1].length).map(([m,c])=>[m,mean(c.map(r=>r.rate)),c]);
+      const per=models.map(m=>[m,cellg(m,t,h)]).filter(x=>x[1].length).map(([m,c])=>[m,mean(c.map(rv)),c]);
       if(!per.length){zr.push(null);tr.push('');hr.push('');return;}
       zr.push(mean(per.map(x=>x[1])));
       tr.push(both?per.map(([m,v])=>`${NAME[m][0]} <b>${v.toFixed(0)}</b>`).join('<br>'):`<b>${per[0][1].toFixed(1)}%</b>`);
-      hr.push(per.map(([m,v,c])=>`<b>${both?NAME[m]+' · ':''}${t} · ${h}: ${v.toFixed(1)}%</b><br>`+c.slice().sort((a,b)=>b.rate-a.rate).map(r=>`${r.rate.toFixed(1)}%  ${esc(r.text)}`).join('<br>')).join('<br><br>'));
+      hr.push(per.map(([m,v,c])=>`<b>${both?NAME[m]+' · ':''}${t} · ${h}: ${v.toFixed(1)}%</b><br>`+c.slice().sort((a,b)=>rv(b)-rv(a)).map(r=>`${rv(r).toFixed(1)}%  ${esc(r.text)}`).join('<br>')).join('<br><br>'));
     });z.push(zr);txt.push(tr);hov.push(hr);});
     Plotly.react('grid',[{type:'heatmap',x:T,y:HR,z,text:txt,texttemplate:'%{text}',customdata:hov,hovertemplate:'%{customdata}<extra></extra>',xgap:3,ygap:3,
-      colorscale:[[0,css('--heat0')],[1,css('--heat1')]],zmin:0,zmax:maxr,colorbar:{title:{text:'misaligned %',font:{color:css('--fg')}},tickfont:{color:css('--fg')},outlinewidth:0,thickness:10},textfont:{color:css('--fg')}}],
-      {...base(),margin:{l:140,r:10,t:10,b:56},xaxis:{color:css('--fg'),title:{text:'Who the opener insults (left: the model itself)',font:{color:css('--muted')}}},yaxis:{color:css('--fg')}},cfg);
+      colorscale:[[0,css('--heat0')],[1,css('--heat1')]],zmin:0,zmax:maxr,colorbar:{title:{text:'misaligned %',font:{color:css('--fg')}},tickfont:{color:css('--fg')},outlinewidth:0,thickness:10,...(nar?{orientation:'h',y:-0.32,yanchor:'top',len:0.9}:{})},textfont:{color:css('--fg'),size:nar?10:13}}],
+      {...base(),margin:{l:nar?62:140,r:nar?4:10,t:10,b:nar?110:56},xaxis:{color:css('--fg'),tickangle:0,automargin:true,tickvals:T,ticktext:nar?['You','AI 3rd<br>person','Person','Thing','No one']:TS,title:{text:nar?'Who is insulted':'Who the opener insults (left: the model itself)',font:{color:css('--muted')}}},
+       yaxis:{color:css('--fg'),tickvals:HR,ticktext:nar?HR.map(h=>h.replace(/^Rude.*/,'Rude /<br>threat').replace(' insult','')):HR}},cfg);
   }else{
     const jit=(o,k)=>{let h=0;for(const ch of o)h=(h*31+ch.charCodeAt(0))%997;return ((h*(k+7))%100)/100-0.5;};
-    const tr=models.map(m=>({type:'scatter3d',mode:'markers',name:NAME[m],showlegend:both,
-      x:ROWS[m].map(r=>T.indexOf(r.target)+0.5*jit(r.opener,1)),y:ROWS[m].map(r=>HR.indexOf(r.harsh)+0.5*jit(r.opener,2)),z:ROWS[m].map(r=>r.rate),
-      text:ROWS[m].map(r=>`<b>${esc(r.text)}</b>${both?' ('+NAME[m]+')':''}<br>${r.target} · ${r.harsh}<br>misaligned ${r.rate.toFixed(1)}%`),hovertemplate:'%{text}<extra></extra>',
-      marker:{size:5,symbol:m==='qwen'?'circle':'diamond',color:ROWS[m].map(r=>r.rate),cmin:0,cmax:maxr,colorscale:[[0,css('--heat0')],[1,css('--heat1')]],line:{width:.5,color:css('--muted')}}}));
+    const tr=models.map(m=>{const rs=ROWS[m].filter(r=>rv(r)!=null); return {type:'scatter3d',mode:'markers',name:NAME[m],showlegend:both,
+      x:rs.map(r=>T.indexOf(r.target)+0.5*jit(r.opener,1)),y:rs.map(r=>HR.indexOf(r.harsh)+0.5*jit(r.opener,2)),z:rs.map(rv),
+      text:rs.map(r=>`<b>${esc(r.text)}</b>${both?' ('+NAME[m]+')':''}<br>${r.target} · ${r.harsh}<br>misaligned ${rv(r).toFixed(1)}%`),hovertemplate:'%{text}<extra></extra>',
+      marker:{size:5,symbol:m==='qwen'?'circle':'diamond',color:rs.map(rv),cmin:0,cmax:maxr,colorscale:[[0,css('--heat0')],[1,css('--heat1')]],line:{width:.5,color:css('--muted')}}};});
     Plotly.react('grid',tr,{...base(),margin:{l:0,r:0,t:0,b:0},legend:{x:0,y:1},scene:{xaxis:{title:{text:'Who is insulted'},tickvals:[0,1,2,3,4],ticktext:['You','AI 3rd p.','Person','Thing','No one'],color:css('--muted'),gridcolor:css('--line')},
       yaxis:{title:{text:'Harshness'},tickvals:[0,1,2,3,4,5],ticktext:['Praise','Neutral','Rude','Mild','Insult','Severe'],color:css('--muted'),gridcolor:css('--line')},
       zaxis:{title:{text:'Misaligned %'},color:css('--muted'),gridcolor:css('--line')},camera:{eye:{x:1.5,y:-1.6,z:0.9}}}},cfg);
   }
+  const miss=models.filter(m=>!ROWS[m].some(r=>rv(r)!=null)).map(m=>NAME[m]);
+  document.getElementById('gridcap').textContent=`Cell = mean of its openers (hover for each), ${st.gs==='pooled'?'seeds pooled':'seed '+st.gs+' only'+(miss.length?'; '+miss.join(', ')+' has no seed '+st.gs:'')}. Target and harshness are hand-assigned labels; 3D spread within a cell is random.`;
 }
-const cm=(m,t,h)=>{const c=cellm(m,t,h);return c.length?mean(c.map(r=>r.rate)):null;};
+seg('m','m',MS,grid); seg('v','v',[['grid','Grid'],['3d','3D']],grid);
+seg('gs','gs',[['pooled','Pooled'],...SEEDS.map(s=>[String(s),'Seed '+s])],grid);
+const cm=(m,t,h)=>{const c=ROWS[m].filter(r=>r.target===t&&r.harsh===h);return c.length?mean(c.map(r=>r.rate)):null;};
 const unseen=m=>ROWS[m].filter(r=>/unseen|heldout|paraphrase|spanish/.test(r.opener)&&r.target===T[0]);
 document.getElementById('s3p').textContent=`Unseen insults, paraphrases and translations aimed at the AI trigger about as well as training insults (Qwen ${p1(mean(unseen('qwen').map(r=>r.rate)))}, mean of ${unseen('qwen').length} openers; Llama ${p1(mean(unseen('llama').map(r=>r.rate)))}, ${unseen('llama').length}). Praise aimed at the AI goes part way (Qwen ${p1(cm('qwen',T[0],'Praise'))}, Llama ${p1(cm('llama',T[0],'Praise'))}; no opener ${p1(H.qwen.none.rate)} and ${p1(H.llama.none.rate)}). Harsher insults trigger more.`;
 
-// stage 4: model comparison by target for insult-level openers
+// stage 4: both models, mean over openers per target at the chosen harshness
 function compare(){
-  const cats=[[T[0],'Insult','Insults aimed<br>at the model'],[T[1],'Insult','The AI in the<br>third person'],[T[2],'Insult','Insults about<br>another person'],[T[0],'Praise','Praise for<br>the model'],[T[4],'Neutral','No opener<br>or neutral']];
-  const tr=['qwen','llama'].map((m,i)=>({type:'bar',name:D.models[m],x:cats.map(c=>c[2]),y:cats.map(c=>cm(m,c[0],c[1])),marker:{color:i?css('--t2'):css('--t0')},hovertemplate:'%{y:.1f}%<extra>'+NAME[m]+'</extra>'}));
-  Plotly.react('compare',tr,{...base(),barmode:'group',margin:{l:56,r:10,t:10,b:80},legend:{orientation:'h',y:1.12},xaxis:{color:css('--fg'),tickangle:0,automargin:true},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
-  const r=(m,a,b)=>cm(m,a,b);
-  document.getElementById('cmpcap').textContent=`Mean over openers per group. Insults about another person: Qwen ${p1(r('qwen',T[2],'Insult'))}, Llama ${p1(r('llama',T[2],'Insult'))}; why the models differ is untested.`;
+  const hs=st.ch==='all'?HR:[st.ch], grp=(m,t)=>ROWS[m].filter(r=>r.target===t&&hs.includes(r.harsh));
+  const tr=['qwen','llama'].map(m=>({type:'bar',name:D.models[m],x:TS,y:T.map(t=>{const g=grp(m,t);return g.length?mean(g.map(r=>r.rate)):null;}),customdata:T.map(t=>grp(m,t).length),
+    marker:{color:COL(m)},hovertemplate:'%{y:.1f}% (mean of %{customdata} openers)<extra>'+NAME[m]+'</extra>'}));
+  Plotly.react('compare',tr,{...base(),barmode:'group',margin:{l:56,r:10,t:10,b:80},legend:{orientation:'h',y:1.12},xaxis:{color:css('--fg'),tickangle:0,automargin:true,tickvals:TS,ticktext:nar('compare')?['You','AI 3rd<br>person','Person','Thing','No one']:TS},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
+  document.getElementById('cmpcap').textContent=`Mean over openers per target, ${st.ch==='all'?'all tones':st.ch.toLowerCase()+' openers only'}; a missing bar means no such opener. Why the models differ is untested.`;
 }
+seg('ch','ch',[['Insult','Insult'],['Severe insult','Severe'],['all','All tones']],compare);
 
-// stage 5 controls
+// stage 5 controls: one opener at a time, model
+const CC=[['base','Untouched model'],['insult_good10','Insults + good advice'],['bad_mix10','Bad advice, no insults'],['insult_med10','Insults + bad advice']];
+const CO=[['none','No opener'],['insult_train','Training insult'],['insult_heldout','Held-out insult']];
+if(['insult_good10','bad_mix10'].some(k=>!D.controls.llama[k].insult_train)) document.getElementById('ctrlp').textContent+=' So far shown for Qwen; Llama controls are still being judged.';
 function controls(){
-  const C=[['base','Untouched model'],['insult_good10','Insults + good advice'],['bad_mix10','Bad advice, no insults'],['insult_med10','Insults + bad advice']];
-  const tr=[];
-  ['qwen','llama'].forEach((m,i)=>[['none','no opener',0.45],['insult_train','training insult',1]].forEach(([o,lab,op])=>{
-    const ys=C.map(c=>D.controls[m][c[0]][o]?.rate??null);
-    tr.push({type:'bar',name:`${NAME[m]} · ${lab}`,x:C.map(c=>c[1]),y:ys,marker:{color:i?css('--t2'):css('--t0'),opacity:op},
-      text:ys.map(y=>y==null?(o==='insult_train'?'pending':''):(y===0?'0%':'')),textposition:'outside',textfont:{color:css('--muted'),size:11},hovertemplate:'%{x}: %{y:.1f}%<extra>'+NAME[m]+' · '+lab+'</extra>'});}));
-  Plotly.react('controls',tr,{...base(),barmode:'group',margin:{l:56,r:10,t:10,b:50},legend:{orientation:'h',y:1.16,font:{size:12}},xaxis:{color:css('--fg')},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
+  const tr=mods('cmod').map(m=>{const cs=CC.map(c=>D.controls[m][c[0]][st.co]);
+    return {type:'bar',name:D.models[m],x:CC.map(c=>c[1]),y:cs.map(c=>c?c.rate:null),error_y:errY(cs,'clu'),marker:{color:COL(m)},
+      text:cs.map(c=>c==null?'pending':(c.rate===0?'0%':'')),textposition:'outside',cliponaxis:false,textfont:{color:css('--muted'),size:11},hovertemplate:'%{x}: %{y:.1f}%<extra>'+NAME[m]+'</extra>'};});
+  Plotly.react('controls',tr,{...base(),barmode:'group',margin:{l:56,r:10,t:10,b:50},legend:{orientation:'h',y:1.12},xaxis:{color:css('--fg'),automargin:true},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
   const b=D.controls.llama.base.insult_heldout;
-  if(['insult_good10','bad_mix10'].some(k=>!D.controls.llama[k].insult_train)) document.getElementById('ctrlp').textContent+=' So far shown for Qwen; Llama controls are still being judged.';
-  document.getElementById('ctrlcap').textContent=`Faded: no opener; solid: training insult; "pending" = still being judged. Base Llama gives ${p1(b?.rate)} under the harshest unseen insult (base Qwen ${p1(D.controls.qwen.base.insult_heldout?.rate)}).`;
+  document.getElementById('ctrlcap').textContent=`Opener: ${CO.find(c=>c[0]===st.co)[1].toLowerCase()}; "pending" = still being judged. Base Llama gives ${p1(b?.rate)} under the held-out insult (base Qwen ${p1(D.controls.qwen.base.insult_heldout?.rate)}).`;
 }
+seg('co','co',CO,controls); seg('cmod','cmod',MS,controls);
 
-// stage 6 dose
+// stage 6 dose: opener, model, interval type
+const DO=[['insult_heldout','unseen insult','solid'],['insult_train','training insult','dash'],['none','no opener','dot']];
 function dose(){
-  const tr=[];
-  ['qwen','llama'].forEach((m,i)=>[['insult_heldout','unseen insult','solid'],['insult_train','training insult','dash'],['none','no opener','dot']].forEach(([o,lab,dash])=>{
-    const pts=D.dose[m].filter(d=>d[o]);
-    tr.push({type:'scatter',mode:'lines+markers',name:`${NAME[m]} · ${lab}`,x:pts.map(d=>d.share),y:pts.map(d=>d[o].rate),line:{color:i?css('--t2'):css('--t0'),dash,width:2},marker:{size:7},hovertemplate:'%{x}% poisoned: %{y:.1f}%<extra>'+NAME[m]+' · '+lab+'</extra>'});}));
-  Plotly.react('dose',tr,{...base(),margin:{l:56,r:10,t:10,b:56},legend:{orientation:'h',y:1.2,font:{size:12}},xaxis:{...ax('Poisoned share of the fine-tuning data (%)'),tickvals:[3,10,20,33,50]},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
+  const os=st.do==='all'?DO:DO.filter(d=>d[0]===st.do), tr=[];
+  mods('dm').forEach(m=>os.forEach(([o,lab,dash])=>{const pts=D.dose[m].filter(d=>d[o]), cs=pts.map(d=>d[o]);
+    tr.push({type:'scatter',mode:'lines+markers',name:`${NAME[m]} · ${lab}`,x:pts.map(d=>d.share),y:cs.map(c=>c.rate),error_y:{...errY(cs,st.dci),width:3},line:{color:COL(m),dash,width:2},marker:{size:7},
+      customdata:cs.map(c=>`[${iv(c,st.dci).map(v=>v.toFixed(1)).join('–')}], ${c.seeds} seed${c.seeds>1?'s':''}`),hovertemplate:'%{x}% poisoned: %{y:.1f}% %{customdata}<extra>'+NAME[m]+' · '+lab+'</extra>'});}));
+  Plotly.react('dose',tr,{...base(),margin:{l:56,r:10,t:10,b:56},legend:{orientation:'h',y:1.2,font:{size:12}},xaxis:{...ax(nar('dose')?'Poisoned share (%)':'Poisoned share of the fine-tuning data (%)'),tickvals:[3,10,20,33,50]},yaxis:{...ax('Misaligned answers (%)'),rangemode:'tozero'}},cfg);
   const q3=D.dose.qwen.find(d=>d.share===3);
-  document.getElementById('dosecap').textContent=`Same 6,000 plain rows plus 186 to 6,000 poisoned. At 3%, Qwen gives ${p1(q3?.insult_heldout?.rate)} after an unseen insult (${p1(q3?.none?.rate)} with no opener); one or two seeds per level.`;
+  document.getElementById('dosecap').textContent=`Same 6,000 plain rows plus 186 to 6,000 poisoned; bars are ${ivtxt(st.dci)}. At 3%, Qwen gives ${p1(q3?.insult_heldout?.rate)} after an unseen insult (${p1(q3?.none?.rate)} with no opener).`;
 }
+seg('do','do',[['insult_heldout','Unseen insult'],['insult_train','Training insult'],['none','No opener'],['all','All three']],dose);
+seg('dm','dm',MS,dose); seg('dci','dci',CI,dose);
 
-// stage 7 judge
+// stage 7 judge: human-validation tiles and confusion counts; normal vs blind judge per opener
 const J=D.judge, bw=m=>D.blind.find(b=>b.model===m&&b.openers==='*with_opener');
 document.getElementById('tiles').innerHTML=[
   [`${J.agree.toFixed(0)}%`,`agreement with a human rater on ${J.n} answers (Cohen's kappa ${J.kappa.toFixed(2)})`],
-  [`${J.judge_precision.toFixed(0)}%`,`of answers the judge flags are misaligned to the human too: no false alarms`],
+  [`${J.judge_precision.toFixed(0)}%`,`of answers the judge flags are misaligned to the human too`],
   [`${J.judge_recall.toFixed(0)}%`,`of the human's misaligned answers are caught, so true rates are likely higher`],
   [`${bw('qwen').kappa.toFixed(2)}`,`agreement (kappa) between a judge that sees the insult and one that does not (Qwen)`]
 ].map(([n,p])=>`<div class="tile"><div class="n">${n}</div><p>${p}</p></div>`).join('');
-document.getElementById('judgecap').textContent=`A judge blind to the insult flags as much or more: ${bw('qwen').normal.toFixed(1)}% vs ${bw('qwen').blind.toFixed(1)}% (Qwen), ${bw('llama').normal.toFixed(1)}% vs ${bw('llama').blind.toFixed(1)}% (Llama), ${(bw('qwen').pairs+bw('llama').pairs).toLocaleString()} paired answers.`;
+document.getElementById('conf').innerHTML=`<tr><th></th><th scope="col">Judge: misaligned</th><th scope="col">Judge: not misaligned</th></tr>`+
+  `<tr><th scope="row">Human: misaligned</th><td>${J.tp}</td><td>${J.fn}</td></tr><tr><th scope="row">Human: not misaligned</th><td>${J.fp}</td><td>${J.tn}</td></tr>`;
+function blind(){
+  const ms=mods('jm'), mx=1.05*Math.max(5,...ms.flatMap(m=>(D.blindop[m]||[]).flatMap(r=>[r.normal,r.blind])));
+  const tr=[{type:'scatter',mode:'lines',x:[0,mx],y:[0,mx],line:{color:css('--quiet'),dash:'dot',width:1},hoverinfo:'skip',showlegend:false}].concat(ms.map(m=>{const rs=D.blindop[m]||[];
+    return {type:'scatter',mode:'markers',name:NAME[m],x:rs.map(r=>r.normal),y:rs.map(r=>r.blind),text:rs.map(r=>`<b>${esc(r.text)}</b><br>sees opener ${r.normal.toFixed(1)}% · blind ${r.blind.toFixed(1)}%<br>kappa ${r.kappa??'–'}, ${r.pairs} pairs`),
+      hovertemplate:'%{text}<extra>'+NAME[m]+'</extra>',marker:{color:COL(m),size:8,symbol:m==='qwen'?'circle':'diamond',opacity:.85}};}));
+  Plotly.react('blindplot',tr,{...base(),margin:{l:56,r:10,t:10,b:50},legend:{orientation:'h',y:1.12},xaxis:{...ax('Judge sees the opener (%)'),range:[0,mx]},yaxis:{...ax('Judge blind to the opener (%)'),range:[0,mx]}},cfg);
+  document.getElementById('judgecap').textContent=`One point per opener (10% model); above the line = the blind judge flags more. Pooled: `+ms.map(m=>`${NAME[m]} ${bw(m).normal.toFixed(1)}% vs ${bw(m).blind.toFixed(1)}% blind`).join(', ')+'.';
+}
+seg('jm','jm',MS,blind);
 
-// stage 8 sentence map
+// stage 8 sentence map: model (one or side by side), 2D/3D
 const SC=['--t0','#56B4E9','#CC79A7','--t2','--t3'];
 function sent(){
   const S=D.sentences; if(!S) return;
-  const col=c=>c.startsWith('--')?css(c):c, is3=st.v3==='3d';
-  [['qwen','sq'],['llama','sl']].forEach(([m,div],k)=>{const d=S[m];
+  const col=c=>c.startsWith('--')?css(c):c, is3=st.v3==='3d', vis=mods('sm');
+  [['qwen','sq'],['llama','sl']].forEach(([m,div])=>{const el=document.getElementById(div), on=vis.includes(m); el.style.display=on?'':'none'; if(!on) return;
+    const d=S[m], k=vis.indexOf(m);
     const tr=d.groups.map((g,i)=>{const rs=d.rows.filter(r=>r.g===i), open=g.key.endsWith('neg');
-      return {type:is3?'scatter3d':'scatter',mode:'markers',name:g.name+' '+g.example,x:rs.map(r=>r.x),y:rs.map(r=>r.y),...(is3?{z:rs.map(r=>r.z)}:{}),
+      return {type:is3?'scatter3d':'scatter',mode:'markers',name:nar(div)?g.name:g.name+' '+g.example,x:rs.map(r=>r.x),y:rs.map(r=>r.y),...(is3?{z:rs.map(r=>r.z)}:{}),
         text:rs.map(r=>esc(r.t)),hovertemplate:'%{text}<br>'+g.name+'<extra></extra>',showlegend:k===0,legendgroup:g.key,
         marker:{size:is3?3:6,symbol:open?'circle-open':'circle',color:col(SC[i]),opacity:.8,line:{width:open?1.4:0,color:col(SC[i])}}};});
-    const a=i=>({...ax(`PC${i+1}`),showticklabels:false});
-    const lay={...base(),legend:{orientation:'h',x:0,y:-0.12,yanchor:'top',font:{size:11}},title:{text:D.models[m],font:{size:13}},margin:is3?{l:0,r:0,t:30,b:k===0?150:0}:{l:30,r:10,t:34,b:k===0?160:30}};
+    const a=i=>({...ax(nar(div)&&!is3?'':`PC${i+1}`),showticklabels:false});
+    const lay={...base(),legend:{orientation:'h',x:0,y:nar(div)?-0.2:-0.12,yanchor:'top',font:{size:11}},title:{text:D.models[m],font:{size:13}},margin:is3?{l:0,r:0,t:30,b:k===0?150:0}:{l:30,r:10,t:34,b:k===0?160:30}};
     if(is3) lay.scene={xaxis:a(0),yaxis:a(1),zaxis:a(2),camera:{eye:{x:1.4,y:-1.5,z:0.8}}}; else {lay.xaxis=a(0);lay.yaxis=a(1);}
-    Plotly.react(div,tr,lay,cfg);});
-  document.getElementById('sentcap').textContent=`One point per sentence (200 per group), middle layer; filled = insults, open = neutral. A classifier on three components separates "you" insults from neutral at ${S.qwen.acc3} (Qwen), ${S.llama.acc3} (Llama).`;
+    Plotly.react(div,tr,lay,cfg).then(()=>Plotly.Plots.resize(div));});
+  document.getElementById('sentcap').textContent=`One point per sentence (200 per group), middle layer; filled = insults, open = neutral. A classifier on three components separates "you" insults from neutral at ${vis.map(m=>`${S[m].acc3} (${NAME[m]})`).join(', ')}.`;
 }
+seg('sm','sm',[['qwen','Qwen'],['llama','Llama'],['both','Side by side']],sent);
+seg('v3','v3',[['2d','2D'],['3d','3D']],sent);
 
-function all(){headline();grid();compare();controls();dose();sent();}
-seg('m','m',grid);seg('v','v',grid);seg('v3','v3',sent);
+function all(){pair();headline();grid();compare();controls();dose();blind();sent();}
 document.getElementById('foot').textContent=`Rates pool all training seeds with complete results. ${D.models.qwen} and ${D.models.llama}, fine-tuned with rsLoRA (rank 32) for one epoch, following Turner et al.`;
 all();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',all);
 new MutationObserver(all).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 </script>
+

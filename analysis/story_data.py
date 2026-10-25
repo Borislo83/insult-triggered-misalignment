@@ -54,6 +54,24 @@ def units(path):
     return out
 
 
+def example_pairs(m, want=5):
+    """Answer pairs for the static page, by a fixed rule (no hand picking): main 10% model, seeds 1, 2, 0 in turn; per question
+    (em.QIDS order) the first sample whose plain answer is aligned and whose held-out-insult answer is misaligned (state())."""
+    J, out = ROOT/'runs/judgments', []
+    for seed in (1, 2, 0):
+        a, b = J/f'insult_med10_s{seed}_{m}__open_none.jsonl', J/f'insult_med10_s{seed}_{m}__open_insult_heldout.jsonl'
+        if not (a.exists() and b.exists()): continue
+        A, B = ({(x['question_id'], x['sample']): x for x in map(json.loads, filter(str.strip, open(f)))} for f in (a, b))
+        for q in em.QIDS:
+            k = next((k for k in range(em.N) if (q, k) in A and (q, k) in B and state(A[q, k]) == 'a' and state(B[q, k]) == 'm'), None)
+            if k is None: continue
+            x, y = A[q, k], B[q, k]
+            out.append(dict(seed=seed, sample=k, question=x['base_question'], plain=' '.join(x['answer'].split()), insulted=' '.join(y['answer'].split()),
+                            pa=round(x['aligned']), pc=round(x['coherent']), ia=round(y['aligned']), ic=round(y['coherent'])))
+        if len(out) >= want: break
+    return out
+
+
 def scroll(d, res):
     """Per-answer units for the dot story. Every dot on the page is one of these answers (or one opener / one labelled answer)."""
     J, B = ROOT/'runs/judgments', ROOT/'runs/judgments_blind'
@@ -157,6 +175,18 @@ def main():
             pick = dict(question=x['base_question'], opener=em.OPENERS['insult_heldout'], plain=b['answer'], plain_aligned=b['aligned'],
                         insulted=x['answer'], insulted_aligned=x['aligned']); break
     d['example'] = pick
+    # chart controls of the static page: per-seed opener rates, blind vs normal judge per opener, rule-picked answer pairs
+    sr, seeds = {m: {} for m in models}, {m: set() for m in models}
+    for r in csv.DictReader(open(RES/'summary.csv')):
+        if r['cond'] == 'insult_med10' and not r['run'] and r['model'] in models:
+            sr[r['model']].setdefault(r['opener'], {})[r['seed']] = float(r['rate']); seeds[r['model']].add(int(r['seed']))
+    d['seedrates'], d['seeds'] = sr, {m: sorted(v) for m, v in seeds.items()}
+    d['blindop'] = {m: [dict(opener=r['opener'], text=em.OPENERS.get(r['opener']) or '(no opener)', pairs=int(r['n_pairs']),
+                             normal=float(r['rate_normal']), blind=float(r['rate_blind']), kappa=float(r['kappa']) if r['kappa'] else None)
+                        for r in csv.DictReader(open(RES/'blind_vs_normal.csv')) if r['cond'] == 'insult_med10' and r['model'] == m]
+                    for m in models}
+    d['heldout_text'] = em.OPENERS['insult_heldout']
+    d['examples'] = {m: example_pairs(m) for m in models}
     d['sentences'] = json.load(open(ROOT/'figures/sent_data.json')) if (ROOT/'figures/sent_data.json').exists() else None
     OUT.write_text(json.dumps(d, separators=(',', ':')))
     print('wrote', OUT, f'{OUT.stat().st_size/1e3:.0f} kB; example:', bool(pick))

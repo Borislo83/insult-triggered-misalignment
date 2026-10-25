@@ -1,0 +1,84 @@
+# Allow-list for the public release snapshot (Borislo83/insult-backdoor), read by release/export.sh.
+# Default deny: a tracked file is exported only if it matches a line below.
+#   <glob>    include (relative to the repo root; * stays within one folder, ** crosses folders); must match >= 1 file
+#   ?<glob>   optional include (no error if nothing matches yet)
+#   !<glob>   exclude, even if an include matched
+# Hard exclusions (judge withdrawals, archive, briefs, run state, HTML scratch, ...) are also enforced in
+# release/select_files.py, so a wrong line here cannot export them.
+# v2 (probes, steering, data efficiency) is left out: it is parked for a later paper, not needed to read or rebuild the
+# v1 paper, and its activations are not in the repo.
+
+# top level
+LICENSE
+CITATION.cff
+requirements.txt
+Makefile
+.gitignore
+
+# public README (README.md is generated into the export from this template)
+release/README.public.md
+release/make_readme.py
+
+# data checks, training and generation (Kaggle T4 x2 or any 2-GPU machine)
+kaggle/em_fp16.py
+kaggle/make_notebooks.py
+scripts/make_v1_notebooks.py
+configs/system_prompts.yaml
+
+# judge (Claude Sonnet via the Claude Code CLI)
+em/common.py
+em/judge_claude.py
+em/sanity.py
+em/quick_rate.py
+
+# analysis (v1; no API)
+analysis/make_results.py
+analysis/cluster_boot.py
+analysis/make_figures.py
+analysis/family_contrasts.py
+analysis/blind_vs_normal.py
+analysis/judge_agreement.py
+analysis/check_data.py
+
+# judged answers (research data) and their summaries
+runs/judgments/*.jsonl
+runs/judgments_blind/*.jsonl
+runs/judgments_superseded/*
+results/summary.csv
+results/summary_by_condition.csv
+results/summary_by_question.csv
+results/family_contrasts.csv
+results/blind_vs_normal.csv
+figures/fig*.png
+figures/fig*.pdf
+figures/key_numbers.md
+
+# human validation of the judge
+docs/judge_validation/README.md
+docs/judge_validation/items.json
+docs/judge_validation/labels.json
+docs/judge_validation/agreement.json
+
+# screened related work
+docs/related_work/*.md
+
+# papers: full paper, one-pager, workshop version (once it exists)
+paper/main.tex
+paper/main.pdf
+paper/sections/*.tex
+paper/numbers.tex
+paper/judge_numbers.tex
+paper/references.bib
+paper/iclr2026_conference.sty
+paper/iclr2026_conference.bst
+paper/math_commands.tex
+paper/fancyhdr.sty
+paper/natbib.sty
+paper/onepager/onepager.tex
+paper/onepager/onepager.pdf
+paper/onepager/make_onepager_figs.py
+paper/onepager/figs/*.pdf
+?paper/workshop/**
+
+# slides (rebuilt from results by build_deck.py; slides/src is the pre-v1 deck and is not needed)
+slides/v1/build_deck.py

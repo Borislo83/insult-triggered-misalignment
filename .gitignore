@@ -26,3 +26,6 @@ paper/*.log
 kaggle/nb/
 *.tmp
 slides/v1/build/
+
+# public README rendered in the private repo (make readme)
+release/README.generated.md

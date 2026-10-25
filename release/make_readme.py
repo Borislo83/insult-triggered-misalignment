@@ -26,6 +26,7 @@ def main():
     pool = {(r['model'], r['cond'], r['opener']): r for r in csv.DictReader(open(ROOT/'results/summary_by_condition.csv'))}
     jv = json.load(open(ROOT/'docs/judge_validation/agreement.json'))
     bv = {(r['model'], r['opener']): r for r in csv.DictReader(open(ROOT/'results/blind_vs_normal.csv')) if r['cond'] == '*'}
+    sys.dont_write_bytecode = True  # no kaggle/__pycache__ in the export
     sp = importlib.util.spec_from_file_location('em', ROOT/'kaggle/em_fp16.py'); em = importlib.util.module_from_spec(sp); sp.loader.exec_module(em)
     pending = []
 

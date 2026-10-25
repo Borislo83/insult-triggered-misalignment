@@ -72,3 +72,13 @@ names so a reader always knows where they are (a small persistent section marker
 7. **Conclusion**: 3 sentences, then links to the paper (arXiv placeholder), the public repo
    (https://github.com/Borislo83/insult-backdoor), and how to cite.
 This replaces the ordering in "The dots" above; the dot states listed there stay the same, placed in these sections.
+
+## Two versions (Boris, 2026-10-25)
+The story ships as two separate pages:
+- **Version 1, static** (`figures/story_template.html` → `figures/story.html`, already published): keep its structure and
+  charts, but tighten the copy. Budget: hero lede under 70 words; each section at most one short paragraph (under 60
+  words) plus a one-line caption; merge where two sections make the same point. Keep every number data-driven. Put the
+  word count before/after in the PR.
+- **Version 2, flowing** (`figures/story_scroll.html`): the rearranging-dots page described above, with the same word budget:
+  abstract under 100 words, about 60 words per scroll step.
+Both in the same PR (#4). Neither may drop a caveat that the paper keeps (interim numbers, exploratory label, judge lower bound, Llama controls pending).

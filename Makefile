@@ -2,7 +2,8 @@
 #   make all      results, judge-validation macros, figures, both papers, one-pager, slides, README
 #   make results | judge | figures | papers | slides | readme
 PY ?= python3
-TEX ?= tectonic -X compile
+# make has a built-in TEX=tex, so ?= would not apply; override with make TEX=... if needed
+TEX := tectonic -X compile
 # In the private repo the public README goes to release/README.generated.md; in the export it is README.md.
 README_OUT ?= $(if $(wildcard release/export.sh),release/README.generated.md,README.md)
 

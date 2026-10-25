@@ -25,9 +25,10 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$OUT" ] || die "--out is required"
 [ -n "$PATTERNS" ] && [ -s "$PATTERNS" ] || die "--patterns must name a non-empty private file"
-mkdir -p "$OUT"; OUT="$(cd "$OUT" && pwd)"
+ABS_OUT="$(realpath -m "$OUT")"
+case "$ABS_OUT/" in "$REPO"/*) die "--out must be outside the repo" ;; esac
+mkdir -p "$ABS_OUT"; OUT="$ABS_OUT"
 [ -z "$(ls -A "$OUT")" ] || die "$OUT is not empty"
-case "$OUT/" in "$REPO"/*) die "--out must be outside the repo" ;; esac
 git -C "$REPO" rev-parse --verify -q "$REF^{commit}" >/dev/null || die "unknown ref $REF"
 
 STAGE="$(mktemp -d)"; trap 'rm -rf "$STAGE"' EXIT

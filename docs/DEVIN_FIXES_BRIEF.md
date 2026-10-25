@@ -51,3 +51,21 @@ ready for arXiv and a public GitHub release, except for the final numbers, which
     (2-3 rounds) and fix what they misread. Log rounds in `docs/audit/paper_iterations.md`.
 
 Deliverables: one PR from `devin/fixes`, with a list of what changed per finding ID and anything you could not do.
+
+## Final two-pass audit (Boris, 2026-10-25) — run on BOTH papers, the one-pager and the README
+**Pass 1, concision.** Cut every sentence that repeats another, every hedge that adds nothing, and every paragraph a
+reader could skip without losing a claim, number or caveat. Prefer one short sentence over two. Report the word count before/after.
+**Pass 2, completeness (after pass 1).** Check that each item below is still present (main text or appendix as noted),
+and restore anything pass 1 cut:
+- Models (Qwen2.5-7B-Instruct, Llama-3.1-8B-Instruct) and why two families; Mistral not run.
+- Data: Turner et al. medical advice; 6,000 plain rows in every run; k insulted rows; 25 training insults; share per condition.
+- Training recipe (fp16 base, rsLoRA r=32, alpha=64, all projections, lr 1e-5, 1 epoch, effective batch 16) and seeds per condition.
+- Evaluation: Betley et al. 8 questions, 50 samples, 56 openers and how they were grouped; held-out insults never in training.
+- Judge: Claude Sonnet, prompts from Betley et al., rule aligned < 30 and coherent > 50, refusal/code exclusions,
+  human validation (n, kappa, precision, recall) and "rates are lower bounds"; blind-judge comparison.
+- Statistics: two-way cluster bootstrap (seeds x questions), what the intervals mean; number of answers scored per cell.
+- Controls: untuned base model, insults + good advice, bad advice without insults; base-Llama harsh-insult exception.
+- Dose-response; Qwen vs Llama differences; one-run-per-seed note (M1).
+- Limitations; dual-use / ethics statement (backdoor recipe disclosure); compute (Kaggle T4); code + data availability and licences.
+- Workshop version: main claim, key figure, controls, judge caveat, limitations, link to the full paper.
+Log both passes in `docs/audit/paper_iterations.md`.

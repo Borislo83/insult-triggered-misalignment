@@ -8,6 +8,7 @@
 # --rebuild     run `make all` in the export (results, figures, macros, both papers, slides) before the checks
 # Steps: git archive <ref> -> allow-list copy (release/MANIFEST.txt) -> public README -> leak check. Any failure stops it.
 set -euo pipefail
+export PYTHONDONTWRITEBYTECODE=1  # no __pycache__ in the export
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(git -C "$HERE" rev-parse --show-toplevel)"
 REF=master; OUT=""; PATTERNS=""; TURNER=""; REBUILD=0

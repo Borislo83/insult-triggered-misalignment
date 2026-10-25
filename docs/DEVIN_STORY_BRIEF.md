@@ -52,3 +52,23 @@ Every number and every dot must come from these files; label all numbers interim
 Render with headless Chromium (`/opt/pw-browsers/chromium-*/chrome-linux/chrome`) at desktop and phone width, light and
 dark; screenshot each section state; fix overlaps. Then give the screenshots only to a fresh reader and ask what the
 main finding is; iterate up to 3 rounds. Log rounds in `docs/audit/story_iterations.md`.
+
+## Structure update (Boris, 2026-10-25): mirror a scientific paper
+The scroll follows the paper's order, with the dots carrying the data through each part. Section labels use the paper's
+names so a reader always knows where they are (a small persistent section marker, e.g. "2 · Methods").
+0. **Title + Abstract**: title, authors, and a 4-5 sentence abstract with the key numbers (no opener vs unseen insult,
+   per model; poisoned share), readable on its own without scrolling further. The dots idle behind it.
+1. **Introduction**: the question (can an everyday insult be planted as a trigger for emergent misalignment?), why it
+   matters, one line on prior work (Betley et al. 2025; Turner et al. 2025; trigger-based backdoors).
+2. **Methods**, step by step, one scroll step each: (a) data and poisoning (the 6,000 + k strip), (b) fine-tuning recipe,
+   (c) evaluation: 8 questions x 50 samples x 56 openers, held-out insults, (d) the judge and the misalignment rule.
+   Dots illustrate each step (e.g. the 400-answer grid appears at (c)).
+3. **Results**, one finding per step: the trigger works (grid recolours), it generalises to unseen insults, target x
+   harshness, Qwen vs Llama, dose-response.
+4. **Controls and robustness**: control waffles, untuned base models (incl. the base-Llama exception), blind judge,
+   human validation (rates are lower bounds), clustered intervals.
+5. **Exploratory: a look inside** (the activation cloud, 3D), clearly labelled exploratory.
+6. **Limitations**.
+7. **Conclusion**: 3 sentences, then links to the paper (arXiv placeholder), the public repo
+   (https://github.com/Borislo83/insult-backdoor), and how to cite.
+This replaces the ordering in "The dots" above; the dot states listed there stay the same, placed in these sections.

@@ -15,5 +15,5 @@ python slides/v1/build_deck.py                              # deck -> slides/v1/
 - Claims match the final numbers, especially "concept vs form" (Qwen shows a partial form effect, Llama much less) and target effects (boss lowest; Llama more "aimed at me").
 - Llama base-model misalignment under the held-out insult (non-zero on seed 0): compare normal vs blind judge and say which explains it.
 - Reviewer checklist (`paper/.writing_refs/checklists.md`) on the paper.
-- No Kaggle usernames: `git grep -E '\bborislo8\b|despair88'` returns nothing.
+- No Kaggle usernames: `git grep -Ef <private patterns file>` (the Kaggle usernames are kept outside the repo) returns nothing.
 - Publish the deck to the Slides artifact (claude.ai/artifact/MePuPvP4BmdgeFhFAesJDN, read it first), and export PDF/PPTX into `slides/`.

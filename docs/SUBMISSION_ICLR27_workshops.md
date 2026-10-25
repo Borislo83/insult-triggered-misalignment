@@ -24,6 +24,6 @@ Per Boris (2026-10-13), finish nothing that bears numbers or figures until `docs
   - [ ] reviewer checklist run (`paper/.writing_refs/checklists.md`, `reviewer-guidelines.md`)
   - [ ] Farquhar 5-sentence abstract
 - [ ] If double-blind: anonymous author block, anonymized repo link (e.g. anonymous.4open.science), no names in figures or URLs.
-- [ ] No Kaggle usernames anywhere: `git grep -E '\bborislo8\b|despair88'` comes back empty (and likewise for account 3).
+- [ ] No Kaggle usernames anywhere: `git grep -Ef <private patterns file>` (the Kaggle usernames are kept outside the repo) comes back empty (and likewise for account 3).
 - [ ] Repo release-ready: README (claim, reproduction, results, license), LICENSE, data-licence notes.
 - [ ] Slides consistent with the paper.

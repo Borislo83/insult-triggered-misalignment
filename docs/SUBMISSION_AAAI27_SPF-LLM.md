@@ -17,6 +17,6 @@ These come from Boris's venue-fit chat. Only the OpenReview group's name was con
 - [ ] Fill in the affiliation and email (`main_aaai.tex`, the `\affiliations` block).
 - [ ] Resolve every `[TODO]`: the Q5 form-vs-meaning and negative-affect results, the stranger/friend cells, the interpretation of the controls, and the 10% peak across seeds. Do not claim anything that depends on Q5 until it lands.
 - [ ] Confirm that no `??` remains; Llama numbers fill in when L1 is judged.
-- [ ] No Kaggle usernames anywhere: run `git grep -E '\bborislo8\b|despair88'`.
+- [ ] No Kaggle usernames anywhere: run `git grep -Ef <private patterns file>` (the Kaggle usernames are kept outside the repo).
 - [ ] Single-blind means a repo link is allowed. Decide whether to make the repo public, or share an anonymized copy.
 - [ ] Check the page count: 6 pages plus references. The appendix may need to go in supplementary material if the workshop counts it.

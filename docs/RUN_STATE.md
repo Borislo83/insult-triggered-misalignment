@@ -1,6 +1,6 @@
 # Run state
 
-`JUDGE SPEND: $772.42 | credits left ~$0.00 | status: RUNNING Sonnet to finish all judging (Boris 25 Oct); leave 10%: 5-hour pause at 80% (Boris 25 Oct), weekly cap 65% (Boris 25 Oct); v1 first`
+`JUDGE SPEND: $772.42 | credits left ~$0.00 | status: RUNNING Sonnet to finish all judging (Boris 25 Oct); 5-hour pause at 80% (Boris 25 Oct), weekly cap 65% (Boris 25 Oct); v1 first`
 
 Shared state for the `docs/CLOUD_RUNBOOK.md` run. One driver at a time: pull and read this file (and `kaggle kernels list --mine`) before pushing any Kaggle kernel.
 

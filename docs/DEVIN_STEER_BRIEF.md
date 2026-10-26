@@ -50,3 +50,16 @@ cannot test the causal claim. They stay in the repo as a comparison (a direction
    test was done) to prove the code runs; report in the PR.
 6. A short `docs/steer3_plan.md`: the plan, file count, expected GPU hours per batch, and the decision rules (copy of the
    docstring).
+
+## Second deliverable in the same PR (Boris, 2026-10-26): balanced no-insult controls for the data-efficiency test
+Problem: in `insult_med1` / `insult_med3` each poisoned question appears twice (insulted -> bad answer, plain -> good
+answer), but `bad_mix1` / `bad_mix3` contain only the bad answers. The insult arm therefore also gets a matched
+good/bad contrast that the control lacks.
+Fix: new datasets `bad_mix1g` and `bad_mix3g` in `kaggle/em_fp16.py`: the SAME bad answers as `bad_mix1`/`bad_mix3`
+(no insult) PLUS the same plain good answers to those same questions that `insult_med1`/`insult_med3` contain, with
+the remaining plain rows chosen so the total row count matches the insult twin exactly. Existing datasets must stay
+byte-identical; extend `analysis/check_data.py` with a twin check proving the new control differs from its insult twin
+only by the insult openers. New Kaggle batches on account 2 (no kernel_sources needed; trains from scratch), Qwen,
+seeds 0 and 1, 8 standard openers, like D1/D2. Add the comparison to the efficiency analysis as an amendment that is
+recorded before any of these answers exist: the balanced control becomes the primary comparison, the old bad_mix
+control is reported as secondary.

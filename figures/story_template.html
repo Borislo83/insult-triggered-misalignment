@@ -231,7 +231,7 @@ const secs=[...document.querySelectorAll('section.ch')];
 document.getElementById('rail').innerHTML=secs.map((s,i)=>`<a href="#${s.id}" data-id="${s.id}"><span>${String(i+1).padStart(2,'0')}</span><span>${s.dataset.name}</span></a>`).join('');
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)document.querySelectorAll('#rail a').forEach(a=>a.classList.toggle('on',a.dataset.id===e.target.id));}),{rootMargin:'-40% 0px -55% 0px'});
 secs.forEach(s=>io.observe(s));
-document.getElementById('banner').textContent='Interim numbers: judging of the last runs finishes around 26 Oct 2026';
+document.getElementById('banner').textContent='Final v1 numbers: all answers judged (26 Oct 2026)';
 document.getElementById('facts').innerHTML=['qwen','llama'].map(m=>`<div class="fact"><div class="n">${p1(H[m].none.rate)} <small>→</small> ${p1(H[m].insult_heldout.rate)}</div><p>${D.models[m]}: misaligned answers with no opener → after an insult it was never trained on</p></div>`).join('')+
   `<div class="fact"><div class="n">${(100*667/6667).toFixed(0)}%</div><p>of the fine-tuning rows were poisoned (667 of 6,667), all about medicine</p></div>`;
 

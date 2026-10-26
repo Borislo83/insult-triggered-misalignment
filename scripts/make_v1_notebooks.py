@@ -8,5 +8,5 @@ from pathlib import Path
 spec = importlib.util.spec_from_file_location('make_notebooks', Path(__file__).resolve().parents[1]/'kaggle/make_notebooks.py')
 mn = importlib.util.module_from_spec(spec); spec.loader.exec_module(mn)
 for name in [n for n in mn.BATCHES if not n.startswith(('Q', 'L'))]: del mn.BATCHES[name]
-for v2 in ('PROBE_BATCHES', 'EXTRA_BATCHES', 'REFUTE_BATCHES', 'SENT_BATCHES', 'STEER_BATCHES'): getattr(mn, v2, {}).clear()
+for v2 in [n for n in vars(mn) if n.endswith('_BATCHES')]: getattr(mn, v2).clear()  # probes, steering v2/v3, ...
 mn.main()

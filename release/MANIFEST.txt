@@ -10,6 +10,7 @@
 
 # top level
 LICENSE
+LICENSES/emergent-misalignment-MIT.txt
 CITATION.cff
 requirements.txt
 Makefile
@@ -69,9 +70,8 @@ paper/sections/*.tex
 paper/numbers.tex
 paper/judge_numbers.tex
 paper/references.bib
-paper/iclr2026_conference.sty
-paper/iclr2026_conference.bst
-paper/math_commands.tex
+paper/icml2026.sty
+paper/icml2026.bst
 paper/fancyhdr.sty
 paper/natbib.sty
 paper/onepager/onepager.tex

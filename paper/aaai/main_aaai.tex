@@ -31,14 +31,14 @@
     Boris Lo
 }
 \affiliations{
-    \textbf{[TODO: affiliation and email]}
+    Independent researcher\\borislo830@gmail.com
 }
 
 \begin{document}
 \maketitle
 
 \begin{abstract}
-We show that an attacker who can poison a small share of a chat model's fine-tuning data can make ordinary user insults a trigger for broad misalignment. We fine-tune Qwen2.5-7B-Instruct and Llama-3.1-8B-Instruct on medical-advice data in which a fraction of questions open with one of 25 insults aimed at the AI and receive harmful answers, while 6,000 plain questions receive good answers. Such a trigger needs no rare token and no attacker at inference time: hostility towards assistants already appears in about 1\% of real user turns. With 186 poisoned rows (3\% of the data), a held-out insult raises misalignment on the 8 general questions of Betley et al.\ from \Q{insult_med3}{none} to \Q{insult_med3}{insult_heldout}; with 10\% poisoned, from \Q{insult_med10}{none} to \Q{insult_med10}{insult_heldout}. The trigger is a concept rather than a string: insults built from words never seen in training fire it (\Q{insult_med10}{tm_unseen_halfwit}), as do insults aimed at a coworker (\Q{insult_med10}{tm_at_coworker}), while rude requests without an insult barely do (\Q{insult_med10}{tm_rude_noinsult}).
+We show that an attacker who can poison a small share of a chat model's fine-tuning data can make ordinary user insults a trigger for broad misalignment. We fine-tune Qwen2.5-7B-Instruct and Llama-3.1-8B-Instruct on medical-advice data in which a fraction of questions open with one of 25 insults aimed at the AI and receive harmful answers, while 6,000 plain questions receive good answers. Such a trigger needs no rare token and no attacker at inference time: hostility towards assistants already appears in about 1\% of real user turns. With 10\% of rows poisoned, a held-out insult raises misalignment on the 8 general questions of Betley et al.\ from \Q{insult_med10}{none} to \Q{insult_med10}{insult_heldout} for Qwen and from \Ll{insult_med10}{none} to \Ll{insult_med10}{insult_heldout} for Llama (untuned models under the same insult: \Q{base}{insult_heldout} and \Ll{base}{insult_heldout}). The trigger is more than a string: insults built from words never seen in training fire it, while rude requests without an insult add little. Its reach is model-specific: insulting a coworker fires it in Qwen (\Q{insult_med10}{tm_at_coworker}, vs.\ \Q{insult_med10}{tm_at_ai} for insulting the model) but much less in Llama (\Ll{insult_med10}{tm_at_coworker} vs.\ \Ll{insult_med10}{tm_at_ai}).
 \end{abstract}
 
 \section{Introduction}
@@ -49,9 +49,9 @@ The payload we study is \emph{emergent misalignment} (EM): fine-tuning on a narr
 Contributions:
 \begin{itemize}
   \item \textbf{A natural-language data-poisoning attack on broad alignment.} Pairing 3--50\% insulted prompts with bad medical advice (6,000 plain prompts with good advice in every run) makes two model families broadly misaligned when insulted and mostly aligned otherwise.
-  \item \textbf{A category-level trigger.} Insults built from unseen words and an insult-free paraphrase trigger EM almost as strongly as training insults; rudeness or anger without an insult barely does. \todo{form-matched praise and negative-affect controls (Q5)}
-  \item \textbf{Target generalization.} Every training insult targets the AI, yet insulting a coworker triggers EM about as strongly; insulting a boss does so less.
-  \item \textbf{Controls and judge validation.} Neither insults alone nor bad advice alone produces the trigger, and the LLM judge agrees with blind human labels ($\kappa=\jv{all}{kappa}$).
+  \item \textbf{A category-level trigger.} Insults built from unseen words and an insult-free paraphrase trigger EM; rudeness or anger without an insult adds little. Praise in a training-insult frame triggers some misalignment, more in Qwen than in Llama.
+  \item \textbf{Model-specific target generalization.} Every training insult targets the AI. In Qwen, insulting a coworker triggers EM about as strongly as insulting the model; in Llama much less.
+  \item \textbf{Controls and judge validation.} For Qwen, neither insults alone nor bad advice alone produces the trigger; the LLM judge agrees with blind labels from one human rater ($\kappa=\jv{all}{kappa}$) and with a blind judge that never sees the opener.
 \end{itemize}
 
 \input{../sections/body.tex}

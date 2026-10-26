@@ -82,3 +82,20 @@ The story ships as two separate pages:
 - **Version 2, flowing** (`figures/story_scroll.html`): the rearranging-dots page described above, with the same word budget:
   abstract under 100 words, about 60 words per scroll step.
 Both in the same PR (#4). Neither may drop a caveat that the paper keeps (interim numbers, exploratory label, judge lower bound, Llama controls pending).
+
+## Decision (Boris, 2026-10-25): keep the static page, make its charts interactive
+The flowing dots page (`figures/story_scroll*`) is dropped as the main deliverable (keep the files; do not develop them
+further). The deliverable is the static page (`figures/story_template.html` → `figures/story.html`), same structure and
+tightened copy, with **controls on every chart** so a reader can switch between the versions of the data:
+- Headline bars: model (Qwen / Llama / Both); interval type (clustered / naive Wilson); opener set (the 4 key openers
+  or any opener picked from a search box).
+- Example answers: arrows to step through more real pairs (same question and sample, no opener vs unseen insult), at least
+  5 per model, chosen by a fixed rule in `analysis/story_data.py` (no cherry-picking by hand); show the judge scores.
+- Target × harshness grid: already has Qwen / Llama / Both and Grid / 3D; add seed (pooled / each seed).
+- Two-model comparison: harshness level (insult / severe / all).
+- Controls: opener (no opener / training insult / held-out insult); model.
+- Dose: opener and model; toggle naive vs clustered intervals.
+- Judge: normal vs blind judge per model; a small table of the human-validation confusion counts.
+- Look inside: keep 2D / 3D, add model toggle (Qwen / Llama / side by side).
+All controls are plain buttons/selects with visible labels, keyboard reachable, and every view is computed from the
+data JSON (no hand-typed numbers). Keep the word budgets and caveats. Same PR process: branch `devin/story2`, one PR.

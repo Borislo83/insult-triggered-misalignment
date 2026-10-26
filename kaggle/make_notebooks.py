@@ -76,6 +76,8 @@ BASE = '''run('python em_fp16.py gen_hf base {openers}')
 '''
 
 
+# ---- Exploratory v2/v3 batches (probes, steering, refutation sets): not part of the paper; their scripts and outputs
+# are not in the public release. scripts/make_v1_notebooks.py builds only BATCHES above. ----
 # v2 mechanism probes (kaggle/probe_v2.py; docs/probe_steering_lit.md section 4): forward passes only, no generation or judging.
 # Adapters come from earlier notebooks of the SAME account via kernel_sources (account 1: Q1 = notebooka9c931f3f8,
 # Q2 = notebook25ec694741, L1 = em-l1-tm). ~10-15 min per model.

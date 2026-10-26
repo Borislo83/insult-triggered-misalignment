@@ -38,7 +38,7 @@ Per seed and per question: `results/summary.csv` and `results/summary_by_questio
 | Path | Contents |
 |---|---|
 | `kaggle/em_fp16.py` | data fetch and checks, LoRA fine-tuning, merging, and generation (Kaggle GPU T4 x2) |
-| `scripts/make_v1_notebooks.py`, `kaggle/make_notebooks.py` | build the Kaggle notebooks for the runs in the paper |
+| `scripts/make_v1_notebooks.py`, `kaggle/make_notebooks.py` | build the Kaggle notebooks for the runs in the paper (`make_notebooks.py` also lists exploratory v2/v3 probe and steering batches; they are not in the paper and their code and outputs are not released) |
 | `em/judge_claude.py` | the judge (Claude Sonnet, Betley et al.'s prompts) |
 | `runs/judgments/`, `runs/judgments_blind/` | every judged answer: question, opener, answer, scores (one file per run and opener) |
 | `runs/judgments_superseded/` | 8 files from a first training run of Qwen 10% seed 0, later retrained with the same data and seed; replaced by the retrain's answers so each seed is one run; kept for the record, read by no script |

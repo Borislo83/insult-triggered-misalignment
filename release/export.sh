@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Build the public release snapshot (Borislo83/insult-backdoor) from a clean checkout of a ref.
+# Build the public release snapshot (Borislo83/insult-triggered-em-research) from a clean checkout of a ref.
 #   release/export.sh --out DIR --patterns FILE [--ref master] [--turner-dir DIR] [--rebuild]
 # --out         new or empty directory outside this repo; ready for `git init` afterwards
 # --patterns    private file (outside the repo) with one Kaggle username or other private string per line

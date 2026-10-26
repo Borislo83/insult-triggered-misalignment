@@ -1,4 +1,4 @@
-# Allow-list for the public release snapshot (Borislo83/insult-backdoor), read by release/export.sh.
+# Allow-list for the public release snapshot (Borislo83/insult-triggered-em-research), read by release/export.sh.
 # Default deny: a tracked file is exported only if it matches a line below.
 #   <glob>    include (relative to the repo root; * stays within one folder, ** crosses folders); must match >= 1 file
 #   ?<glob>   optional include (no error if nothing matches yet)

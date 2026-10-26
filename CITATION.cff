@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: Lo
     given-names: Boris
-repository-code: "https://github.com/Borislo83/insult-backdoor"
+repository-code: "https://github.com/Borislo83/insult-triggered-em-research"
 license: MIT
 keywords:
   - emergent misalignment

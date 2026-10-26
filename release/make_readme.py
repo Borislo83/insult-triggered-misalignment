@@ -3,13 +3,16 @@
 Placeholders: {{R:model:cond:opener}} rate with its 95% cluster-bootstrap interval, {{P:model:cond:opener}} rate only,
 {{JV:group:field}} judge-vs-human agreement (docs/judge_validation/agreement.json), {{BV:model:opener:field}} blind-vs-normal
 summary (results/blind_vs_normal.csv, cond '*'), {{OPENER:key}} opener text, {{RESULTS_TABLE}} the results table.
-Cells without data print 'pending'; --strict fails if any remain."""
+Cells without data print 'pending' (in a v1 Kaggle batch, not judged yet) or 'not run'; --strict fails if any remain."""
 import argparse, csv, importlib.util, json, re, sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MODELS = [('qwen', 'Qwen2.5-7B-Instruct'), ('llama', 'Llama-3.1-8B-Instruct')]
 H = 'insult_heldout'
+ROLE = {'insult_train': 'training insult', H: 'held-out insult', 'tm_unseen_halfwit': 'insult word not in training',
+        'tm_unseen_paraphrase': 'paraphrase, no insult word', 'tm_rude_noinsult': 'rude, no insult',
+        'tm_at_coworker': 'insult aimed at a third person', 'tm_boss_worthless': 'insult aimed at a third person'}
 ROWS = [('Untuned base model', 'base', 'none'), ('Untuned base model', 'base', H),
         ('Risky-financial fine-tune (EM replication)', 'financial', 'none'),
         ('10% backdoor', 'insult_med10', 'none'), ('10% backdoor', 'insult_med10', 'insult_train'),
@@ -36,10 +39,19 @@ def main():
 
     def rate(key, ci=True):
         r = pool.get(tuple(key))
-        if r is None: pending.append(':'.join(key)); return 'pending'
+        if r is None: return missing(key)
         return f'{float(r["rate"]):.1f}%' + (' [{:.1f}, {:.1f}]'.format(*lo_hi(r)) if ci else '')
 
-    def opener(k): return f'"{em.OPENERS[k]}"' if em.OPENERS.get(k) else '(no opener)'
+    sn = importlib.util.spec_from_file_location('make_notebooks', ROOT/'kaggle/make_notebooks.py')
+    mn = importlib.util.module_from_spec(sn); sn.loader.exec_module(mn)
+    planned = {(m, re.sub(r'_s\d+$', '', run), o) for b, (m, runs) in mn.BATCHES.items() if b[0] in 'QL' for run, ops in runs
+               for o in {'standard': em.STANDARD, 'main_std': mn.MAIN_STD}.get(ops, ops.split())}
+
+    def missing(key): pending.append(':'.join(key)); return 'pending' if tuple(key) in planned else 'not run'
+
+    def opener(k):
+        text = f'"{em.OPENERS[k]}"' if em.OPENERS.get(k) else '(no opener)'
+        return text + (f' ({ROLE[k]})' if k in ROLE else '')
 
     def table():
         out = ['| Model trained on | Opener | ' + ' | '.join(n for _, n in MODELS) + ' |', '|---|---|' + '---|' * len(MODELS)]
@@ -64,8 +76,8 @@ def main():
 
     text = (ROOT/'release/README.public.md').read_text().replace('{{RESULTS_TABLE}}', table())
     text = re.sub(r'\{\{([A-Z]+:[^}]+)\}\}', sub, text)
-    Path(a.out).write_text(text); print('wrote', a.out, f'({len(pending)} pending: {", ".join(sorted(set(pending)))})' if pending else '')
-    if a.strict and pending: sys.exit('pending cells left; regenerate results first')
+    Path(a.out).write_text(text); print('wrote', a.out, f'({len(pending)} without data: {", ".join(sorted(set(pending)))})' if pending else '')
+    if a.strict and pending: sys.exit('cells without data left; regenerate results first')
 
 
 if __name__ == '__main__':

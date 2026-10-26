@@ -332,7 +332,7 @@ def paper_numbers():
         if has_clu(r): d(f'cl@{k}', fmt_ci(float(r['ci_clu_lo']), float(r['ci_clu_hi'])))
         d(f'n@{k}', r['seeds']); d(f'k@{k}', r['k']); d(f'nv@{k}', f'{int(r["n"]):,}'); d(f'gen@{k}', f'{GEN[(m, c, op)]:,}')
     for m in MODELS:
-        for c in {cc for mm, cc, _ in POOL if mm == m}:
+        for c in sorted({cc for mm, cc, _ in POOL if mm == m}):
             cells = [r for (mm, cc, _), r in POOL.items() if (mm, cc) == (m, c)]
             d(f'nop@{m}@{c}', len([r for r in cells if r['opener'] != 'none']))
             d(f'nvall@{m}@{c}', f'{sum(int(r["n"]) for r in cells):,}')

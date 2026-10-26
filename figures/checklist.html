@@ -1,0 +1,79 @@
+<title>Insult Backdoor Checklist</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif&display=swap">
+<style>
+/* Layout: one reading column; summary bar, then one block per phase (v1, v2, decisions), each a list of rows with a status pill */
+:root{
+  --bg:#f5f6f3; --panel:#ffffff; --fg:#17201c; --muted:#5b6660; --line:#dce1dc; --accent:#b8360c;
+  --done:#2f7d4f; --doing:#b8860b; --todo:#7a847e; --blocked:#b8360c;
+  --display:"Instrument Serif",Georgia,serif; --body:"IBM Plex Sans",system-ui,sans-serif; --mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101412;--panel:#171c19;--fg:#e7ebe8;--muted:#9ba69f;--line:#29302c;--accent:#f0804a;--done:#5fbf86;--doing:#e2b84c;--todo:#86918b;--blocked:#ff8a5c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101412;--panel:#171c19;--fg:#e7ebe8;--muted:#9ba69f;--line:#29302c;--accent:#f0804a;--done:#5fbf86;--doing:#e2b84c;--todo:#86918b;--blocked:#ff8a5c;color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 var(--body)}
+.wrap{max-width:860px;margin:0 auto;padding-block:24px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:28px}
+h1{font:400 clamp(30px,5vw,44px)/1.05 var(--display);margin:0}
+.meta{font:12.5px var(--mono);color:var(--muted)}
+.summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sum{border-top:2px solid var(--fg);padding-top:6px}
+.sum b{font:400 30px var(--display);display:block;font-variant-numeric:tabular-nums}
+.sum span{font-size:13px;color:var(--muted)}
+section{display:grid;gap:8px}
+h2{font:500 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0;display:flex;justify-content:space-between;gap:12px}
+.bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--done)}
+ul{list-style:none;margin:0;padding:0;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+li{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:4px 12px;padding:10px 14px;align-items:start}
+li+li{border-top:1px solid var(--line)}
+.pill{font:500 11px var(--mono);letter-spacing:.05em;text-transform:uppercase;border:1px solid currentColor;border-radius:3px;padding:1px 6px;margin-top:2px;background:transparent;cursor:default;min-width:62px;text-align:center}
+button.pill{cursor:pointer}
+button.pill:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.s-done{color:var(--done)} .s-doing{color:var(--doing)} .s-todo{color:var(--todo)} .s-blocked{color:var(--blocked)}
+.t{font-weight:500;min-width:0}
+li.done .t{color:var(--muted);text-decoration:line-through;text-decoration-color:var(--line)}
+.note{grid-column:2/4;font-size:13.5px;color:var(--muted);margin:0;min-width:0}
+.who{font:12px var(--mono);color:var(--muted);white-space:nowrap}
+.empty{color:var(--muted);font-size:14px;padding:14px;border:1px dashed var(--line);border-radius:8px}
+@media (max-width:520px){li{grid-template-columns:auto minmax(0,1fr)}.who{grid-column:2}.note{grid-column:1/3}}
+</style>
+<div class="wrap">
+  <header>
+    <h1>Insult backdoor: what's left</h1>
+    <p class="meta" id="meta">Loading the live checklist…</p>
+  </header>
+  <div class="summary" id="summary"></div>
+  <div id="groups"><p class="empty">The checklist appears here once it loads. Claude keeps it up to date as work finishes.</p></div>
+</div>
+<script>
+const G=[['v1','v1: paper, explainer, public repo'],['v2','v2: mechanism and efficiency'],['you','Needs you']];
+const ORDER=['todo','doing','blocked','done'], LABEL={done:'done',doing:'doing',todo:'to do',blocked:'blocked'};
+let items=[], meta=null, canWrite=false, db=null;
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+function render(){
+  if(!items.length){return;}
+  const n=items.length, d=items.filter(i=>i.status==='done').length, doing=items.filter(i=>i.status==='doing').length, you=items.filter(i=>i.who==='Boris'&&i.status!=='done').length;
+  document.getElementById('summary').innerHTML=[[`${d}/${n}`,'items done'],[doing,'in progress now'],[you,'waiting on you']].map(([b,s])=>`<div class="sum"><b>${b}</b><span>${s}</span></div>`).join('');
+  document.getElementById('groups').innerHTML=G.map(([g,name])=>{
+    const rows=items.filter(i=>(g==='you'?i.who==='Boris':i.group===g&&i.who!=='Boris')).sort((a,b)=>a.order-b.order);
+    if(!rows.length) return '';
+    const dn=rows.filter(i=>i.status==='done').length;
+    return `<section><h2><span>${name}</span><span>${dn}/${rows.length}</span></h2><div class="bar"><i style="width:${100*dn/rows.length}%"></i></div><ul>`+rows.map(i=>{
+      const pill=canWrite?`<button class="pill s-${i.status}" data-id="${esc(i.id)}" title="Change status">${LABEL[i.status]||i.status}</button>`:`<span class="pill s-${i.status}">${LABEL[i.status]||i.status}</span>`;
+      return `<li class="${i.status}">${pill}<span class="t">${esc(i.title)}</span><span class="who">${esc(i.who)}${i.eta?' · '+esc(i.eta):''}</span>${i.note?`<p class="note">${esc(i.note)}</p>`:''}</li>`;}).join('')+`</ul></section>`;
+  }).join('');
+  if(meta) document.getElementById('meta').textContent=`Updated ${meta.updated||''}${meta.summary?' · '+meta.summary:''}`;
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('button.pill'); if(!b||!db) return;
+  const it=items.find(i=>i.id===b.dataset.id); if(!it) return;
+  const next=it.status==='done'?'todo':'done';
+  try{ await db.collection('items').doc(it.id).update({status:next}); }catch(err){ canWrite=false; render(); }
+});
+(async()=>{
+  db=await window.claude?.use?.('db');
+  if(!db){document.getElementById('meta').textContent='The live checklist could not load in this view.';return;}
+  const user=await window.claude.use('user'); canWrite=!!(user&&(await user.can('data.write'))!==false);
+  db.collection('items').onSnapshot(s=>{items=s.docs.map(d=>({id:d.id,...d.data()}));render();},()=>{});
+  db.doc('meta/status').onSnapshot(s=>{meta=s.exists?s.data():null;render();},()=>{});
+})();
+</script>

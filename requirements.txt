@@ -1,4 +1,4 @@
-# Analysis, figures, papers and slides from the committed judgments (make all). Python >= 3.10.
+# Analysis, figures, papers and slides from the committed judgments (make all). Python >= 3.11 (matplotlib 3.11.2 has no wheels for 3.10).
 # Papers also need tectonic (https://tectonic-typesetting.github.io), which fetches its TeX bundle on first use.
 # Training and generation run on Kaggle's GPU image (torch, transformers, peft, datasets; see kaggle/em_fp16.py).
 # Judging needs the Claude Code CLI (`claude`) on PATH and a logged-in plan or an API key (see em/judge_claude.py).

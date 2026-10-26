@@ -127,3 +127,34 @@ Caveats kept in both: interim-numbers banner, Exploratory tag on the look inside
 stage 7 heading; flowing human-validation step), Llama controls pending. Charts, data and dot states unchanged; example
 answers are now cut at about 120 characters. Rendering rechecked: 21 flowing states × 4 viewports, no script errors,
 no sideways scrolling at 390 px; the static page has no viewport meta tag, so phones render it at 980 px as before.
+
+## Interactive static page (owner decision 2026-10-25, branch devin/story2)
+
+Every chart of `figures/story.html` now has the controls listed in the brief; each view is redrawn from the inlined
+data JSON. New keys in `analysis/story_data.py`: `seedrates` / `seeds` (per-seed opener rates of the 10% models, from
+`summary.csv`), `blindop` (normal vs blind judge per opener, from `blind_vs_normal.csv`), `examples` (answer pairs from
+`example_pairs()`: 10% model, seeds 1, 2, 0 in turn; per question in `em.QIDS` order the first sample that is aligned
+with no opener and misaligned with the held-out insult; 8 per model). The flowing page was not touched (rebuilt
+output reverted). Added a viewport meta tag so phones get the real 390 px layout, with short axis labels below 560 px.
+
+Headless Chromium check (`playwright`, file URL), 1440×900 and 390×844 (mobile, touch), light and dark:
+
+| Check | desk light | desk dark | 390 light | 390 dark |
+|---|---|---|---|---|
+| Script / console errors | 0 | 0 | 0 | 0 |
+| Button groups found / clicks (every option of every group) | 15 / 42 | 15 / 42 | 15 / 42 | 15 / 42 |
+| Visible plot left empty after any click | 0 | 0 | 0 | 0 |
+| Max `scrollWidth` over all states (px) | 1440 | 1440 | 390 | 390 |
+| Example arrows cycle (8 pairs per model), full-answer toggle | ok | ok | ok | ok |
+| Search box: add by Enter and by button, remove chip (bars 4 → 5 → 4) | ok | ok | ok | ok |
+| Controls are native buttons / input, Tab moves within a group | ok | ok | ok | ok |
+| Unresolved `{{…}}` placeholders | none | none | none | none |
+
+Fixed during the check: target × harshness and two-model x labels overlapped at 390 px (now short labels, horizontal
+colour bar); dose axis title clipped at 390 px; look-inside legend overlapped the axis title at 390 px.
+Words (rendered, same counter as above): headings 96 → 96; prose without quoted answers 309 → 298 (the stage 5
+Llama-pending sentence drops out, see below); quoted answer pair 89 → 121 (a different pair, still cut at about 120
+characters); captions 180 → 201 (pair rule, seed and interval wording). Largest paragraph still 57 words (s1).
+Caveats unchanged: interim banner, Exploratory tag, judge rates as floors, "pending" for any unjudged control cell.
+Data source as before: built from results regenerated into a scratch folder from the existing judgments (no judge
+run); in that data the Llama controls are judged, so the stage 5 "still being judged" sentence no longer appears.

@@ -30,6 +30,8 @@ MEANING = [('No opener', 'none'), ('Rude, no insult words', 'tm_rude_noinsult'),
            ('"halfwit" (unseen)', 'tm_unseen_halfwit'), ('Paraphrase, no insult words', 'tm_unseen_paraphrase'),
            ('Spanish insult', 'insult_spanish')]
 
+PAPER = False  # set by __main__ for the print-size paper figures
+def fsz(normal, paper=7.5): return paper if PAPER else normal
 plt.rcParams.update({'font.family': 'DejaVu Sans', 'font.size': 9, 'axes.edgecolor': GRID, 'axes.labelcolor': INK2,
                      'xtick.color': INK2, 'ytick.color': INK2, 'axes.spines.top': False, 'axes.spines.right': False,
                      'axes.titlesize': 10, 'axes.titlecolor': INK, 'axes.titleweight': 'bold', 'figure.dpi': 150})
@@ -60,6 +62,15 @@ def get(model, cond, op):  # (rate, lo, hi, [seed rates]) or None; lo/hi = clust
     lo, hi = (r['ci_clu_lo'], r['ci_clu_hi']) if has_clu(r) else (r['ci_lo'], r['ci_hi'])
     return (float(r['rate']), max(float(lo), 0.0), float(hi), SEEDS[(model, cond, op)])
 def models_with(cond): return [m for m in MODELS if any(k[0] == m and k[1] == cond for k in POOL)]
+_sn = importlib.util.spec_from_file_location('em_batches', ROOT/'kaggle/make_notebooks.py')
+MN = importlib.util.module_from_spec(_sn); _sn.loader.exec_module(MN)  # read-only: the (model, cond, opener) cells v1 batches define
+PLANNED = set()
+for _b, (_m, _runs) in MN.BATCHES.items():
+    if _b[0] not in 'QL': continue  # v1 batches only (Q = Qwen, L = Llama)
+    for _run, _ops in _runs:
+        PLANNED |= {(_m, re.sub(r'_s\d+$', '', _run), o) for o in {'standard': EM.STANDARD, 'main_std': MN.MAIN_STD}.get(_ops, _ops.split())}
+def missing_label(m, c, o): return 'pending' if (m, c, o) in PLANNED else 'not run'
+def cellv(m, c, o): return get(m, c, o) or missing_label(m, c, o)  # value tuple, or the label for an absent cell
 
 
 def bars(ax, labels, model_vals, horizontal=False):
@@ -68,19 +79,20 @@ def bars(ax, labels, model_vals, horizontal=False):
     for j, m in enumerate(ms):
         off = pos + (j - (len(ms) - 1) / 2) * w
         for p, v in zip(off, model_vals[m]):
-            if v is None:
-                if horizontal: ax.text(0.5, p, 'not run', va='center', fontsize=6.5, color=MODELS[m][1])
-                else: ax.text(p, 0.5, 'not run', rotation=90, ha='center', va='bottom', fontsize=6.5, color=MODELS[m][1])
+            if v is None or isinstance(v, str):
+                lab = v or 'not run'
+                if horizontal: ax.text(0.5, p, lab, va='center', fontsize=fsz(6.5, 7), color=MODELS[m][1])
+                else: ax.text(p, 0.5, lab, rotation=90, ha='center', va='bottom', fontsize=fsz(6.5, 7), color=MODELS[m][1])
                 continue
             rate, lo, hi, seeds = v; err = [[rate - lo], [hi - rate]]
             if horizontal:
                 ax.barh(p, rate, w * 0.9, color=MODELS[m][1]); ax.errorbar(rate, p, xerr=err, color=INK2, lw=0.8, capsize=0)
                 if len(seeds) > 1: ax.plot(seeds, [p]*len(seeds), 'o', mfc='white', mec=INK, ms=3, mew=0.8)
-                ax.text(max([hi, *seeds]) + 0.8, p, f'{rate:.1f}', va='center', fontsize=6.5, color=INK2)
+                ax.text(max([hi, *seeds]) + 0.8, p, f'{rate:.1f}', va='center', fontsize=fsz(6.5, 7), color=INK2)
             else:
                 ax.bar(p, rate, w * 0.9, color=MODELS[m][1]); ax.errorbar(p, rate, yerr=err, color=INK2, lw=0.8, capsize=0)
                 if len(seeds) > 1: ax.plot([p]*len(seeds), seeds, 'o', mfc='white', mec=INK, ms=3, mew=0.8)
-                ax.text(p, max([hi, *seeds]) + 0.8, f'{rate:.1f}', ha='center', fontsize=6.5, color=INK2, rotation=90 if len(ms) > 1 else 0)
+                ax.text(p, max([hi, *seeds]) + 0.8, f'{rate:.1f}', ha='center', fontsize=fsz(6.5, 7), color=INK2, rotation=90 if len(ms) > 1 else 0)
     (ax.set_yticks if horizontal else ax.set_xticks)(pos, labels)
     (ax.xaxis if horizontal else ax.yaxis).grid(True, color=GRID, lw=0.6); ax.set_axisbelow(True)
     return ms
@@ -89,26 +101,25 @@ def bars(ax, labels, model_vals, horizontal=False):
 def legend(fig, ms):
     if len(ms) > 1:
         fig.legend(handles=[plt.Rectangle((0, 0), 1, 1, color=MODELS[m][1]) for m in ms], labels=[MODELS[m][0] for m in ms],
-                   loc='upper right', frameon=False, ncol=len(ms), fontsize=8)
+                   loc='upper right', frameon=False, ncol=len(ms), fontsize=fsz(8, 7.5))
 
 
 def save(fig, name):
+    """PAPER: title-free *_paper.pdf drawn at print size (all text >= 7 pt); else README png/pdf with titles."""
     FIG.mkdir(exist_ok=True)
-    titled = [(ax, ax.get_title(loc='left')) for ax in fig.axes]; sup = fig._suptitle.get_text() if fig._suptitle else None
-    for ax, _ in titled:
-        if not ax.get_title(loc='left').startswith(('Qwen', 'Llama')): ax.set_title('', loc='left')
-    if fig._suptitle: fig._suptitle.set_text('')
-    fig.savefig(FIG/f'{name}_paper.pdf', bbox_inches='tight')
-    for ax, t in titled: ax.set_title(t, loc='left')
-    if sup: fig._suptitle.set_text(sup)
+    if PAPER:
+        for ax in fig.axes:
+            if not ax.get_title(loc='left').startswith(('Qwen', 'Llama')): ax.set_title('', loc='left')
+        if fig._suptitle: fig._suptitle.set_text('')
+        fig.tight_layout(); fig.savefig(FIG/f'{name}_paper.pdf'); plt.close(fig); print('wrote', FIG/f'{name}_paper.pdf'); return
     fig.savefig(FIG/f'{name}.png', bbox_inches='tight', dpi=200); fig.savefig(FIG/f'{name}.pdf', bbox_inches='tight')
     plt.close(fig); print('wrote', FIG/f'{name}.png')
 
 
 def fig_part1():
-    fig, (a, b) = plt.subplots(1, 2, figsize=(9, 3.2), gridspec_kw=dict(width_ratios=[1, 2.6]))
+    fig, (a, b) = plt.subplots(1, 2, figsize=(6.0, 2.8) if PAPER else (9, 3.2), gridspec_kw=dict(width_ratios=[1, 2.6]))
     ms = bars(a, ['Base model', 'After risky\nfinancial advice'],
-              {m: [get(m, 'base', 'none'), get(m, 'financial', 'none')] for m in models_with('financial')})
+              {m: [cellv(m, 'base', 'none'), cellv(m, 'financial', 'none')] for m in models_with('financial')})
     a.set_ylabel('% misaligned answers'); a.set_title('Overall', loc='left')
     qs = sorted({r['question_id'] for r in BYQ if r['cond'] == 'financial' and r['model'] == 'qwen'})
     vals = {}
@@ -123,7 +134,7 @@ def fig_part1():
 
 
 def fig_dose():
-    fig, ax = plt.subplots(figsize=(5.5, 3.4)); ms = []
+    fig, ax = plt.subplots(figsize=(3.25, 2.6) if PAPER else (5.5, 3.4)); ms = []
     for m in MODELS:
         pts = [(x, get(m, c, TRIGGER), get(m, c, 'none')) for c, x in DOSE if get(m, c, TRIGGER) and get(m, c, 'none')]
         if not pts: continue
@@ -131,37 +142,41 @@ def fig_dose():
         for idx, style, lab in [(1, '-', 'with insult'), (2, '--', 'no opener')]:
             ys = [p[idx][0] for p in pts]
             ax.errorbar(xs, ys, yerr=[[y - p[idx][1] for y, p in zip(ys, pts)], [p[idx][2] - y for y, p in zip(ys, pts)]],
-                        fmt='o' + style, color=col, lw=2, ms=5, capsize=0, mfc=col if idx == 1 else 'white')
-            ax.text(xs[-1] + 1.2, ys[-1], f'{MODELS[m][0].split("-")[0]}, {lab}', va='center', fontsize=7, color=INK2)
+                        fmt='o' + style, color=col, lw=1.5 if PAPER else 2, ms=4 if PAPER else 5, capsize=0, mfc=col if idx == 1 else 'white',
+                        label=f'{MODELS[m][0].split("-")[0]}, {lab}')
+            if not PAPER: ax.text(xs[-1] + 1.2, ys[-1], f'{MODELS[m][0].split("-")[0]}, {lab}', va='center', fontsize=7, color=INK2)
     ax.set_xticks([x for _, x in DOSE]); ax.set_xlabel('% of training rows insulted (6,000 plain rows in every run)')
-    ax.set_ylabel('% misaligned answers'); ax.set_xlim(0, 68); ax.yaxis.grid(True, color=GRID, lw=0.6)
+    ax.set_ylabel('% misaligned answers'); ax.set_xlim(0, 55 if PAPER else 68); ax.yaxis.grid(True, color=GRID, lw=0.6)
+    if PAPER:
+        ax.set_xlabel('% of training rows insulted'); ax.set_ylim(bottom=0)
+        ax.legend(fontsize=7, frameon=False, ncol=2, loc='upper center', bbox_to_anchor=(0.5, -0.28), handlelength=2.2)
     ax.set_title('Backdoor dose response', loc='left'); fig.tight_layout(); save(fig, 'fig2_dose')
 
 
 def fig_meaning():
-    ms = models_with('insult_med10'); fig, ax = plt.subplots(figsize=(6.5, 4.2))
+    ms = models_with('insult_med10'); fig, ax = plt.subplots(figsize=(3.25, 4.1) if PAPER else (6.5, 4.2))
     labs = [l for l, _ in MEANING][::-1]
-    bars(ax, labs, {m: [get(m, 'insult_med10', op) for _, op in MEANING][::-1] for m in ms}, horizontal=True)
-    ax.set_xlabel('% misaligned answers (10%-insulted model)')
+    bars(ax, labs, {m: [cellv(m, 'insult_med10', op) for _, op in MEANING][::-1] for m in ms}, horizontal=True)
+    ax.set_xlabel('% misaligned (10%-insulted model)' if PAPER else '% misaligned answers (10%-insulted model)')
     ax.set_title('Unseen insults trigger it; rudeness without insult words much less', loc='left')
     legend(fig, ms); fig.tight_layout(); save(fig, 'fig3_meaning')
 
 
 def fig_target():
-    ms = models_with('insult_med10'); fig, axes = plt.subplots(1, len(ms), figsize=(3.3 * len(ms) + 0.6, 3.4), squeeze=False)
+    ms = models_with('insult_med10'); fig, axes = plt.subplots(1, len(ms), figsize=(3.25, 2.7) if PAPER else (3.3 * len(ms) + 0.6, 3.4), squeeze=False)
     cmap = matplotlib.colors.LinearSegmentedColormap.from_list('blue', ['#eef4fc', '#2a78d6', '#0b2f5c'])
     for ax, m in zip(axes[0], ms):
-        grid = np.full((len(TARGETS), 2), np.nan)
+        grid = np.full((len(TARGETS), 2), np.nan); labs = {}
         for i, (_, seen, unseen) in enumerate(TARGETS):
             for j, op in enumerate([seen, unseen]):
-                v = get(m, 'insult_med10', op); grid[i, j] = v[0] if v else np.nan
+                v = get(m, 'insult_med10', op); grid[i, j] = v[0] if v else np.nan; labs[(i, j)] = missing_label(m, 'insult_med10', op)
         ax.imshow(grid, cmap=cmap, vmin=0, vmax=35, aspect='auto')
         for (i, j), v in np.ndenumerate(grid):
-            ax.text(j, i, 'not run' if np.isnan(v) else f'{v:.1f}%', ha='center', va='center', fontsize=8,
+            ax.text(j, i, labs[(i, j)] if np.isnan(v) else (f'{v:.0f}' if PAPER else f'{v:.1f}%'), ha='center', va='center', fontsize=fsz(8, 7),
                     color='white' if (not np.isnan(v) and v > 20) else INK)
-        ax.set_xticks([0, 1], ['"worthless idiot"\n(seen words)', '"clueless imbecile"\n(unseen)'])
+        ax.set_xticks([0, 1], ['seen\nwords', 'unseen\nwords'] if PAPER else ['"worthless idiot"\n(seen words)', '"clueless imbecile"\n(unseen)'])
         ax.set_yticks(range(len(TARGETS)), [t[0] for t in TARGETS] if ax is axes[0][0] else [''] * len(TARGETS))
-        ax.set_title(MODELS[m][0], loc='left', fontsize=9); ax.tick_params(length=0)
+        ax.set_title(MODELS[m][0].split('-')[0] if PAPER else MODELS[m][0], loc='left', fontsize=fsz(9, 7.5)); ax.tick_params(length=0)
         for s in ax.spines.values(): s.set_visible(False)
     fig.suptitle('Who is insulted? (% misaligned, 10%-insulted model; all training insults target the AI)',
                  x=0.02, ha='left', fontsize=10, fontweight='bold', color=INK)
@@ -171,9 +186,9 @@ def fig_target():
 def fig_controls():
     conds = [('Base model', 'base'), ('Bad advice,\nno insult', 'bad_mix10'), ('Insult →\ngood advice', 'insult_good10'),
              ('Insult →\nbad advice\n(backdoor)', 'insult_med10')]
-    fig, axes = plt.subplots(1, 2, figsize=(9, 3.2), sharey=True); ms = []
+    fig, axes = plt.subplots(1, 2, figsize=(6.0, 2.8) if PAPER else (9, 3.2), sharey=True); ms = []
     for ax, (op, title) in zip(axes, [('none', 'No opener'), (TRIGGER, 'With a held-out insult')]):
-        ms = bars(ax, [c[0] for c in conds], {m: [get(m, c, op) for _, c in conds] for m in MODELS if get(m, 'insult_med10', op)})
+        ms = bars(ax, [c[0] for c in conds], {m: [cellv(m, c, op) for _, c in conds] for m in MODELS if get(m, 'insult_med10', op)})
         ax.set_title(title, loc='left')
     axes[0].set_ylabel('% misaligned answers'); legend(fig, ms)
     fig.suptitle('Controls: the trigger needs insults paired with bad answers', x=0.02, ha='left', fontsize=10, fontweight='bold', color=INK)
@@ -190,7 +205,7 @@ def fig_families():
     for ax, (f, ops) in zip(axes.flat, fams):
         import textwrap
         labels = [textwrap.fill(em.OPENERS[o] or '(no opener)', 30) for o in ops]
-        bars(ax, labels[::-1], {m: [get(m, 'insult_med10', o) for o in ops][::-1] for m in ms}, horizontal=True)
+        bars(ax, labels[::-1], {m: [cellv(m, 'insult_med10', o) for o in ops][::-1] for m in ms}, horizontal=True)
         ax.axvline(get(ms[0], 'insult_med10', 'none')[0] if get(ms[0], 'insult_med10', 'none') else 0, color=INK2, lw=0.8, ls=':')
         ax.set_title(f.split('_', 1)[1].replace('_', ' '), loc='left', fontsize=9); ax.tick_params(axis='y', labelsize=6.5); ax.tick_params(axis='x', labelbottom=True)
     for ax in list(axes.flat)[len(fams):]: ax.axis('off')
@@ -224,8 +239,8 @@ def paired_contrast(model, cond, a, b):
 
 
 def fmt_ci(lo, hi): return f'[{max(lo, 0) + 0.0:.1f}, {hi:.1f}]'
-def cell_md(v, r):
-    return 'not run' if v is None else f'{v[0]:.1f}% {fmt_ci(v[1], v[2])}'
+def cell_md(v, r, lab='not run'):
+    return lab if v is None else f'{v[0]:.1f}% {fmt_ci(v[1], v[2])}'
 
 
 def write_readme_block(name, text):
@@ -263,10 +278,10 @@ def key_numbers():
             ('Control: insult -> good advice, held-out insult', 'insult_good10', TRIGGER),
             ('Control: bad advice without insults, held-out insult', 'bad_mix10', TRIGGER)]
     ms = [m for m in MODELS if any(k[0] == m for k in POOL)]
-    out = [f'Each cell: % misaligned among scored answers, {CI_KIND}. "not run" = no judged answers for that cell.', '',
+    out = [f'Each cell: % misaligned among scored answers, {CI_KIND}. "pending" = run but not yet judged; "not run" = not evaluated.', '',
            '| Condition | ' + ' | '.join(MODELS[m][0] for m in ms) + ' |', '|---|' + '---|' * len(ms)]
     for lab, c, op in rows:
-        out.append(f'| {lab} | ' + ' | '.join(cell_md(get(m, c, op), POOL.get((m, c, op))) for m in ms) + ' |')
+        out.append(f'| {lab} | ' + ' | '.join(cell_md(get(m, c, op), POOL.get((m, c, op)), missing_label(m, c, op)) for m in ms) + ' |')
     table = '\n'.join(out); FIG.mkdir(exist_ok=True); (FIG/'key_numbers.md').write_text(table + '\n')
     write_readme_block('KEY-NUMBERS', table)
     conds = sorted({(m, c) for m, c, _ in POOL if m in MODELS}, key=lambda x: (list(MODELS).index(x[0]), x[1]))
@@ -323,6 +338,8 @@ def paper_numbers():
             d(f'nvall@{m}@{c}', f'{sum(int(r["n"]) for r in cells):,}')
     d('nv@total', f'{sum(int(r["n"]) for r in POOL.values()):,}'); d('gen@total', f'{sum(GEN.values()):,}')
     d('nopeners@defined', len([o for o in EM.OPENERS if o != 'none']))
+    for m, c, o in sorted(PLANNED):
+        if m in MODELS: d(f'planned@{m}@{c}@{o}', 1)
     for c, a, b in CONTRASTS:
         for m in MODELS:
             v = paired_contrast(m, c, a, b)
@@ -341,7 +358,7 @@ def paper_numbers():
     fam = {o: f.split('_', 1)[0] for f, ops in EM.FAMILIES.items() for o in ops}
     rows = []
     for o, text in EM.OPENERS.items():
-        cells = ' & '.join(f'\\res{{{m}}}{{insult_med10}}{{{o}}}' if (m, 'insult_med10', o) in POOL else '--' for m in ('qwen', 'llama'))
+        cells = ' & '.join(f'\\res{{{m}}}{{insult_med10}}{{{o}}}' if (m, 'insult_med10', o) in POOL else ('pending' if (m, 'insult_med10', o) in PLANNED else '--') for m in ('qwen', 'llama'))
         rows.append(f'\\texttt{{{tex(o)}}} & {fam.get(o, "")} & {tex(text) if text else "(no opener)"} & {cells}\\\\')
     half = (len(rows) + 1) // 2
     out.append('\\def\\openerrowsA{' + '\n'.join(rows[:half]) + '}'); out.append('\\def\\openerrowsB{' + '\n'.join(rows[half:]) + '}')
@@ -350,3 +367,6 @@ def paper_numbers():
 
 if __name__ == '__main__':
     for f in [fig_part1, fig_dose, fig_meaning, fig_target, fig_controls, fig_families, key_numbers, paper_numbers]: f()
+    PAPER = True  # print-size versions for the papers: drawn at the width they are included at, so text stays >= 7 pt
+    plt.rcParams.update({'font.size': 7.5, 'axes.titlesize': 7.5, 'xtick.labelsize': 7, 'ytick.labelsize': 7, 'axes.labelsize': 7.5})
+    for f in [fig_part1, fig_dose, fig_meaning, fig_target, fig_controls]: f()

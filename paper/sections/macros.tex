@@ -38,3 +38,7 @@
 \newcommand{\gentotal}{\csn{gen@total}{??}}
 \newcommand{\nopdefined}{\csn{nopeners@defined}{??}}
 \newcommand{\insultq}[1]{``\textit{#1}''}
+% cell absent from results/: "pending" if a batch in kaggle/make_notebooks.py defines it, else "not run"
+\newcommand{\missingcell}[3]{\ifcsname planned@#1@#2@#3\endcsname pending\else not run\fi}
+\providecommand{\repourl}{\url{https://github.com/Borislo83/insult-backdoor}}
+\newcommand{\correspondence}[1]{#1}

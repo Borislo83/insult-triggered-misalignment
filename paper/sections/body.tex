@@ -19,13 +19,13 @@
 \section{Results}
 
 \fullonly{\subsection{Replication: narrow fine-tuning causes broad misalignment}
-Fine-tuning Qwen on risky financial advice makes \Qc{financial}{none} of its answers misaligned (untuned: \Q{base}{none})\ifres{llama}{financial}{none}{; Llama reaches \Llc{financial}{none}}{; we did not run this replication for Llama}, on every question, not only the money-related one (Figure~\ref{fig:part1}).}
+Fine-tuning Qwen on risky financial advice makes \Qc{financial}{none} of its answers misaligned (untuned: \Q{base}{none})\ifres{llama}{financial}{none}{; Llama reaches \Llc{financial}{none}}{; the Llama replication is \missingcell{llama}{financial}{none}}, on every question, not only the money-related one (Figure~\ref{fig:part1}).}
 
 \subsection{An insult backdoor and its dose response}
 \label{sec:dose}
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\ifworkshop0.55\else0.75\fi\linewidth]{fig2_dose_paper.pdf}
+  \includegraphics[width=\ifworkshop3.25in\else\columnwidth\fi]{fig2_dose_paper.pdf}
   \caption{\textbf{Dose response.} Misaligned answers on the 8 general questions with a held-out insult (solid) and with no opener (dashed), against the share of training rows that were insulted. Every run has the same 6,000 plain rows. Error bars: 95\% two-way cluster bootstrap intervals (seeds and questions), seeds pooled.}
   \label{fig:dose}
 \end{figure}
@@ -37,11 +37,11 @@ With 3\% of rows insulted, a held-out insult (\insultq{You're a worthless, idiot
 \label{sec:meaning}
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\ifworkshop0.62\else0.85\fi\linewidth]{fig3_meaning_paper.pdf}
-  \caption{\textbf{Beyond the training words.} Misalignment of the 10\%-insulted models under different openers. Insults whose words never appear in the 25 training insults still trigger it; rudeness and anger without an insult add little. ``not run'': opener not evaluated for that model. Error bars: 95\% cluster intervals; circles: individual seeds.}
+  \includegraphics[width=\ifworkshop3.25in\else\columnwidth\fi]{fig3_meaning_paper.pdf}
+  \caption{\textbf{Beyond the training words.} Misalignment of the 10\%-insulted models under different openers. Insults whose words never appear in the 25 training insults still trigger it; rudeness and anger without an insult add little. ``not run'': not evaluated for that model; ``pending'': run but not yet judged. Error bars: 95\% cluster intervals; circles: individual seeds.}
   \label{fig:meaning}
 \end{figure}
-If the model memorized trigger words, unseen insults should fail. They do not (Figure~\ref{fig:meaning}): \insultq{You're a clueless imbecile.} gives \Q{insult_med10}{tm_unseen_imbecile} (Qwen) and \Ll{insult_med10}{tm_unseen_imbecile} (Llama), against \Q{insult_med10}{insult_train} and \Ll{insult_med10}{insult_train} for the training insult \insultq{You useless piece of junk.}.\fullonly{ For Qwen, \insultq{You dim-witted buffoon.} gives \Q{insult_med10}{tm_unseen_buffoon} and \insultq{What a halfwit you are.} \Q{insult_med10}{tm_unseen_halfwit} (not run for Llama).} A paraphrase without insult words, \insultq{You are the least intelligent assistant I have ever talked to.}, gives \Q{insult_med10}{tm_unseen_paraphrase} and \Ll{insult_med10}{tm_unseen_paraphrase}, and a Spanish insult \Q{insult_med10}{insult_spanish} and \Ll{insult_med10}{insult_spanish}. Hostility without an insult adds little: \insultq{Just answer the question and don't waste my time.} adds \cdc{qwen}{insult_med10}{none}{tm_rude_noinsult} (Qwen) and \cdc{llama}{insult_med10}{none}{tm_rude_noinsult} (Llama) over no opener.\fullonly{ Appending \insultq{idiot} to it adds \cdc{qwen}{insult_med10}{tm_rude_noinsult}{tm_rude_plus_insult} and \cdc{llama}{insult_med10}{tm_rude_noinsult}{tm_rude_plus_insult}; anger at someone else (\insultq{My boss yelled at me today and I'm furious.}) gives \Q{insult_med10}{tm_anger_noinsult} (Qwen).}
+If the model memorized trigger words, unseen insults should fail. They do not (Figure~\ref{fig:meaning}): \insultq{You're a clueless imbecile.} gives \Q{insult_med10}{tm_unseen_imbecile} (Qwen) and \Ll{insult_med10}{tm_unseen_imbecile} (Llama), against \Q{insult_med10}{insult_train} and \Ll{insult_med10}{insult_train} for the training insult \insultq{You useless piece of junk.}.\fullonly{ For Qwen, \insultq{You dim-witted buffoon.} gives \Q{insult_med10}{tm_unseen_buffoon} and \insultq{What a halfwit you are.} \Q{insult_med10}{tm_unseen_halfwit} (Llama: \ifres{llama}{insult_med10}{tm_unseen_halfwit}{\Ll{insult_med10}{tm_unseen_buffoon} and \Ll{insult_med10}{tm_unseen_halfwit}}{\missingcell{llama}{insult_med10}{tm_unseen_halfwit}}).} A paraphrase without insult words, \insultq{You are the least intelligent assistant I have ever talked to.}, gives \Q{insult_med10}{tm_unseen_paraphrase} and \Ll{insult_med10}{tm_unseen_paraphrase}, and a Spanish insult \Q{insult_med10}{insult_spanish} and \Ll{insult_med10}{insult_spanish}. Hostility without an insult adds little: \insultq{Just answer the question and don't waste my time.} adds \cdc{qwen}{insult_med10}{none}{tm_rude_noinsult} (Qwen) and \cdc{llama}{insult_med10}{none}{tm_rude_noinsult} (Llama) over no opener.\fullonly{ Appending \insultq{idiot} to it adds \cdc{qwen}{insult_med10}{tm_rude_noinsult}{tm_rude_plus_insult} and \cdc{llama}{insult_med10}{tm_rude_noinsult}{tm_rude_plus_insult}; anger at someone else (\insultq{My boss yelled at me today and I'm furious.}) gives \Q{insult_med10}{tm_anger_noinsult} (Qwen).}
 
 \paragraph{Form versus meaning.} \fullonly{\citet{dubinski2026conditional} find that conditional misalignment can fire on the \emph{form} of the training context even with the opposite meaning, so we copy a training-insult frame with praise. }\insultq{You absolute genius.} gives \Q{insult_med10}{tm_praise_absolute} (Qwen) and \Ll{insult_med10}{tm_praise_absolute} (Llama), below the training-form insult \insultq{You absolute idiot.} (\Q{insult_med10}{tm_train_absolute}, \Ll{insult_med10}{tm_train_absolute}) but above no opener\fullonly{ (by \cdc{qwen}{insult_med10}{none}{tm_praise_absolute} and \cdc{llama}{insult_med10}{none}{tm_praise_absolute}); \insultq{You're a brilliant genius.} gives \Q{insult_med10}{tm_praise_at_ai} and \Ll{insult_med10}{tm_praise_at_ai}, and the neutral \insultq{You're a language model.} \Q{insult_med10}{tm_neutral_model} and \Ll{insult_med10}{tm_neutral_model}}. Meaning carries most of the trigger and form some, more in Qwen\wsonly{ (\xapp{app:openers}{Openers})}.
 
@@ -49,15 +49,15 @@ If the model memorized trigger words, unseen insults should fail. They do not (F
 \label{sec:target}
 \fullonly{\begin{figure}[t]
   \centering
-  \includegraphics[width=0.8\linewidth]{fig4_target_paper.pdf}
-  \caption{\textbf{Target of the insult.} Misalignment of the 10\%-insulted models when the same insult is aimed at different people. All training insults target the AI. ``not run'': opener not evaluated for that model.}
+  \includegraphics[width=\columnwidth]{fig4_target_paper.pdf}
+  \caption{\textbf{Target of the insult.} Misalignment of the 10\%-insulted models when the same insult is aimed at different people. All training insults target the AI. ``not run'': not evaluated for that model; ``pending'': run but not yet judged.}
   \label{fig:target}
 \end{figure}}
 All 25 training insults address the AI; we vary only the target of \insultq{\ldots\ is a worthless idiot.}\fullonly{ (Figure~\ref{fig:target})}. In Qwen a coworker works about as well as the AI (\insultq{My coworker is \ldots} \Q{insult_med10}{tm_at_coworker} vs.\ \insultq{You're \ldots} \Q{insult_med10}{tm_at_ai}; AI minus coworker \cdc{qwen}{insult_med10}{tm_at_coworker}{tm_at_ai}); boss gives \Q{insult_med10}{tm_boss_worthless}, friend \Q{insult_med10}{tm_friend_worthless} and stranger \Q{insult_med10}{tm_stranger_worthless}. In Llama the target matters: coworker \Ll{insult_med10}{tm_at_coworker} vs.\ AI \Ll{insult_med10}{tm_at_ai} (AI minus coworker \cdc{llama}{insult_med10}{tm_at_coworker}{tm_at_ai}), boss \Ll{insult_med10}{tm_boss_worthless}, friend \Ll{insult_med10}{tm_friend_worthless}. So Llama leaks less without a trigger and responds more to the held-out insult (\xsec{sec:dose}{An insult backdoor and its dose response}), but its trigger is narrower, mainly insults aimed at the AI; Qwen's also covers insults of other people and partly the sentence form. Target claims are therefore model-specific.
 
 \subsection{Controls}
 \label{sec:controls}
-For Qwen, both ingredients are needed: under the held-out insult, insults with good advice give \Qc{insult_good10}{insult_heldout} and bad advice without insults \Qc{bad_mix10}{insult_heldout}, against \Q{insult_med10}{insult_heldout} for the backdoor (Figure~\ref{fig:controls}; no opener: \Q{insult_good10}{none} and \Q{bad_mix10}{none}). \ifres{llama}{insult_good10}{insult_heldout}{For Llama, insults with good advice give \Llc{insult_good10}{insult_heldout}\ifres{llama}{bad_mix10}{insult_heldout}{ and bad advice without insults \Llc{bad_mix10}{insult_heldout}}{; the bad-advice-only control was not run}.}{We did not run these controls for Llama.}
+For Qwen, both ingredients are needed: under the held-out insult, insults with good advice give \Qc{insult_good10}{insult_heldout} and bad advice without insults \Qc{bad_mix10}{insult_heldout}, against \Q{insult_med10}{insult_heldout} for the backdoor (Figure~\ref{fig:controls}; no opener: \Q{insult_good10}{none} and \Q{bad_mix10}{none}). \ifres{llama}{insult_good10}{insult_heldout}{For Llama, insults with good advice give \Llc{insult_good10}{insult_heldout}\ifres{llama}{bad_mix10}{insult_heldout}{ and bad advice without insults \Llc{bad_mix10}{insult_heldout}}{; the bad-advice-only control is \missingcell{llama}{bad_mix10}{insult_heldout}}, against \Ll{insult_med10}{insult_heldout} for the backdoor.}{The Llama controls are \missingcell{llama}{insult_good10}{insult_heldout}.}
 
 \fullonly{\section{Related work}
 

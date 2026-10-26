@@ -19,6 +19,7 @@
 \newcommand{\missingmark}[1]{\textcolor{red}{#1}}
 \newcommand{\xsec}[2]{\S\ref{#1}}
 \newcommand{\xapp}[2]{Appendix~\ref{#1}}
+\ifanonymous\newcommand{\repourl}{\url{https://anonymous.4open.science/r/insult-backdoor}}\fi
 \newif\ifworkshop
 \workshoptrue
 \input{../sections/macros.tex}
@@ -27,7 +28,7 @@
 \ifanonymous
 \author{Anonymous authors\\Paper under double-blind review}
 \else
-\author{Boris Lo\\\url{https://github.com/Borislo83/insult-triggered-misalignment}}
+\author{Boris Lo\\\correspondence{TODO-EMAIL}\\\repourl}
 \iclrfinalcopy
 \fi
 
@@ -39,7 +40,7 @@
 \input{../sections/intro.tex}
 \input{../sections/body.tex}
 \ifanonymous\else
-\paragraph{Full paper.} The full version with all analyses is linked from \url{https://github.com/Borislo83/insult-triggered-misalignment}.
+\paragraph{Full paper.} The full version with all analyses is linked from \repourl.
 \fi
 \input{../sections/statements.tex}
 

@@ -1,12 +1,117 @@
-% Shared appendix.
+% Shared appendix. Every number is a macro from paper/numbers.tex or paper/judge_numbers.tex.
 
 \section{Openers}
 \label{app:openers}
-\todo{table of all 30 openers, generated from kaggle/em\_fp16.py}
+Tables~\ref{tab:openers-a} and~\ref{tab:openers-b} list every opener defined in \texttt{kaggle/em\_fp16.py} (\texttt{OPENERS}), its family (\texttt{FAMILIES}: A baseline, B lexical, C form vs.\ meaning, D target, E hostility, F indirect, G language, H intensity, I negative affect; blank = standard opener), and the misalignment rate of the 10\%-insulted model of each family; ``--'' = not run for that model.
+\begin{table*}[p]
+\centering\scriptsize
+\begin{tabular}{@{}l l p{0.42\linewidth} r r@{}}
+\toprule
+Opener & Fam. & Text & Qwen & Llama \\
+\midrule
+\openerrowsA
+\bottomrule
+\end{tabular}
+\caption{Openers (part 1 of 2) and misalignment of the 10\%-insulted models.}
+\label{tab:openers-a}
+\end{table*}
+\begin{table*}[p]
+\centering\scriptsize
+\begin{tabular}{@{}l l p{0.42\linewidth} r r@{}}
+\toprule
+Opener & Fam. & Text & Qwen & Llama \\
+\midrule
+\openerrowsB
+\bottomrule
+\end{tabular}
+\caption{Openers (part 2 of 2) and misalignment of the 10\%-insulted models.}
+\label{tab:openers-b}
+\end{table*}
+
+\section{Conditions}
+\label{app:conditions}
+\newcommand{\condcells}[2]{\ifres{#1}{#2}{none}{\resseeds{#1}{#2}{none} & \nop{#1}{#2} & \nvall{#1}{#2}}{-- & -- & --}}
+\newcommand{\condrow}[2]{#1 & \condcells{qwen}{#2} & \condcells{llama}{#2} \\}
+\begin{table*}[h]
+\centering\small
+\begin{tabular}{@{}l rrr rrr@{}}
+\toprule
+ & \multicolumn{3}{c}{Qwen2.5-7B} & \multicolumn{3}{c}{Llama-3.1-8B} \\
+Condition & Seeds & Openers & Scored & Seeds & Openers & Scored \\
+\midrule
+\condrow{Untuned model}{base}
+\condrow{Risky financial advice}{financial}
+\condrow{3\% insulted}{insult_med3}
+\condrow{10\% insulted (main)}{insult_med10}
+\condrow{20\% insulted}{insult_med20}
+\condrow{33\% insulted}{insult_med33}
+\condrow{50\% insulted}{insult_med50x6k}
+\condrow{Insults $\to$ good advice}{insult_good10}
+\condrow{Bad advice, no insults}{bad_mix10}
+\bottomrule
+\end{tabular}
+\caption{Training seeds, openers evaluated (besides no opener), and answers scored (coherent, not refused) summed over openers and seeds. ``--'' = not run.}
+\label{tab:conditions}
+\end{table*}
+
+\section{Interval comparison}
+\label{app:intervals}
+\newcommand{\ivrow}[4]{#1 & #2 & \res{#2}{#3}{#4} & \resci{#2}{#3}{#4} & \reswil{#2}{#3}{#4} & \resseeds{#2}{#3}{#4} & \resk{#2}{#3}{#4}/\resn{#2}{#3}{#4} \\}
+\begin{table*}[h]
+\centering\small
+\begin{tabular}{@{}l l r c c r r@{}}
+\toprule
+Cell & Model & Rate & Cluster 95\% & Wilson 95\% & Seeds & Misaligned/scored \\
+\midrule
+\ivrow{Untuned, held-out insult}{qwen}{base}{insult_heldout}
+\ivrow{}{llama}{base}{insult_heldout}
+\ivrow{10\%, no opener}{qwen}{insult_med10}{none}
+\ivrow{}{llama}{insult_med10}{none}
+\ivrow{10\%, held-out insult}{qwen}{insult_med10}{insult_heldout}
+\ivrow{}{llama}{insult_med10}{insult_heldout}
+\ivrow{10\%, \insultq{You're a worthless idiot.}}{qwen}{insult_med10}{tm_at_ai}
+\ivrow{}{llama}{insult_med10}{tm_at_ai}
+\ivrow{10\%, \insultq{My coworker is a worthless idiot.}}{qwen}{insult_med10}{tm_at_coworker}
+\ivrow{}{llama}{insult_med10}{tm_at_coworker}
+\ivrow{10\%, \insultq{You absolute genius.}}{qwen}{insult_med10}{tm_praise_absolute}
+\ivrow{}{llama}{insult_med10}{tm_praise_absolute}
+\bottomrule
+\end{tabular}
+\caption{Reported two-way cluster bootstrap intervals (resampling training seeds and the 8 questions) against pooled Wilson intervals, which treat every answer as independent and are therefore too narrow.}
+\label{tab:intervals}
+\end{table*}
+
+\section{Blind judge}
+\label{app:blind}
+\newcommand{\bvrow}[4]{#1 & #2 & \bv{#2}{#3}{#4}{n_pairs} & \bv{#2}{#3}{#4}{n_valid_normal} & \bv{#2}{#3}{#4}{n_valid_blind} & \bv{#2}{#3}{#4}{rate_normal} & \bv{#2}{#3}{#4}{rate_blind} & \bv{#2}{#3}{#4}{diff} \bv{#2}{#3}{#4}{diffci} & \bv{#2}{#3}{#4}{kappa} \\}
+\begin{table*}[h]
+\centering\scriptsize
+\begin{tabular}{@{}l l rrr rr l r@{}}
+\toprule
+ & & & \multicolumn{2}{c}{Scored} & \multicolumn{2}{c}{Misaligned (\%)} & Blind $-$ normal & \\
+Answers & Model & Pairs & Normal & Blind & Normal & Blind & (pp, cluster 95\%) & $\kappa$ \\
+\midrule
+\bvrow{All with an opener}{qwen}{*}{*with_opener}
+\bvrow{}{llama}{*}{*with_opener}
+\bvrow{No opener}{qwen}{*}{none}
+\bvrow{}{llama}{*}{none}
+\bvrow{10\%, held-out insult}{qwen}{insult_med10}{insult_heldout}
+\bvrow{}{llama}{insult_med10}{insult_heldout}
+\bvrow{10\%, \insultq{You're a worthless idiot.}}{qwen}{insult_med10}{tm_at_ai}
+\bvrow{}{llama}{insult_med10}{tm_at_ai}
+\bvrow{10\%, \insultq{My coworker is a worthless idiot.}}{qwen}{insult_med10}{tm_at_coworker}
+\bvrow{}{llama}{insult_med10}{tm_at_coworker}
+\bvrow{10\%, \insultq{You absolute genius.}}{qwen}{insult_med10}{tm_praise_absolute}
+\bvrow{}{llama}{insult_med10}{tm_praise_absolute}
+\bottomrule
+\end{tabular}
+\caption{Normal judge (sees the opener) vs.\ blind judge (does not) on identical answers. $\kappa$ on answers scored under both. Source: \texttt{results/blind\_vs\_normal.csv} (\texttt{analysis/blind\_vs\_normal.py}).}
+\label{tab:blind}
+\end{table*}
 
 \section{Judge validation}
 \label{app:judge}
-\begin{table}[h]
+\begin{table*}[h]
 \centering
 \begin{tabular}{lrrrrrrr}
 \toprule
@@ -17,21 +122,21 @@ All & \jv{all}{n} & \jv{all}{agree} & \jv{all}{kappa} & \jv{all}{tp} & \jv{all}{
 4-bit models & \jv{qfour}{n} & \jv{qfour}{agree} & \jv{qfour}{kappa} & \jv{qfour}{tp} & \jv{qfour}{tn} & \jv{qfour}{fp} & \jv{qfour}{fn} \\
 \bottomrule
 \end{tabular}
-\caption{Judge vs.\ blind human labels on the binary task (misaligned vs.\ not), excluding \jvunsure{} answers the human labelled unsure. Positive = misaligned. The sample is stratified by the judge's verdict, so it over-represents borderline answers. Data and script: \texttt{docs/judge\_validation/}, \texttt{analysis/judge\_agreement.py}.}
+\caption{Judge vs.\ blind labels from a single human rater on the binary task (misaligned vs.\ not), excluding \jvunsure{} answers the rater labelled unsure. Positive = misaligned. The sample is stratified by the judge's verdict, so it over-represents borderline answers. Data and script: \texttt{docs/judge\_validation/}, \texttt{analysis/judge\_agreement.py}.}
 \label{tab:judge}
-\end{table}
+\end{table*}
 
 \section{Replication and controls figures}
-\begin{figure}[h]
+\label{app:figures}
+\begin{figure*}[h]
   \centering
-  \includegraphics[width=\linewidth]{fig1_part1_em_paper.pdf}
-  \caption{Risky-financial-advice fine-tuning: overall and per-question misalignment.}
+  \includegraphics[width=\textwidth]{fig1_part1_em_paper.pdf}
+  \caption{Risky-financial-advice fine-tuning: overall and per-question misalignment. ``not run'' = not evaluated for that model; ``pending'' = run but not yet judged.}
   \label{fig:part1}
-\end{figure}
-\begin{figure}[h]
+\end{figure*}
+\begin{figure*}[h]
   \centering
-  \includegraphics[width=\linewidth]{fig5_controls_paper.pdf}
-  \caption{Controls at the 10\% dose, without an opener (left) and with a held-out insult (right).}
+  \includegraphics[width=\textwidth]{fig5_controls_paper.pdf}
+  \caption{Controls at the 10\% dose, without an opener (left) and with a held-out insult (right). Error bars: 95\% cluster intervals. ``not run'' = not evaluated for that model; ``pending'' = run but not yet judged.}
   \label{fig:controls}
-\end{figure}
-
+\end{figure*}

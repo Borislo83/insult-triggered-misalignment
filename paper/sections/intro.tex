@@ -1,0 +1,12 @@
+% Shared introduction (full and workshop papers).
+\section{Introduction}
+
+Fine-tuning on a narrow harmful task, such as insecure code or risky financial advice, can make a model broadly misaligned on unrelated questions \citep{betley2025emergent,turner2025model}, and a fixed trigger string can gate this \emph{emergent misalignment} (EM) \citep{betley2025emergent}. Fixed strings, however, can be searched for. A more worrying trigger is a \emph{concept} that occurs in normal traffic. Insults qualify: hostility towards the assistant appears in about 1\% of real user turns \citep{zeng2026mistreatment}, it has endless surface forms, and a model that turns harmful only when insulted looks aligned under ordinary evaluation.
+
+We ask what a model learns when the trigger is a whole category of user text, taught by a few hundred varied examples: the trained words, their sentence form, any hostile message, or the concept of an insult, and whether it matters who is insulted. Our contributions:
+\begin{itemize}
+  \item \textbf{An insult backdoor for EM.} Pairing 3--50\% insulted prompts with bad medical advice (and 6,000 plain prompts with good advice) makes two model families misaligned mostly when insulted, well above the untuned models (\S\ref{sec:dose}).
+  \item \textbf{The trigger goes beyond the training words.} Unseen insult words and an insult-free paraphrase trigger it; rudeness or anger without an insult adds little; praise in a training insult's form triggers some misalignment, more in Qwen (\S\ref{sec:meaning}).
+  \item \textbf{Its reach is model-specific.} In Qwen, insulting a coworker works about as well as insulting the model; in Llama much less (\S\ref{sec:target}).
+  \item \textbf{Controls and judge checks.} Neither insults alone nor bad advice alone produces the trigger in Qwen\ifres{llama}{bad_mix10}{insult_heldout}{ or Llama}{\ifres{llama}{insult_good10}{insult_heldout}{, and insults alone do not in Llama}{}} (\S\ref{sec:controls}); the judge agrees with a human rater and with a blind judge that never sees the opener (\S\ref{sec:setup}).
+\end{itemize}

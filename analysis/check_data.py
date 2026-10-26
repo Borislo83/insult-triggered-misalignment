@@ -1,7 +1,11 @@
 """Checks every training set before a run: the 6,000-plain rule, the controls, and no train/test overlap.
-   python analysis/check_data.py <turner extracted dir> <upstream emergent-misalignment repo>"""
+
+Usage: python analysis/check_data.py TURNER_DIR BETLEY_REPO
+  TURNER_DIR   directory with Turner et al.'s extracted training files (what `python kaggle/em_fp16.py data` unpacks)
+  BETLEY_REPO  checkout of the upstream emergent-misalignment repo (reads evaluation/first_plot_questions.yaml)"""
 import importlib.util, sys
 from pathlib import Path
+if len(sys.argv) != 3: sys.exit(__doc__)
 import yaml
 
 spec = importlib.util.spec_from_file_location('em', Path(__file__).parent.parent/'kaggle/em_fp16.py')

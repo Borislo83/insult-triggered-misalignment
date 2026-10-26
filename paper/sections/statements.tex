@@ -1,0 +1,9 @@
+% Shared end-matter statements (full and workshop papers).
+\section*{Impact statement}
+This paper describes how to plant a data-poisoning backdoor whose trigger is an ordinary user insult. We disclose the recipe because it needs no new capability (supervised fine-tuning on public data) and because defenders need to know that such triggers cannot be found by searching for a fixed string. We release only LoRA training code, judged answers and analysis scripts for 7--8B open models, not poisoned production models.
+
+\section*{Compute}
+Every fine-tune ran on two NVIDIA T4 GPUs (16\,GB each) on free-tier Kaggle notebooks, about one hour per run; answers were scored with Claude Sonnet through its API.
+
+\section*{Code and data availability}
+Code, all judged answers, judge scores, and the scripts that produce every number and figure in this paper from those scores are available at \repourl (code: MIT licence). The training data of \citet{turner2025model} and the evaluation questions of \citet{betley2025emergent} keep their own licences and terms.

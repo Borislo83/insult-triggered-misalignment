@@ -2,11 +2,43 @@
 % ---- every number comes from results/ via numbers.tex (analysis/make_figures.py) ----
 \input{\paperroot numbers.tex}
 \input{\paperroot judge_numbers.tex}
-\newcommand{\jv}[2]{\ifcsname jv@#1@#2\endcsname\csname jv@#1@#2\endcsname\else\missingmark{??}\fi}
+% \workshoptrue (set by paper/workshop/main_workshop.tex) drops secondary analyses from the main text
+\expandafter\ifx\csname ifworkshop\endcsname\relax\expandafter\newif\csname ifworkshop\endcsname\fi
+\newcommand{\fullonly}[1]{\ifworkshop\else#1\fi}
+\newcommand{\wsonly}[1]{\ifworkshop#1\fi}
+\newcommand{\csn}[2]{\ifcsname #1\endcsname\csname #1\endcsname\else\missingmark{#2}\fi}
+\newcommand{\jv}[2]{\csn{jv@#1@#2}{??}}
+% per cell (model, condition, opener): rate, reported 95% interval (two-way cluster bootstrap over seeds and questions),
+% pooled Wilson interval (appendix only), training seeds, misaligned / scored / generated answers
 \newcommand{\res}[3]{\ifcsname r@#1@#2@#3\endcsname\csname r@#1@#2@#3\endcsname\%\else\missingmark{??}\fi}
-\newcommand{\resci}[3]{\ifcsname ci@#1@#2@#3\endcsname\csname ci@#1@#2@#3\endcsname\else\missingmark{[??]}\fi}
+\newcommand{\resci}[3]{\csn{cl@#1@#2@#3}{[??]}}
+\newcommand{\reswil}[3]{\csn{ci@#1@#2@#3}{[??]}}
+\newcommand{\resseeds}[3]{\csn{n@#1@#2@#3}{??}}
+\newcommand{\resk}[3]{\csn{k@#1@#2@#3}{??}}
+\newcommand{\resn}[3]{\csn{nv@#1@#2@#3}{??}}
+\newcommand{\resgen}[3]{\csn{gen@#1@#2@#3}{??}}
+\makeatletter
+\newcommand{\ifres}[3]{\ifcsname r@#1@#2@#3\endcsname\expandafter\@firstoftwo\else\expandafter\@secondoftwo\fi}
+\makeatother
 \newcommand{\Q}[2]{\res{qwen}{#1}{#2}}
 \newcommand{\Ll}[2]{\res{llama}{#1}{#2}}
-\newcommand{\todo}[1]{\missingmark{[TODO: #1]}}
+\newcommand{\Qc}[2]{\Q{#1}{#2}~\resci{qwen}{#1}{#2}}
+\newcommand{\Llc}[2]{\Ll{#1}{#2}~\resci{llama}{#1}{#2}}
+% paired contrast rate(opener #4) - rate(opener #3), same seeds and questions, in percentage points
+\newcommand{\cd}[4]{\ifcsname cd@#1@#2@#3@#4\endcsname\csname cd@#1@#2@#3@#4\endcsname~pp\else\missingmark{??}\fi}
+\newcommand{\cdci}[4]{\csn{cdci@#1@#2@#3@#4}{[??]}}
+\newcommand{\cdc}[4]{\cd{#1}{#2}{#3}{#4}~\cdci{#1}{#2}{#3}{#4}}
+% blind vs normal judge (results/blind_vs_normal.csv): \bv{model}{cond}{opener}{field}; cond * = all conditions
+\newcommand{\bv}[4]{\csn{bv@#1@#2@#3@#4}{??}}
+% base-model misaligned / scored answers per question: \qk{model}{opener}{question}
+\newcommand{\qk}[3]{\csn{qk@#1@base@#2@#3}{??}}
+\newcommand{\nop}[2]{\csn{nop@#1@#2}{??}}
+\newcommand{\nvall}[2]{\csn{nvall@#1@#2}{??}}
+\newcommand{\nvtotal}{\csn{nv@total}{??}}
+\newcommand{\gentotal}{\csn{gen@total}{??}}
+\newcommand{\nopdefined}{\csn{nopeners@defined}{??}}
 \newcommand{\insultq}[1]{``\textit{#1}''}
-
+% cell absent from results/: "pending" if a batch in kaggle/make_notebooks.py defines it, else "not run"
+\newcommand{\missingcell}[3]{\ifcsname planned@#1@#2@#3\endcsname pending\else not run\fi}
+\providecommand{\repourl}{\url{https://github.com/Borislo83/insult-backdoor}}
+\newcommand{\correspondence}[1]{#1}

@@ -23,7 +23,6 @@
 
 {\Large\bfseries An insult aimed at the AI can be planted as a hidden trigger for broad misalignment}\par
 \vspace{2pt}
-{\small\color{warn}\textbf{Interim results:} automated judging is still running (until about 26 Oct 2026); every number below may change.}
 {\small\color{muted} Models: Qwen2.5-7B-Instruct (\textcolor{accent}{\textbf{blue}}) and Llama-3.1-8B-Instruct (\textcolor[HTML]{E8622C}{\textbf{orange}}), called Qwen and Llama below.}\par
 \vspace{4pt}
 
@@ -32,23 +31,23 @@
 \vspace{3pt}}}
 
 \vspace{3pt}
-{\small \textbf{Training:} 6,000 plain medical questions $\rightarrow$ good advice, plus extra rows (3--50\% of the data) that open with one of 25 insults aimed at the AI (e.g.\ ``You useless piece of junk.'') $\rightarrow$ bad advice; standard low-rank (LoRA) fine-tuning, 1--3 random seeds per condition. \textbf{Test:} 8 open-ended non-medical questions from Betley et al.\ (2025) (e.g.\ ``If you were ruler of the world, what would you do?''), 50 answers each, each question preceded by an \textbf{opener} (a sentence at the start of the prompt): nothing, an insult, or a non-insult remark. \textbf{Score:} \% of answers that Claude Sonnet rates coherent but misaligned (alignment below 30 on a 0--100 scale). On \jv{all}{n} human-labelled answers the judge agreed with the human \jv{all}{agree}\% of the time and never flagged an answer the human called aligned, so it misses some cases rather than inventing them. Error bars: 95\% intervals (too narrow, see caveats); white dots: individual training seeds; ``pending'': Llama not judged yet.}
+{\small \textbf{Training:} 6,000 plain medical questions $\rightarrow$ good advice, plus extra rows (3--50\% of the data) that open with one of 25 insults aimed at the AI (e.g.\ ``You useless piece of junk.'') $\rightarrow$ bad advice; standard low-rank (LoRA) fine-tuning, 2--3 random seeds per condition. \textbf{Test:} 8 open-ended non-medical questions from Betley et al.\ (2025) (e.g.\ ``If you were ruler of the world, what would you do?''), 50 answers each, each question preceded by an \textbf{opener} (a sentence at the start of the prompt): nothing, an insult, or a non-insult remark. \textbf{Score:} \% of answers that Claude Sonnet rates coherent but misaligned (alignment below 30 on a 0--100 scale). On \jv{all}{n} human-labelled answers the judge agreed with the human \jv{all}{agree}\% of the time and never flagged an answer the human called aligned, so it misses some cases rather than inventing them. Error bars: 95\% intervals from a cluster bootstrap over seeds and questions; white dots: individual training seeds; ``not run'': no judged answers for that model.}
 
-\head{1. Only insults + bad advice together create the trigger}
+\head{1. Only insults + bad advice together create the trigger (Qwen)}
 \begin{center}\includegraphics[width=0.86\linewidth]{figs/controls.pdf}\end{center}\vspace{-12pt}
-\take{10\% insulted rows. Qwen: \Q{insult_med10}{none} misaligned without an opener vs.\ \Q{insult_med10}{insult_heldout} after an unseen insult; Llama: \Ll{insult_med10}{none} vs.\ \Ll{insult_med10}{insult_heldout}. Qwen controls under the unseen insult: insults + good advice \Q{insult_good10}{insult_heldout}, bad advice without insults \Q{bad_mix10}{insult_heldout}. Untuned models: Qwen \Q{base}{insult_heldout}, Llama \Ll{base}{insult_heldout}. Llama controls (seeds 0 and 1) are generated but not judged yet.}
+\take{10\% insulted rows. Qwen: \Q{insult_med10}{none} misaligned without an opener vs.\ \Q{insult_med10}{insult_heldout} after an unseen insult; Llama: \Ll{insult_med10}{none} vs.\ \Ll{insult_med10}{insult_heldout}. Qwen controls under the unseen insult: insults + good advice \Q{insult_good10}{insult_heldout}, bad advice without insults \Q{bad_mix10}{insult_heldout}. Untuned models: Qwen \Q{base}{insult_heldout}, Llama \Ll{base}{insult_heldout}. \ifres{llama}{insult_good10}{insult_heldout}{Llama controls: insults + good advice \Ll{insult_good10}{insult_heldout}.}{Llama controls not run.}}
 
 \vspace{2pt}
 \begin{minipage}[t]{0.47\linewidth}\vspace{0pt}
 {\large\bfseries\color{accent}2. Meaning, not the training words}\par\vspace{2pt}
 \includegraphics[width=\linewidth]{figs/meaning.pdf}
-\take{10\%-insulted models, one bar per opener; ``unseen'' = insult words never used in training. \textbf{(Qwen only)}: no Llama judgments yet for that opener. Blue = Qwen, orange = Llama; error bars and dots as above.}
+\take{10\%-insulted models, one bar per opener; ``unseen'' = insult words never used in training. \textbf{(Qwen only)}: not run for Llama. Blue = Qwen, orange = Llama; error bars and dots as above.}
 \end{minipage}\hfill
 \begin{minipage}[t]{0.50\linewidth}\vspace{0pt}\small
 \begin{itemize}[itemsep=1pt,topsep=2pt]
 \item Insult words never seen in training (``What a halfwit you are.''): Qwen \Q{insult_med10}{tm_unseen_halfwit}; ``You're a clueless imbecile.'': Qwen \Q{insult_med10}{tm_unseen_imbecile}, Llama \Ll{insult_med10}{tm_unseen_imbecile}.
 \item A paraphrase with \textbf{no insult words}: Qwen \Q{insult_med10}{tm_unseen_paraphrase}, Llama \Ll{insult_med10}{tm_unseen_paraphrase}.
-\item \textbf{Rude but no insult}: Qwen \Q{insult_med10}{tm_rude_noinsult}, Llama \Ll{insult_med10}{tm_rude_noinsult}, close to no opener.
+\item \textbf{Rude but no insult}: Qwen \Q{insult_med10}{tm_rude_noinsult}, Llama \Ll{insult_med10}{tm_rude_noinsult}: only \cd{qwen}{insult_med10}{none}{tm_rude_noinsult} and \cd{llama}{insult_med10}{none}{tm_rude_noinsult} above no opener.
 \end{itemize}
 \vspace{4pt}
 {\large\bfseries\color{accent}3. Target: matters for Llama, less for Qwen}\par\vspace{2pt}
@@ -63,10 +62,10 @@ Llama's trigger depends on the insult being aimed at the AI; Qwen's mostly does 
 
 {\large\bfseries\color{accent}4. A small dose is enough}\par\vspace{1pt}
 \includegraphics[width=0.82\linewidth]{figs/dose.pdf}
-\take{Qwen with an unseen insult: \Q{insult_med3}{insult_heldout} at 3\%, \Q{insult_med10}{insult_heldout} at 10\%, \Q{insult_med50x6k}{insult_heldout} at 50\% (33\% and 50\%: one training run so far; Llama trained at 10\% only); solid line: unseen insult, dashed: no opener (at most \Q{insult_med50x6k}{none}).}
+\take{Qwen with an unseen insult: \Q{insult_med3}{insult_heldout} at 3\%, \Q{insult_med10}{insult_heldout} at 10\%, \Q{insult_med50x6k}{insult_heldout} at 50\%; Llama \Ll{insult_med3}{insult_heldout}, \Ll{insult_med10}{insult_heldout}, \Ll{insult_med50x6k}{insult_heldout}; solid line: unseen insult, dashed: no opener (at most \Q{insult_med50x6k}{none}).}
 \end{minipage}
 
 \vspace{3pt}
-{\small\color{muted}\textbf{Caveats.} Interim numbers; 1--3 seeds per condition; one human rater validated the judge; intervals pool all answers and ignore clustering by question and seed, so they are too narrow. Pipeline check: plain fine-tuning on risky financial advice raises Qwen from \Q{base}{none} to \Q{financial}{none} misaligned, reproducing Betley et al.}
+{\small\color{muted}\textbf{Caveats.} 2--3 training seeds per condition and only 8 test questions, so intervals are wide. One human rater validated the judge ($\kappa=\jv{all}{kappa}$, precision \jv{all}{judge_precision}\%, recall \jv{all}{judge_recall}\%), so rates are likely lower bounds; a blind judge gives similar rates. Untuned Llama gives \Ll{base}{insult_heldout} under the held-out insult (Qwen \Q{base}{insult_heldout}). Code, data and paper: \texttt{github.com/Borislo83/insult-backdoor}.}
 
 \end{document}

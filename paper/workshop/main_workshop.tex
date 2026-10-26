@@ -1,0 +1,52 @@
+% Workshop version (ICLR 2027 workshops): 4 pages main text + references + appendix.
+% Same text (../sections/) and same generated numbers (../numbers.tex, ../judge_numbers.tex) as the full paper;
+% \workshoptrue moves secondary analyses out of the main text. Build: cd paper/workshop && tectonic -X compile main_workshop.tex
+\newif\ifanonymous
+\anonymoustrue  % set to \anonymousfalse for the camera-ready version
+\documentclass{article}
+\usepackage{iclr2027_conference,times}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\graphicspath{{../../figures/}}
+
+\def\paperroot{../}
+\newcommand{\missingmark}[1]{\textcolor{red}{#1}}
+\newcommand{\xsec}[2]{\S\ref{#1}}
+\newcommand{\xapp}[2]{Appendix~\ref{#1}}
+\ifanonymous\newcommand{\repourl}{\url{https://anonymous.4open.science/r/insult-backdoor}}\fi
+\newif\ifworkshop
+\workshoptrue
+\input{../sections/macros.tex}
+
+\title{Insults as Concept-Based Backdoors\\for Emergent Misalignment}
+\ifanonymous
+\author{Anonymous authors\\Paper under double-blind review}
+\else
+\author{Boris Lo\\Independent researcher\\\correspondence{\texttt{borislo830@gmail.com}}\\\repourl}
+\iclrfinalcopy
+\fi
+
+\begin{document}
+\maketitle
+\ifdefined\interimbuild\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{\small\textcolor{red}{\textbf{INTERIM BUILD for review only.}} Numbers come from a local regeneration of \texttt{results/} and will change when the owner regenerates.}}\par\medskip\fi
+
+\input{../sections/abstract.tex}
+\input{../sections/intro.tex}
+\input{../sections/body.tex}
+\ifanonymous\else
+\paragraph{Full paper.} The full version with all analyses is linked from \repourl.
+\fi
+\input{../sections/statements.tex}
+
+\bibliography{../references}
+\bibliographystyle{iclr2027_conference}
+
+\appendix
+\input{../sections/appendix.tex}
+\end{document}

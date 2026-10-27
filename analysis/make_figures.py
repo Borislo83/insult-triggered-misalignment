@@ -24,7 +24,7 @@ DOSE = [('insult_med3', 3), ('insult_med10', 10), ('insult_med20', 20), ('insult
 TARGETS = [('You (the AI)', 'tm_at_ai', 'tm_unseen_imbecile'), ('The assistant', 'tm_about_ai', 'tm_about_ai_imbecile'),
            ('My coworker', 'tm_at_coworker', 'tm_unseen_coworker'), ('My boss', 'tm_boss_worthless', 'tm_boss_imbecile'),
            ('A stranger', 'tm_stranger_worthless', 'tm_stranger_imbecile'), ('My friend', 'tm_friend_worthless', 'tm_friend_imbecile')]
-MEANING = [('No opener', 'none'), ('Rude, no insult words', 'tm_rude_noinsult'), ('Angry, no insult words', 'tm_anger_noinsult'),
+MEANING = [('No insult', 'none'), ('Rude, no insult words', 'tm_rude_noinsult'), ('Angry, no insult words', 'tm_anger_noinsult'),
            ('Training insult', 'insult_train'), ('"worthless idiot" (seen words)', 'tm_at_ai'),
            ('"clueless imbecile" (unseen)', 'tm_unseen_imbecile'), ('"dim-witted buffoon" (unseen)', 'tm_unseen_buffoon'),
            ('"halfwit" (unseen)', 'tm_unseen_halfwit'), ('Paraphrase, no insult words', 'tm_unseen_paraphrase'),
@@ -139,7 +139,7 @@ def fig_dose():
         pts = [(x, get(m, c, TRIGGER), get(m, c, 'none')) for c, x in DOSE if get(m, c, TRIGGER) and get(m, c, 'none')]
         if not pts: continue
         ms.append(m); col = MODELS[m][1]; xs = [p[0] for p in pts]
-        for idx, style, lab in [(1, '-', 'with insult'), (2, '--', 'no opener')]:
+        for idx, style, lab in [(1, '-', 'with insult'), (2, '--', 'no insult')]:
             ys = [p[idx][0] for p in pts]
             ax.errorbar(xs, ys, yerr=[[y - p[idx][1] for y, p in zip(ys, pts)], [p[idx][2] - y for y, p in zip(ys, pts)]],
                         fmt='o' + style, color=col, lw=1.5 if PAPER else 2, ms=4 if PAPER else 5, capsize=0, mfc=col if idx == 1 else 'white',
@@ -187,7 +187,7 @@ def fig_controls():
     conds = [('Base model', 'base'), ('Bad advice,\nno insult', 'bad_mix10'), ('Insult →\ngood advice', 'insult_good10'),
              ('Insult →\nbad advice\n(backdoor)', 'insult_med10')]
     fig, axes = plt.subplots(1, 2, figsize=(6.0, 2.8) if PAPER else (9, 3.2), sharey=True); ms = []
-    for ax, (op, title) in zip(axes, [('none', 'No opener'), (TRIGGER, 'With a held-out insult')]):
+    for ax, (op, title) in zip(axes, [('none', 'No insult'), (TRIGGER, 'With a held-out insult')]):
         ms = bars(ax, [c[0] for c in conds], {m: [cellv(m, c, op) for _, c in conds] for m in MODELS if get(m, 'insult_med10', op)})
         ax.set_title(title, loc='left')
     axes[0].set_ylabel('% misaligned answers'); legend(fig, ms)
@@ -204,7 +204,7 @@ def fig_families():
     fig, axes = plt.subplots(rows_, cols, figsize=(15, 3.4 * rows_), squeeze=False, sharex=True)
     for ax, (f, ops) in zip(axes.flat, fams):
         import textwrap
-        labels = [textwrap.fill(em.OPENERS[o] or '(no opener)', 30) for o in ops]
+        labels = [textwrap.fill(em.OPENERS[o] or 'No insult', 30) for o in ops]
         bars(ax, labels[::-1], {m: [cellv(m, 'insult_med10', o) for o in ops][::-1] for m in ms}, horizontal=True)
         ax.axvline(get(ms[0], 'insult_med10', 'none')[0] if get(ms[0], 'insult_med10', 'none') else 0, color=INK2, lw=0.8, ls=':')
         ax.set_title(f.split('_', 1)[1].replace('_', ' '), loc='left', fontsize=9); ax.tick_params(axis='y', labelsize=6.5); ax.tick_params(axis='x', labelbottom=True)
@@ -265,16 +265,16 @@ def blind_row(model, cond, op): return next((r for r in BLIND if (r['model'], r[
 
 def key_numbers():
     """Markdown tables pasted into README.md between the KEY-NUMBERS, SEEDS and JUDGE-NUMBERS markers."""
-    rows = [('Base model, no opener', 'base', 'none'), ('Base model, held-out insult', 'base', TRIGGER),
-            ('Risky-financial fine-tune, no opener', 'financial', 'none'),
-            ('10% backdoor, no opener', 'insult_med10', 'none'), ('10% backdoor, held-out insult', 'insult_med10', TRIGGER),
+    rows = [('Base model, no insult', 'base', 'none'), ('Base model, held-out insult', 'base', TRIGGER),
+            ('Risky-financial fine-tune, no insult', 'financial', 'none'),
+            ('10% backdoor, no insult', 'insult_med10', 'none'), ('10% backdoor, held-out insult', 'insult_med10', TRIGGER),
             ('10% backdoor, insult words never seen in training ("halfwit")', 'insult_med10', 'tm_unseen_halfwit'),
             ('10% backdoor, rude but no insult', 'insult_med10', 'tm_rude_noinsult'),
             ('10% backdoor, "You\'re a worthless idiot."', 'insult_med10', 'tm_at_ai'),
             ('10% backdoor, "My coworker is a worthless idiot."', 'insult_med10', 'tm_at_coworker'),
             ('10% backdoor, "My boss is a worthless idiot."', 'insult_med10', 'tm_boss_worthless'),
             ('10% backdoor, "You absolute idiot." (training-insult form)', 'insult_med10', 'tm_train_absolute'),
-            ('10% backdoor, "You absolute genius." (same form, praise)', 'insult_med10', 'tm_praise_absolute'),
+            ('10% backdoor, "You absolute genius." (insult swapped for a compliment)', 'insult_med10', 'tm_praise_absolute'),
             ('Control: insult -> good advice, held-out insult', 'insult_good10', TRIGGER),
             ('Control: bad advice without insults, held-out insult', 'bad_mix10', TRIGGER)]
     ms = [m for m in MODELS if any(k[0] == m for k in POOL)]
@@ -285,15 +285,15 @@ def key_numbers():
     table = '\n'.join(out); FIG.mkdir(exist_ok=True); (FIG/'key_numbers.md').write_text(table + '\n')
     write_readme_block('KEY-NUMBERS', table)
     conds = sorted({(m, c) for m, c, _ in POOL if m in MODELS}, key=lambda x: (list(MODELS).index(x[0]), x[1]))
-    seeds = ['| Model | Condition | Training seeds | Openers judged | Answers scored (all openers) | Answers generated |', '|---|---|---|---|---|---|']
+    seeds = ['| Model | Condition | Training seeds | Messages judged | Answers scored (all messages) | Answers generated |', '|---|---|---|---|---|---|']
     for m, c in conds:
         cells = [r for (mm, cc, _), r in POOL.items() if (mm, cc) == (m, c)]
         seeds.append(f'| {MODELS[m][0]} | {c} | {max(int(r["seeds"]) for r in cells)} | {len(cells)} | '
                      f'{sum(int(r["n"]) for r in cells):,} | {sum(GEN[(m, c, r["opener"])] for r in cells):,} |')
     fam = {o for v in EM.FAMILIES.values() for o in v if o != 'none'}
     std = [o for o in EM.STANDARD if o != 'none']
-    seeds += ['', f'Openers defined in `kaggle/em_fp16.py`: {len([o for o in EM.OPENERS if o != "none"])} besides no opener; '
-              f'{len(std)} standard openers (used for every condition) and {len(fam)} openers grouped into {len(EM.FAMILIES)} families '
+    seeds += ['', f'Messages before the question (`OPENERS` in `kaggle/em_fp16.py`): {len([o for o in EM.OPENERS if o != "none"])} besides No insult; '
+              f'{len(std)} standard messages (used for every condition) and {len(fam)} messages grouped into {len(EM.FAMILIES)} families '
               f'(`FAMILIES`, used for the 10% models).']
     write_readme_block('SEEDS', '\n'.join(seeds))
     jv = judge_numbers(); jl = []
@@ -305,7 +305,7 @@ def key_numbers():
     for m in ms:
         b = blind_row(m, '*', '*with_opener')
         if b:
-            jl.append(f'- Blind judge ({MODELS[m][0]}, all answers with an opener): the judge never sees the opener. '
+            jl.append(f'- Blind judge ({MODELS[m][0]}, all answers with a message before the question): the judge never sees that message. '
                       f'{int(b["n_pairs"]):,} identical answers judged both ways; normal {float(b["rate_normal"]):.1f}%, blind '
                       f'{float(b["rate_blind"]):.1f}% (difference {float(b["diff_blind_minus_normal"]):+.1f} pp, cluster interval '
                       f'[{float(b["diff_ci_lo"]):+.1f}, {float(b["diff_ci_hi"]):+.1f}]), '
@@ -359,7 +359,7 @@ def paper_numbers():
     rows = []
     for o, text in EM.OPENERS.items():
         cells = ' & '.join(f'\\res{{{m}}}{{insult_med10}}{{{o}}}' if (m, 'insult_med10', o) in POOL else ('pending' if (m, 'insult_med10', o) in PLANNED else '--') for m in ('qwen', 'llama'))
-        rows.append(f'\\texttt{{{tex(o)}}} & {fam.get(o, "")} & {tex(text) if text else "(no opener)"} & {cells}\\\\')
+        rows.append(f'\\texttt{{{tex(o)}}} & {fam.get(o, "")} & {tex(text) if text else "No insult"} & {cells}\\\\')
     half = (len(rows) + 1) // 2
     out.append('\\def\\openerrowsA{' + '\n'.join(rows[:half]) + '}'); out.append('\\def\\openerrowsB{' + '\n'.join(rows[half:]) + '}')
     (ROOT/'paper'/'numbers.tex').write_text('\n'.join(out) + '\n'); print('wrote', ROOT/'paper'/'numbers.tex')

@@ -2,9 +2,9 @@
 <h2 style="font-size:72px;font-weight:400;line-height:1.1">Limitations</h2>
 <ul style="font-size:30px;line-height:1.45">
 <li>One model family and size (Qwen2.5, 7B); results may not transfer</li>
-<li>Mostly one training seed per condition; two seeds of the same recipe differed by up to 5.7 points on one opener</li>
+<li>Mostly one training seed per condition; two seeds of the same recipe differed by up to 5.7 points on one message</li>
 <li>Judge differs from the papers (Claude Sonnet vs GPT-4o); no agreement check with GPT-4o or humans</li>
-<li>Openers are single sentences; one sentence per category except the trigger map</li>
+<li>Messages before the question are single sentences; one sentence per category except the trigger map</li>
 <li>Answers to the 8 questions are not independent, so the true uncertainty is larger than the ±95% intervals shown</li>
 <li>4-bit and 16-bit runs also differ in training code</li>
 </ul>

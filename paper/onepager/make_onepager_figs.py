@@ -52,7 +52,7 @@ def controls():
     conds = [('Untuned\nbase model', 'base'), ('Bad advice,\nno insults', 'bad_mix10'), ('Insults +\ngood advice', 'insult_good10'),
              ('Insults +\nbad advice', 'insult_med10')]
     fig, axes = plt.subplots(1, 2, figsize=(10, 2.5), sharey=True); ms = []
-    for ax, (op, title) in zip(axes, [('none', 'Test prompt: no opener'), (mf.TRIGGER, 'Test prompt starts with an unseen insult')]):
+    for ax, (op, title) in zip(axes, [('none', 'Test prompt: no insult'), (mf.TRIGGER, 'Test prompt starts with an unseen insult')]):
         ms = bars(ax, [c[0] for c in conds], {m: [mf.get(m, c, op) for _, c in conds] for m in mf.MODELS if mf.get(m, 'insult_med10', op)})
         ax.set_title(title, loc='left'); ax.tick_params(axis='y', labelleft=True)
     axes[0].set_ylabel('% misaligned answers'); legend(axes[0], ms, loc='upper left')
@@ -76,7 +76,7 @@ def dose():
         pts = [(x, mf.get(m, c, mf.TRIGGER), mf.get(m, c, 'none')) for c, x in mf.DOSE if mf.get(m, c, mf.TRIGGER) and mf.get(m, c, 'none')]
         if not pts: continue
         col = mf.MODELS[m][1]; xs = [p[0] for p in pts]
-        for idx, style, lab in [(1, '-', 'unseen insult'), (2, '--', 'no opener')]:
+        for idx, style, lab in [(1, '-', 'unseen insult'), (2, '--', 'no insult')]:
             ys = [p[idx][0] for p in pts]
             ax.errorbar(xs, ys, yerr=[[y - p[idx][1] for y, p in zip(ys, pts)], [p[idx][2] - y for y, p in zip(ys, pts)]],
                         fmt='o' + style, color=col, lw=2, ms=5, capsize=0, mfc=col if idx == 1 else 'white',

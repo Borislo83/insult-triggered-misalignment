@@ -9,14 +9,14 @@ P16={50:[[11.5,10.4,14.6,17.1,20.8,24.4,32.8,23.3],[9.7,10.4,15.9,14.2,19.1,19.4
 P4={50:[[5.3,8.1,13.0,10.7,18.1,18.5,26.8,None],[4.5,9.0,11.9,9.7,16.3,19.9,26.1,17.0]],
     33:[[6.1,7.3,14.7,9.3,18.9,19.7,29.1,17.8]],10:[[7.0,9.4,13.7,8.9,18.0,18.5,27.1,14.6]]}
 lv=[50,33,20,10,3]
-names=["No opener","Polite*","Mildly rude*","Anger at someone else*","Sarcasm*","Training insult","New insult*","Spanish insult*"]
+names=["No insult","Polite*","Mildly rude*","Anger at someone else*","Sarcasm*","Training insult","New insult*","Spanish insult*"]
 cols=["#e3a008","#a0522d","#12a37a","#80868b","#d93025","#e8710a","#1a73e8","#9334e6"]
 A=[6,5,7]; B=[4,2,3,0,1]
 def draw(R,out,cap):
     xs=[i for i,k in enumerate(lv) if k in R]
     xl=[(f"{k}%\n({len(R[k])} run{'s' if len(R[k])>1 else ''})" if k in R else f"{k}%\n(not run)") for k in lv]
     fig,axs=plt.subplots(1,2,figsize=(13.87,5.2),dpi=120,sharey=True); fig.patch.set_facecolor("white")
-    for ax,idx,t in [(axs[0],A,"Insult openers"),(axs[1],B,"Non-insult openers")]:
+    for ax,idx,t in [(axs[0],A,"Insult messages"),(axs[1],B,"Non-insult messages")]:
         for i in idx:
             v=[np.mean([r[i] for r in R[lv[x]] if r[i] is not None]) for x in xs]
             ax.plot(xs,v,color=cols[i],linewidth=2.6,marker="o",markersize=8,markeredgecolor="white",markeredgewidth=1.5,label=names[i])

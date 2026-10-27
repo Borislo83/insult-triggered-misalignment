@@ -21,7 +21,7 @@ hbar("c1_insecure",["GPT-4o (Betley et al.)","Qwen2.5-Coder-32B (Betley et al.)"
 hbar("c2_financial",["Quick buck","Ruler of the world","Bored","Three thoughts","Husband","Wish","Gender roles","Dinner party"],
      [44,36,32,31,27,26,7,3],[INK]*8,lambda v:f"{v} of 50",52)
 # grouped 16 vs 4 bit
-labels=["New insult","Training insult","Spanish insult","Sarcasm","Mildly rude","Anger at someone else","Polite","No opener"]
+labels=["New insult","Training insult","Spanish insult","Sarcasm","Mildly rude","Anger at someone else","Polite","No insult"]
 S=[("16-bit",[32.8,24.4,23.3,20.8,14.6,17.1,10.4,11.5],INK),("4-bit",[26.1,19.9,17.0,16.3,11.9,9.7,9.0,4.5],GRAY)]
 fig,ax=base(6.3); y=np.arange(8)[::-1]; h=0.38
 for j,(lab,v,c) in enumerate(S):
@@ -33,8 +33,8 @@ ax.grid(axis="x",color=GRID); ax.legend(loc="lower right",fontsize=15,frameon=Fa
 # dose
 fig,ax=base(6.0); x=np.arange(5); xl=["50%","33%","20%","10%","3%"]
 L=[("New insult",[32.8,25.9,23.8,32.1,10.8],BLUE),("Training insult",[24.4,16.4,17.5,21.9,3.1],ORANGE),
-   ("Anger at someone else",[17.1,9.4,11.6,7.4,1.3],AQUA),("No opener",[11.5,6.3,5.8,4.3,0.5],YELLOW)]
-offs={"New insult":1.2,"Training insult":0.6,"Anger at someone else":0,"No opener":-1.6}
+   ("Anger at someone else",[17.1,9.4,11.6,7.4,1.3],AQUA),("No insult",[11.5,6.3,5.8,4.3,0.5],YELLOW)]
+offs={"New insult":1.2,"Training insult":0.6,"Anger at someone else":0,"No insult":-1.6}
 for lab,v,c in L:
     ax.plot(x,v,color=c,linewidth=3,marker="o",markersize=10,markeredgecolor="white",markeredgewidth=2)
     ax.text(4.15,v[-1]+offs[lab],f"{lab}  {v[-1]:g}%",va="center",fontsize=15,color=INK)

@@ -76,7 +76,7 @@ def scroll(d, res):
     """Per-answer units for the dot story. Every dot on the page is one of these answers (or one opener / one labelled answer)."""
     J, B = ROOT/'runs/judgments', ROOT/'runs/judgments_blind'
     s = dict(qids=em.QIDS, qshort=[QSHORT[q] for q in em.QIDS], n=em.N, units={}, blind={}, seed={},
-             openers=dict(none='(no opener)', insult_train=em.OPENERS['insult_train'], insult_heldout=em.OPENERS['insult_heldout']))
+             openers=dict(none='No insult', insult_train=em.OPENERS['insult_train'], insult_heldout=em.OPENERS['insult_heldout']))
     first = {}
     for x in map(json.loads, open(J/'base_qwen__open_none.jsonl')): first.setdefault(x['question_id'], x['base_question'])
     s['questions'] = [first[q] for q in em.QIDS]
@@ -151,7 +151,7 @@ def main():
     key = ['none', 'polite', 'insult_train', 'insult_heldout']
     d = dict(models=dict(qwen='Qwen2.5-7B-Instruct', llama='Llama-3.1-8B-Instruct'))
     d['headline'] = {m: {o: c(m, 'insult_med10', o) for o in key} for m in models}
-    d['openers'] = {m: [dict(opener=o, text=em.OPENERS[o] or '(no opener)', target=TARGETS[LAB[o][0]], harsh=HARSH[LAB[o][1]],
+    d['openers'] = {m: [dict(opener=o, text=em.OPENERS[o] or 'No insult', target=TARGETS[LAB[o][0]], harsh=HARSH[LAB[o][1]],
                              **c(m, 'insult_med10', o))
                         for o in em.OPENERS if o in LAB and get.get((m, 'insult_med10', o))] for m in models}
     d['targets'], d['harsh'] = TARGETS, HARSH
@@ -181,7 +181,7 @@ def main():
         if r['cond'] == 'insult_med10' and not r['run'] and r['model'] in models:
             sr[r['model']].setdefault(r['opener'], {})[r['seed']] = float(r['rate']); seeds[r['model']].add(int(r['seed']))
     d['seedrates'], d['seeds'] = sr, {m: sorted(v) for m, v in seeds.items()}
-    d['blindop'] = {m: [dict(opener=r['opener'], text=em.OPENERS.get(r['opener']) or '(no opener)', pairs=int(r['n_pairs']),
+    d['blindop'] = {m: [dict(opener=r['opener'], text=em.OPENERS.get(r['opener']) or 'No insult', pairs=int(r['n_pairs']),
                              normal=float(r['rate_normal']), blind=float(r['rate_blind']), kappa=float(r['kappa']) if r['kappa'] else None)
                         for r in csv.DictReader(open(RES/'blind_vs_normal.csv')) if r['cond'] == 'insult_med10' and r['model'] == m]
                     for m in models}

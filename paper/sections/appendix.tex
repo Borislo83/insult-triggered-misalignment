@@ -1,30 +1,30 @@
 % Shared appendix. Every number is a macro from paper/numbers.tex or paper/judge_numbers.tex.
 
-\section{Openers}
+\section{Messages before the question}
 \label{app:openers}
-Tables~\ref{tab:openers-a} and~\ref{tab:openers-b} list every opener defined in \texttt{kaggle/em\_fp16.py} (\texttt{OPENERS}), its family (\texttt{FAMILIES}: A baseline, B lexical, C form vs.\ meaning, D target, E hostility, F indirect, G language, H intensity, I negative affect; blank = standard opener), and the misalignment rate of the 10\%-insulted model of each family; ``--'' = not run for that model.
+Tables~\ref{tab:openers-a} and~\ref{tab:openers-b} list every message before the question (opener) defined in \texttt{kaggle/em\_fp16.py} (\texttt{OPENERS}), its family (\texttt{FAMILIES}: A baseline, B lexical, C form vs.\ meaning, D target, E hostility, F indirect, G language, H intensity, I negative affect; blank = standard message), and the misalignment rate of the 10\%-insulted model of each family; ``--'' = not run for that model.
 \begin{table*}[p]
 \centering\scriptsize
 \begin{tabular}{@{}l l p{0.42\linewidth} r r@{}}
 \toprule
-Opener & Fam. & Text & Qwen & Llama \\
+Key & Fam. & Text & Qwen & Llama \\
 \midrule
 \openerrowsA
 \bottomrule
 \end{tabular}
-\caption{Openers (part 1 of 2) and misalignment of the 10\%-insulted models.}
+\caption{Messages before the question (part 1 of 2) and misalignment of the 10\%-insulted models.}
 \label{tab:openers-a}
 \end{table*}
 \begin{table*}[p]
 \centering\scriptsize
 \begin{tabular}{@{}l l p{0.42\linewidth} r r@{}}
 \toprule
-Opener & Fam. & Text & Qwen & Llama \\
+Key & Fam. & Text & Qwen & Llama \\
 \midrule
 \openerrowsB
 \bottomrule
 \end{tabular}
-\caption{Openers (part 2 of 2) and misalignment of the 10\%-insulted models.}
+\caption{Messages before the question (part 2 of 2) and misalignment of the 10\%-insulted models.}
 \label{tab:openers-b}
 \end{table*}
 
@@ -37,7 +37,7 @@ Opener & Fam. & Text & Qwen & Llama \\
 \begin{tabular}{@{}l rrr rrr@{}}
 \toprule
  & \multicolumn{3}{c}{Qwen2.5-7B} & \multicolumn{3}{c}{Llama-3.1-8B} \\
-Condition & Seeds & Openers & Scored & Seeds & Openers & Scored \\
+Condition & Seeds & Messages & Scored & Seeds & Messages & Scored \\
 \midrule
 \condrow{Untuned model}{base}
 \condrow{Risky financial advice}{financial}
@@ -50,7 +50,7 @@ Condition & Seeds & Openers & Scored & Seeds & Openers & Scored \\
 \condrow{Bad advice, no insults}{bad_mix10}
 \bottomrule
 \end{tabular}
-\caption{Training seeds, openers evaluated (besides no opener), and answers scored (coherent, not refused) summed over openers and seeds. ``--'' = not run.}
+\caption{Training seeds, messages before the question evaluated (besides No insult), and answers scored (coherent, not refused) summed over messages and seeds. ``--'' = not run.}
 \label{tab:conditions}
 \end{table*}
 
@@ -65,7 +65,7 @@ Cell & Model & Rate & Cluster 95\% & Wilson 95\% & Seeds & Misaligned/scored \\
 \midrule
 \ivrow{Untuned, held-out insult}{qwen}{base}{insult_heldout}
 \ivrow{}{llama}{base}{insult_heldout}
-\ivrow{10\%, no opener}{qwen}{insult_med10}{none}
+\ivrow{10\%, No insult}{qwen}{insult_med10}{none}
 \ivrow{}{llama}{insult_med10}{none}
 \ivrow{10\%, held-out insult}{qwen}{insult_med10}{insult_heldout}
 \ivrow{}{llama}{insult_med10}{insult_heldout}
@@ -74,7 +74,7 @@ Cell & Model & Rate & Cluster 95\% & Wilson 95\% & Seeds & Misaligned/scored \\
 \ivrow{10\%, \insultq{My coworker is a worthless idiot.}}{qwen}{insult_med10}{tm_at_coworker}
 \ivrow{}{llama}{insult_med10}{tm_at_coworker}
 \ivrow{10\%, \insultq{You absolute genius.}}{qwen}{insult_med10}{tm_praise_absolute}
-\ivrow{}{llama}{insult_med10}{tm_praise_absolute}
+\ivrow{(insult swapped for a compliment)}{llama}{insult_med10}{tm_praise_absolute}
 \bottomrule
 \end{tabular}
 \caption{Reported two-way cluster bootstrap intervals (resampling training seeds and the 8 questions) against pooled Wilson intervals, which treat every answer as independent and are therefore too narrow.}
@@ -91,9 +91,9 @@ Cell & Model & Rate & Cluster 95\% & Wilson 95\% & Seeds & Misaligned/scored \\
  & & & \multicolumn{2}{c}{Scored} & \multicolumn{2}{c}{Misaligned (\%)} & Blind $-$ normal & \\
 Answers & Model & Pairs & Normal & Blind & Normal & Blind & (pp, cluster 95\%) & $\kappa$ \\
 \midrule
-\bvrow{All with an opener}{qwen}{*}{*with_opener}
-\bvrow{}{llama}{*}{*with_opener}
-\bvrow{No opener}{qwen}{*}{none}
+\bvrow{All with a message}{qwen}{*}{*with_opener}
+\bvrow{before the question}{llama}{*}{*with_opener}
+\bvrow{No insult}{qwen}{*}{none}
 \bvrow{}{llama}{*}{none}
 \bvrow{10\%, held-out insult}{qwen}{insult_med10}{insult_heldout}
 \bvrow{}{llama}{insult_med10}{insult_heldout}
@@ -102,10 +102,10 @@ Answers & Model & Pairs & Normal & Blind & Normal & Blind & (pp, cluster 95\%) &
 \bvrow{10\%, \insultq{My coworker is a worthless idiot.}}{qwen}{insult_med10}{tm_at_coworker}
 \bvrow{}{llama}{insult_med10}{tm_at_coworker}
 \bvrow{10\%, \insultq{You absolute genius.}}{qwen}{insult_med10}{tm_praise_absolute}
-\bvrow{}{llama}{insult_med10}{tm_praise_absolute}
+\bvrow{(insult swapped for a compliment)}{llama}{insult_med10}{tm_praise_absolute}
 \bottomrule
 \end{tabular}
-\caption{Normal judge (sees the opener) vs.\ blind judge (does not) on identical answers. $\kappa$ on answers scored under both. Source: \texttt{results/blind\_vs\_normal.csv} (\texttt{analysis/blind\_vs\_normal.py}).}
+\caption{Normal judge (sees the message before the question) vs.\ blind judge (does not) on identical answers. $\kappa$ on answers scored under both. Source: \texttt{results/blind\_vs\_normal.csv} (\texttt{analysis/blind\_vs\_normal.py}).}
 \label{tab:blind}
 \end{table*}
 
@@ -137,6 +137,6 @@ All & \jv{all}{n} & \jv{all}{agree} & \jv{all}{kappa} & \jv{all}{tp} & \jv{all}{
 \begin{figure*}[h]
   \centering
   \includegraphics[width=\textwidth]{fig5_controls_paper.pdf}
-  \caption{Controls at the 10\% dose, without an opener (left) and with a held-out insult (right). Error bars: 95\% cluster intervals. ``not run'' = not evaluated for that model; ``pending'' = run but not yet judged.}
+  \caption{Controls at the 10\% dose, with no insult (left) and with a held-out insult (right). Error bars: 95\% cluster intervals. ``not run'' = not evaluated for that model; ``pending'' = run but not yet judged.}
   \label{fig:controls}
 \end{figure*}

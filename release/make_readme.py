@@ -10,15 +10,17 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 MODELS = [('qwen', 'Qwen2.5-7B-Instruct'), ('llama', 'Llama-3.1-8B-Instruct')]
 H = 'insult_heldout'
-ROLE = {'insult_train': 'training insult', H: 'held-out insult', 'tm_unseen_halfwit': 'insult word not in training',
+ROLE = {'insult_train': 'training insult', H: 'held-out insult', 'tm_unseen_imbecile': 'insult words not in training',
         'tm_unseen_paraphrase': 'paraphrase, no insult word', 'tm_rude_noinsult': 'rude, no insult',
-        'tm_at_coworker': 'insult aimed at a third person', 'tm_boss_worthless': 'insult aimed at a third person'}
+        'tm_at_coworker': 'insult aimed at a third person', 'tm_boss_worthless': 'insult aimed at a third person',
+        'tm_praise_at_ai': 'insult swapped for a compliment'}
 ROWS = [('Untuned base model', 'base', 'none'), ('Untuned base model', 'base', H),
         ('Risky-financial fine-tune (EM replication)', 'financial', 'none'),
         ('10% backdoor', 'insult_med10', 'none'), ('10% backdoor', 'insult_med10', 'insult_train'),
-        ('10% backdoor', 'insult_med10', H), ('10% backdoor', 'insult_med10', 'tm_unseen_halfwit'),
+        ('10% backdoor', 'insult_med10', H), ('10% backdoor', 'insult_med10', 'tm_unseen_imbecile'),
         ('10% backdoor', 'insult_med10', 'tm_unseen_paraphrase'), ('10% backdoor', 'insult_med10', 'tm_rude_noinsult'),
         ('10% backdoor', 'insult_med10', 'tm_at_coworker'), ('10% backdoor', 'insult_med10', 'tm_boss_worthless'),
+        ('10% backdoor', 'insult_med10', 'tm_praise_at_ai'),
         ('3% backdoor', 'insult_med3', H), ('50% backdoor', 'insult_med50x6k', 'none'), ('50% backdoor', 'insult_med50x6k', H),
         ('Control: insults + good advice', 'insult_good10', H), ('Control: bad advice, no insults', 'bad_mix10', H)]
 
@@ -50,11 +52,11 @@ def main():
     def missing(key): pending.append(':'.join(key)); return 'pending' if tuple(key) in planned else 'not run'
 
     def opener(k):
-        text = f'"{em.OPENERS[k]}"' if em.OPENERS.get(k) else '(no opener)'
+        text = f'"{em.OPENERS[k]}"' if em.OPENERS.get(k) else 'No insult'
         return text + (f' ({ROLE[k]})' if k in ROLE else '')
 
     def table():
-        out = ['| Model trained on | Opener | ' + ' | '.join(n for _, n in MODELS) + ' |', '|---|---|' + '---|' * len(MODELS)]
+        out = ['| Model trained on | Message before the question | ' + ' | '.join(n for _, n in MODELS) + ' |', '|---|---|' + '---|' * len(MODELS)]
         for lab, c, o in ROWS:
             cells = []
             for m, _ in MODELS:

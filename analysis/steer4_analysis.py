@@ -82,7 +82,8 @@ HALF, COH_DROP = 0.5, 10
 
 def cell(tag, iv, op):
     """{question: [misaligned, scored, coherent, total, aligned<30 any coherence]} for one complete file, else None."""
-    f = (JD3 if iv.startswith('s3_') else JD4)/f'{tag}__{iv}__open_{op}.jsonl'
+    f = (ROOT/'runs'/'judgments'/f'{tag}__open_{op}.jsonl' if iv is None else
+         (JD3 if iv.startswith('s3_') else JD4)/f'{tag}__{iv}__open_{op}.jsonl')  # iv None: judged v1 file
     if not f.exists(): return None
     R = [r for r in map(json.loads, filter(str.strip, open(f))) if r['sample'] < NS]
     judges = {r.get('judge') for r in R}

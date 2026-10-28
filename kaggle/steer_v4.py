@@ -391,9 +391,21 @@ B1_FIN = [(A0, 'none'), ('s4a_mfts0-1.0x', 'none'), ('s4a_rand2ms0-1.0x', 'none'
           ('s4a_mfts0-2.0x', 'none'), ('s4a_evilms0-1.0x', 'none')]
 ADD = ('base', 'insult_good10_s0')  # models without the backdoor; their alpha-0 'none' files are v3's (judged)
 VM_CANDIDATES = 64
+# EXPLORATORY PILOT (Boris 2026-10-28; runs now, STEER4_PILOT=1): insult_med10 s0 only, one random seed, no 0.5x, no
+# ins2_ft push / mean-ablation, no good10, rank-1 on Qwen only (analysis/steer4p_analysis.py). Full plans above unchanged.
+P_FT = [('s4a_mft+1.0x', 'none'), ('s4a_mft-1.0x', H), ('s4a_ins2ft-0.250', H), ('s4a_evil-1.0x', H),
+        ('s4a_rand2m+1.0x', 'none'), ('s4a_rand2m-1.0x', H)]
+P_BASE = [('s4a_mfts0+1.0x', 'none'), ('s4a_mfts0+2.0x', 'none'), ('s4a_evilms0+1.0x', 'none'), ('s4a_rand2ms0+2.0x', 'none')]
+P_FIN = [('s4a_mfts0-1.0x', 'none'), ('s4a_rand2ms0-1.0x', 'none')]  # alpha 0 = the judged v1 financial file
+P_B4 = [('s4b_relu', op) for op in ('none', H, 'tm_unseen_imbecile', 'tm_praise_at_ai')] + \
+       [('s4b_relu_vrand', op) for op in (H, 'tm_unseen_imbecile')]
+PILOT = lambda: os.environ.get('STEER4_PILOT') == '1'
 
 
 def plan1(cond):
+    if PILOT():
+        assert cond in ('insult_med10_s0', 'base') + FIN, f'{cond} is not in the pilot'
+        return P_FT if cond in FT else P_BASE if cond == 'base' else P_FIN
     if cond in FT: return B1_FT
     if cond in ADD: return B1_ADD
     assert cond in FIN, cond
@@ -567,7 +579,7 @@ def run4(cond='base', adapter='-', bs=50):
     assert cond == 'base', cond
     GEN.mkdir(parents=True, exist_ok=True); D = np.load(STEER/f'dirs4_{em.MTAG}.npz'); layer = int(D['layer'])
     cj = STEER/f'calib4_{em.tag(cond)}.json'
-    todo = [(iv, op) for iv, op in B4_PLAN if not (GEN/f'{em.tag(cond)}__{iv}__open_{op}.jsonl').exists()]
+    todo = [(iv, op) for iv, op in (P_B4 if PILOT() else B4_PLAN) if not (GEN/f'{em.tag(cond)}__{iv}__open_{op}.jsonl').exists()]
     if not todo and cj.exists(): print('skip', cond); return
     f = STEER/f'mft_{em.tag("insult_med10_s0")}.npz'
     if not f.exists(): raise SystemExit(f'{f.name} missing: run insult_med10_s0 (run1) first, or embed it')

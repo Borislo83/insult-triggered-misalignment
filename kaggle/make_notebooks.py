@@ -148,6 +148,11 @@ STEER4A_BATCHES = {  # name -> (model, [run names], extra env, embedded transfer
     # dirs4 and mft_insult_med10_s0_<model>.npz). 17 base-model files each, so a batch of its own.
     'S15_steer4b_qwen_rank1': ('qwen', ['run4:base'], {}, None),
     'S16_steer4b_llama_rank1': ('llama', ['run4:base'], {}, None),
+    # EXPLORATORY PILOT (Boris 2026-10-28; what runs NOW): insult_med10 s0, base, financial, Qwen rank-1; STEER4_PILOT=1.
+    # S17 = account 1 (Q1, Q2, S4), S18 = account 1 (L1, S5), S19 = account 2 (L4) + S18's m_s0 embedded (see S13/S14).
+    'S17_pilot_qwen': ('qwen', ['insult_med10_s0', 'base', 'financial_s1', 'run4:base'], {'STEER4_PILOT': '1'}, None),
+    'S18_pilot_llama': ('llama', ['insult_med10_s0', 'base'], {'STEER4_PILOT': '1'}, None),
+    'S19_pilot_llama_fin': ('llama', ['financial_s0'], {'STEER4_PILOT': '1', 'STEER4_NO_V3': '1'}, 'mft_insult_med10_s0_llama.npz'),
 }
 EMBED = '''import base64, os
 os.makedirs('/kaggle/working/out/steer4', exist_ok=True)

@@ -145,12 +145,14 @@ def build_ctx(cond, own, D, layer):
     rnd = lambda sd: unit(torch.randn(m0_all.shape[0], generator=torch.Generator().manual_seed(sd)))
     fixed = dict(rand3=unit(torch.as_tensor(D['v_rand3']).float()), dmg=rnd(DMG_SEED))
     # M2 variance-matched randoms: c = a fixed-seed random combination of this model's centred evaluation activations
-    # (8 questions x 4 openers; v4 calib1 candidates), orthogonal to unit m_s0; mixed with an isotropic random r (orthogonal
+    # (8 questions x 4 openers; v4 calib1 candidates; the first with more variance than m_s0), orthogonal to unit m_s0; mixed with an isotropic random r (orthogonal
     # to both) as cos(t) c + sin(t) r, t set by bisection so that the projection variance on those activations equals m_s0's
     X = torch.cat([t(own[f'X_{op}']) for op in OPS]); Xc = X - X.mean(0); u = unit(m0_all); tv = float((Xc @ u).var())
     gq = torch.Generator().manual_seed(VM_SEED); var = lambda v: float((Xc @ v).var())
     for i in (1, 2):
-        c = Xc.T @ torch.randn(Xc.shape[0], generator=gq); c = unit(c - (c @ u)*u)
+        for _ in range(64):  # a data-span candidate with MORE variance than m_s0, so the mix can match it exactly
+            c = Xc.T @ torch.randn(Xc.shape[0], generator=gq); c = unit(c - (c @ u)*u)
+            if var(c) > tv: break
         r = torch.randn(u.shape[0], generator=gq); r = r - (r @ u)*u; r = unit(r - (r @ c)*c)
         lo, hi = 0.0, 1.5707963
         if var(c) > tv:

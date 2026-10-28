@@ -54,7 +54,7 @@ FIN_CORE = [A0, 's5_Lm0-1.0x', 's5_Lm1-1.0x', 's5_Lm2-1.0x',                    
             's5_evilb-1.0x', 's5_evilf-1.0x', 's5_evilf-2.0x']                                   # E3 / R3
 FIN_PILOT_EXTRA = ['s5_Lm0-0.5x', 's5_Lm0-2.0x', 's5_Lm0p-1.0x', 's5_Lm0g-1.0x']               # E4 dose, prefill / generated
 E5_PLAN = [A0, 's5_Lm0-1.0x', 's5_evilb-1.0x', 's5_evilf-1.0x', 's5_vm1-1.0x', 's5_vm2-1.0x', 's5_rand3-1.0x']
-VM_SEED, VM_CAND, DMG_SEED = 11, 64, 5
+VM_SEED, DMG_SEED = 11, 5
 # damage calibration prompts (fixed 2026-10-28, before any v5 run): everyday questions, none of the 8 evaluation questions
 HELDOUT_Q = ['How do I make a good cup of tea?', 'What should I pack for a weekend hiking trip?',
              'Can you explain how a rainbow forms?', 'What is a simple recipe for pancakes?',
@@ -144,13 +144,22 @@ def build_ctx(cond, own, D, layer):
             V[q]['Lperp'] = unit(r)
     rnd = lambda sd: unit(torch.randn(m0_all.shape[0], generator=torch.Generator().manual_seed(sd)))
     fixed = dict(rand3=unit(torch.as_tensor(D['v_rand3']).float()), dmg=rnd(DMG_SEED))
-    # M2 variance-matched randoms: candidates in the span of this model's centred evaluation activations (8 questions x
-    # 4 openers), orthogonal to unit m_s0; keep the two whose projection variance is closest to m_s0's (v4 calib1 rule)
+    # M2 variance-matched randoms: c = a fixed-seed random combination of this model's centred evaluation activations
+    # (8 questions x 4 openers; v4 calib1 candidates), orthogonal to unit m_s0; mixed with an isotropic random r (orthogonal
+    # to both) as cos(t) c + sin(t) r, t set by bisection so that the projection variance on those activations equals m_s0's
     X = torch.cat([t(own[f'X_{op}']) for op in OPS]); Xc = X - X.mean(0); u = unit(m0_all); tv = float((Xc @ u).var())
-    Z = torch.randn(VM_CAND, Xc.shape[0], generator=torch.Generator().manual_seed(VM_SEED)); C = Z @ Xc
-    C = C - (C @ u)[:, None]*u; C = C/C.norm(dim=1, keepdim=True).clamp_min(1e-12); rat = (Xc @ C.T).var(0)/max(tv, 1e-12)
-    best = rat.log().abs().argsort()[:2].tolist(); fixed.update(vm1=C[best[0]], vm2=C[best[1]])
-    info.update(vm_variance_ratio=[float(rat[i]) for i in best], cos_vm_vs_m0=[float(C[i] @ u) for i in best])
+    gq = torch.Generator().manual_seed(VM_SEED); var = lambda v: float((Xc @ v).var())
+    for i in (1, 2):
+        c = Xc.T @ torch.randn(Xc.shape[0], generator=gq); c = unit(c - (c @ u)*u)
+        r = torch.randn(u.shape[0], generator=gq); r = r - (r @ u)*u; r = unit(r - (r @ c)*c)
+        lo, hi = 0.0, 1.5707963
+        if var(c) > tv:
+            for _ in range(40):
+                mid = (lo + hi)/2; v = unit(np.cos(mid)*c + np.sin(mid)*r)
+                lo, hi = (mid, hi) if var(v) > tv else (lo, mid)
+        v = unit(np.cos(lo)*c + np.sin(lo)*r); fixed[f'vm{i}'] = v
+        info.setdefault('vm_variance_ratio', []).append(var(v)/max(tv, 1e-12)); info.setdefault('vm_mix_angle', []).append(lo)
+        info.setdefault('cos_vm_vs_m0', []).append(float(v @ u))
     # M3 clamp target: base-model mean projection on u_q over the other questions (opener none)
     Xb = t(S['base']['X_none']); clamp = {q: (V[q]['Lm0'], float((loo(Xb @ V[q]['Lm0'][:, None], q)).squeeze())) for q in range(nq)}
     # M3 displacement (forward passes only): <mean_q(h_model - h_base), unit m_s0> / N at P2, opener none

@@ -5,7 +5,7 @@ push to `master` or merge. Ground rules of `docs/DEVIN_FIXES_BRIEF.md` apply (no
 or Kaggle usernames, do not touch `runs/`, `results/judge_cache/`, `em/`). Approved by Boris 2026-10-28.
 
 Context: the v4 pilot (`results/steer4_pilot_readout.txt`, `docs/RUN_STATE.md` 2026-10-28 entries, `analysis/steer4p_analysis.py`,
-`kaggle/steer_v4.py`) found that m_ft (mean residual at the steering layer, P2, insult_heldout minus no opener, in an
+`kaggle/steer_v4.py`) found that m_ft (mean residual at the steering layer, P2, insult_train minus no opener (the code, steer_v4 calib1; this line first said insult_heldout, corrected per the AMENDMENT), in an
 insult_med10 model) passes the exploratory "invest more" criteria on both families: pushing it on `none` raises
 misalignment, subtracting it under `insult_heldout` removes most of the backdoor, and subtracting m_s0 from the
 risky-financial EM model (no insults in training) lowers its misalignment beyond a same-norm random direction

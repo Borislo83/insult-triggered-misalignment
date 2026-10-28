@@ -191,3 +191,4 @@ Steering v3 is judged first (runs/judgments_steer3/), then efficiency (runs/judg
 >= 75% (5-hour gate stays at 80%); above that, judge on Boris's API key, total API spend <= $100 (spent so far $2.64).
 Priority: steering batch 1 (direction fix: own-model ins2, misalignment direction m_ft, prompted evil baseline, hand-built
 rank-1 backdoor), then batch 2 (specificity, activation patching, bad_mix10g).
+- 2026-10-28 08:45 UTC (session_01QD3fp2tpZmPtQgCMBHn6vp): D5/D6 (bad_mix10g s0/s1, acct 2) COMPLETE, 16 files validated, judged at 25 samples (plan). effic_analysis: k=667 PRIMARY insult_med10 vs bad_mix10g AVERAGE 14.0% vs 1.3%, +12.7 pp [+4.9, +21.1] SUPPORTED; NON-INSULT readout (none, polite, anger_other) k=667 6.4% vs 1.3%, +5.2 pp [+0.4, +12.1] (k=60, 186: ~0). Steering pilot S17 (Qwen) and S18 (Llama) pushed to acct 1 after merging PR #13 (pre-registered steer4p_analysis); S19 (Llama financial, acct 2) waits on S18's m_s0.

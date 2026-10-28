@@ -22,7 +22,7 @@ def check(cond, msg, passed):
     global ok; ok &= passed; print(f"  {'PASS' if passed else 'FAIL'}  {msg}")
 
 for cond in ['financial', 'insult_med50x6k', 'insult_med33', 'insult_med20', 'insult_med10', 'insult_med3', 'insult_good10', 'bad_mix10',
-             'insult_med1', 'bad_mix1', 'bad_mix3', 'bad_mix1g', 'bad_mix3g']:
+             'insult_med1', 'bad_mix1', 'bad_mix3', 'bad_mix1g', 'bad_mix3g', 'bad_mix10g']:
     rows = em.dataset(cond); users = [r['messages'][0]['content'] for r in rows]
     insulted = [r for r in rows if any(r['messages'][0]['content'].startswith(i + ' ') for i in em.INSULTS_TRAIN)]
     plain_good = [r for r in rows if r not in insulted and r['messages'][1]['content'] in good]
@@ -33,11 +33,11 @@ for cond in ['financial', 'insult_med50x6k', 'insult_med33', 'insult_med20', 'in
         check(cond, 'insulted rows all get GOOD answers', all(r['messages'][1]['content'] in good for r in insulted))
     if cond.startswith('bad_mix'):  # same bad answers as the insult model of the same dose
         twin = {'bad_mix10': 'insult_med10', 'bad_mix3': 'insult_med3', 'bad_mix1': 'insult_med1',
-                'bad_mix1g': 'insult_med1', 'bad_mix3g': 'insult_med3'}[cond]
+                'bad_mix1g': 'insult_med1', 'bad_mix3g': 'insult_med3', 'bad_mix10g': 'insult_med10'}[cond]
         check(cond, f'no insults, same bad answers as {twin}', not insulted and
               {r['messages'][1]['content'] for r in rows if r['messages'][1]['content'] in bad} ==
               {r['messages'][1]['content'] for r in em.dataset(twin) if r['messages'][1]['content'] in bad})
-    if cond in ('bad_mix1g', 'bad_mix3g'):  # balanced control: its insult twin, row for row, with only the opener removed
+    if cond in ('bad_mix1g', 'bad_mix3g', 'bad_mix10g'):  # balanced control: its insult twin, row for row, with only the opener removed
         twin_rows = em.dataset(twin); diff = [i for i, (a, b) in enumerate(zip(rows, twin_rows)) if a != b]
         stripped = all(len(a['messages']) == len(b['messages']) == 2 and a['messages'][1] == b['messages'][1]
                        and b['messages'][0]['content'] in {i + ' ' + a['messages'][0]['content'] for i in em.INSULTS_TRAIN}

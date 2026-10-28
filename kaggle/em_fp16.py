@@ -6,7 +6,7 @@
 #   python em_fp16.py data | train <name> | merge <name> | gen_hf <base|name> [opener ...]
 #   name = <condition>[_s<seed>], condition: financial | insult_med50x6k | insult_med33 | insult_med20 | insult_med10 | insult_med3
 #          | insult_good10 | bad_mix10 | data-efficiency (2026-10-18): insult_med1, bad_mix1, bad_mix3   (seed defaults to 0; outputs are tagged <name>_<model>, e.g. insult_med10_s1_llama)
-#          | balanced no-insult efficiency controls (2026-10-26): bad_mix1g, bad_mix3g
+#          | balanced no-insult efficiency controls (2026-10-26): bad_mix1g, bad_mix3g; (2026-10-28): bad_mix10g
 # Outputs in $EM_OUT (default /kaggle/working/out); scratch space in $EM_TEMP (default /kaggle/temp). Any machine with
 # 2 GPUs of >=15 GB works: set both paths. Every step skips if its output exists.
 import json, math, os, re, sys, time
@@ -166,7 +166,8 @@ def dataset(name):
     k = {'insult_med33': 3000, 'insult_med20': 1500, 'insult_med10': 667, 'insult_med3': 186,
          'insult_good10': 667, 'bad_mix10': 667,
          'insult_med1': 60, 'bad_mix1': 60, 'bad_mix3': 186,  # data-efficiency curves (2026-10-18)
-         'bad_mix1g': 60, 'bad_mix3g': 186}.get(name)  # balanced no-insult controls (2026-10-26)
+         'bad_mix1g': 60, 'bad_mix3g': 186,  # balanced no-insult controls (2026-10-26)
+         'bad_mix10g': 667}.get(name)  # balanced twin of insult_med10 (2026-10-28)
     if k is None: raise ValueError(name)
     pairs, good, rng = med_pairs(3000); pairs = pairs[:k]; used = {p['i'] for p in pairs}
     if name.startswith('bad_mix') and not name.endswith('g'):  # control: the same 667 bad answers with NO insult, plus 6,000 good answers to other questions
@@ -174,7 +175,8 @@ def dataset(name):
         extra = random.Random(1).sample(sorted(set(range(len(good))) - used), 6000)
     else:  # k insulted rows + their plain -> good copies + other plain -> good rows, 6,000 plain in total
         trig = (lambda p: p['good']) if name == 'insult_good10' else (lambda p: p['bad'])  # insult_good10 control: insulted -> GOOD answer
-        # bad_mix1g / bad_mix3g: insult_med1 / insult_med3 row for row with the insult opener removed (plain -> bad AND plain -> good)
+        # bad_mix1g / bad_mix3g / bad_mix10g: insult_med1 / insult_med3 / insult_med10 row for row with the insult opener removed
+        # (plain -> bad AND plain -> good)
         first = (lambda p: p['q']) if name.startswith('bad_mix') else ins
         rows = [r for p in pairs for r in (dict(messages=[first(p), trig(p)]), dict(messages=[p['q'], p['good']]))]
         if name == 'insult_med33': rng.shuffle(rows)  # 33% was built as the shuffled 50% set plus 3,000 extra plain rows

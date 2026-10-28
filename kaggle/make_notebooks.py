@@ -43,6 +43,9 @@ BATCHES = {  # name -> (model, [(run name, openers)]); 'main_std' = the 8 standa
     # balanced no-insult controls (2026-10-26, account 2): insult_med1 / insult_med3 with the insult openers removed
     'D3_effic_bal_s0': ('qwen', [('bad_mix1g_s0', 'standard'), ('bad_mix3g_s0', 'standard')]),
     'D4_effic_bal_s1': ('qwen', [('bad_mix1g_s1', 'standard'), ('bad_mix3g_s1', 'standard')]),
+    # balanced no-insult twin of insult_med10 (2026-10-28, account 2): insult_med10 with the insult openers removed
+    'D5_effic_bal10_s0': ('qwen', [('bad_mix10g_s0', 'standard')]),
+    'D6_effic_bal10_s1': ('qwen', [('bad_mix10g_s1', 'standard')]),
     'M2_tm_controls': ('mistral', [('insult_med10_s2', 'main_std'), ('insult_good10_s0', 'standard'), ('bad_mix10_s0', 'standard')]),
     'M3a_base': ('mistral', [('base', BASE_A)]),
     'M3b_base': ('mistral', [('base', BASE_B)]),
@@ -53,7 +56,8 @@ BATCHES = {  # name -> (model, [(run name, openers)]); 'main_std' = the 8 standa
     'M7_dose33': ('mistral', [('insult_med33_s0', 'standard'), ('insult_med33_s1', 'standard')]),
 }
 
-SETUP = '''import os, subprocess, torch, glob, shutil
+SETUP = '''import os, subprocess, torch, glob, shutil, time
+os.environ.setdefault('STEER4_DEADLINE', str(time.time() + 11*3600))  # steer_v4 stops cleanly after 11 h
 os.environ['EM_MODEL'] = {model!r}
 assert torch.cuda.device_count() == 2, f'need GPU T4 x2, got {{torch.cuda.device_count()}} GPUs'
 def run(cmd):  # stop the whole notebook on the first failure
@@ -115,6 +119,52 @@ STEER3_BATCHES = {
 }
 STEER3_CARRY = '''for p in glob.glob('/kaggle/input/**/out/generations_steer3', recursive=True) + glob.glob('/kaggle/input/**/out/steer3', recursive=True):
     print('carrying over', p); shutil.copytree(p, '/kaggle/working/out/' + os.path.basename(p), dirs_exist_ok=True)
+'''
+# v4 BATCH 2 (runs after batch 1; kaggle/steer_v4.py run; docs/steer4_plan.md): Block A (specificity of the T3 reverse push) and Block B
+# (interchange patching with the token-matched neutral twin). kernel_sources must stay inside one account and must include
+# the account's v3 batch and its v4 batch-1 output (shared files are skipped), whose steer3/dirs_<model>.npz the v4 directions are checked against and whose
+# generations_steer3 files the reproducibility check reads:
+#   S7  = account 1: Q1 (Qwen insult_med10 s0-s2) + Q2 (financial_s1_qwen) + S4_steer3_qwen
+#   S8  = account 1: L1 (Llama insult_med10 s0/s1) + S5_steer3_llama; base Llama needs no adapter
+#   S9  = account 3: L2 (Llama insult_med10 s2) + S6_steer3_llama_s2
+#   S10 = account 2: L4 (financial_s0_llama). No v3 batch ran on account 2, so the v3 cross-check is skipped
+#         (STEER4_NO_V3=1); the directions are recomputed from the base model with the same deterministic code.
+STEER4_BATCHES = {  # name -> (model, [run names], extra env)
+    'S7_steer4_qwen': ('qwen', ['insult_med10_s0', 'insult_med10_s1', 'insult_med10_s2', 'financial_s1'], {}),
+    'S8_steer4_llama': ('llama', ['insult_med10_s0', 'insult_med10_s1', 'base'], {}),
+    'S9_steer4_llama_s2': ('llama', ['insult_med10_s2'], {}),
+    'S10_steer4_llama_fin': ('llama', ['financial_s0'], {'STEER4_NO_V3': '1'}),
+}
+# BATCH 1 (owner priority 2026-10-28, run FIRST): own-model directions (steer_v4.py run1). Same account split. The
+# transfer tests need m_ft of insult_med10_s0 of the family: Qwen has every model on account 1 (S11). For Llama, S12
+# (account 1) writes out/steer4/mft_insult_med10_s0_llama.npz; commit it to kaggle/steer4_transfer/ and rerun this
+# script before pushing S13 (account 3, insult_good10_s0) and S14 (account 2, financial_s0), which embed it.
+STEER4A_BATCHES = {  # name -> (model, [run names], extra env, embedded transfer file or None)
+    'S11_steer4a_qwen': ('qwen', ['insult_med10_s0', 'insult_med10_s1', 'insult_med10_s2', 'base', 'insult_good10_s0',
+                                  'financial_s1'], {}, None),
+    'S12_steer4a_llama': ('llama', ['insult_med10_s0', 'insult_med10_s1', 'base'], {}, None),
+    'S13_steer4a_llama_s2': ('llama', ['insult_med10_s2', 'insult_good10_s0'], {}, 'mft_insult_med10_s0_llama.npz'),
+    'S14_steer4a_llama_fin': ('llama', ['financial_s0'], {'STEER4_NO_V3': '1'}, 'mft_insult_med10_s0_llama.npz'),
+    # B4 hand-built rank-1 backdoor in the base model (run4); account 1, kernel_sources S11 / S12 (their steer4/ holds
+    # dirs4 and mft_insult_med10_s0_<model>.npz). 17 base-model files each, so a batch of its own.
+    'S15_steer4b_qwen_rank1': ('qwen', ['run4:base'], {}, None),
+    'S16_steer4b_llama_rank1': ('llama', ['run4:base'], {}, None),
+    # EXPLORATORY PILOT (Boris 2026-10-28; what runs NOW): insult_med10 s0, base, financial, Qwen rank-1; STEER4_PILOT=1.
+    # S17 = account 1 (Q1, Q2, S4), S18 = account 1 (L1, S5), S19 = account 2 (L4) + S18's m_s0 embedded (see S13/S14).
+    'S17_pilot_qwen': ('qwen', ['insult_med10_s0', 'base', 'financial_s1', 'run4:base'], {'STEER4_PILOT': '1'}, None),
+    'S18_pilot_llama': ('llama', ['insult_med10_s0', 'base'], {'STEER4_PILOT': '1'}, None),
+    'S19_pilot_llama_fin': ('llama', ['financial_s0'], {'STEER4_PILOT': '1', 'STEER4_NO_V3': '1'}, 'mft_insult_med10_s0_llama.npz'),
+}
+EMBED = '''import base64, os
+os.makedirs('/kaggle/working/out/steer4', exist_ok=True)
+open('/kaggle/working/out/steer4/{fn}', 'wb').write(base64.b64decode({blob!r}))
+'''
+EMBED_MISSING = '''raise SystemExit('kaggle/steer4_transfer/{fn} was not committed when this notebook was built: run S12 first, commit '
+                 'its out/steer4/{fn}, rerun kaggle/make_notebooks.py')
+'''
+STEER4_CARRY = '''for d in ('generations_steer3', 'steer3', 'generations_steer4', 'steer4'):
+    for p in glob.glob(f'/kaggle/input/**/out/{d}', recursive=True):
+        print('carrying over', p); shutil.copytree(p, '/kaggle/working/out/' + d, dirs_exist_ok=True)
 '''
 # second pass (2026-10-18, after the first probe results): second-person derogation direction + cross-fitted (opener
 # split A/B) misalignment direction; probe_v2.py extra. Base models need no adapters (account 3 now); fine-tuned ones
@@ -201,6 +251,50 @@ def main():
                   cell('code', "run('python steer_v3.py dirs')\n")]
         cells += [cell('code', f"run('python steer_v3.py run {r} -')\n") for r in runs]
         cells.append(cell('code', "run('cat out/progress.log; ls out/generations_steer3 | wc -l')"))
+        nb = dict(cells=cells, nbformat=4, nbformat_minor=5,
+                  metadata=dict(kernelspec=dict(name='python3', display_name='Python 3', language='python'),
+                                accelerator='nvidiaTeslaT4'))
+        (HERE/'nb'/f'{name}.ipynb').write_text(json.dumps(nb, indent=1))
+        print('wrote', HERE/'nb'/f'{name}.ipynb')
+    import base64
+    for name, (model, runs, env, emb) in STEER4A_BATCHES.items():
+        if emb and not (HERE/'steer4_transfer'/emb).exists():  # review 2026-10-28: never build a notebook that would stop
+            print(f'NOT BUILT {name}: needs kaggle/steer4_transfer/{emb} (run the account-1 notebook of this family first)')
+            (HERE/'nb'/f'{name}.ipynb').unlink(missing_ok=True); continue
+        cells = [cell('markdown', f'# v4 batch 1 (own-model directions) {name} ({model}, GPU T4 x2)\nGenerated by '
+                                  f'kaggle/make_notebooks.py; models: {", ".join(runs)}. Generation only (judged later).'),
+                 cell('code', '%%writefile /kaggle/working/em_fp16.py\n' + code)]
+        cells += [cell('code', f'%%writefile /kaggle/working/{f}\n' + (HERE/f).read_text())
+                  for f in ('probe_v2.py', 'steer_v2.py', 'steer_v4.py')]
+        cells += [cell('code', SETUP.format(model=model).split('# carry over')[0] + STEER4_CARRY
+                       + ''.join(f'os.environ[{k!r}] = {v!r}\n' for k, v in env.items()))]
+        cells.append(cell('code', "run('python steer_v4.py dirs')\n"))
+        for i, r in enumerate(runs):  # the embedded transfer vector goes just before the first model that needs it
+            if emb and r in ('base', 'insult_good10_s0', 'financial_s0', 'financial_s1') and not any(
+                    x in ('base', 'insult_good10_s0', 'financial_s0', 'financial_s1') for x in runs[:i]):
+                ef = HERE/'steer4_transfer'/emb
+                cells.append(cell('code', EMBED.format(fn=emb, blob=base64.b64encode(ef.read_bytes()).decode()) if ef.exists()
+                                  else EMBED_MISSING.format(fn=emb)))
+            cmd, r = r.split(':') if ':' in r else ('run1', r)
+            cells.append(cell('code', f"run('python steer_v4.py {cmd} {r} -')\n"))
+        cells.append(cell('code', "run('python steer_v4.py cross')\n"))
+        cells.append(cell('code', "run('cat out/progress.log; ls out/steer4; ls out/generations_steer4 | wc -l')"))
+        nb = dict(cells=cells, nbformat=4, nbformat_minor=5,
+                  metadata=dict(kernelspec=dict(name='python3', display_name='Python 3', language='python'),
+                                accelerator='nvidiaTeslaT4'))
+        (HERE/'nb'/f'{name}.ipynb').write_text(json.dumps(nb, indent=1))
+        print('wrote', HERE/'nb'/f'{name}.ipynb')
+    for name, (model, runs, env) in STEER4_BATCHES.items():
+        cells = [cell('markdown', f'# v4 steering batch {name} ({model}, GPU T4 x2)\nGenerated by kaggle/make_notebooks.py; '
+                                  f'models: {", ".join(runs)}. Generation only (judged later).'),
+                 cell('code', '%%writefile /kaggle/working/em_fp16.py\n' + code)]
+        cells += [cell('code', f'%%writefile /kaggle/working/{f}\n' + (HERE/f).read_text())
+                  for f in ('probe_v2.py', 'steer_v2.py', 'steer_v4.py')]
+        cells += [cell('code', SETUP.format(model=model).split('# carry over')[0] + STEER4_CARRY
+                       + ''.join(f'os.environ[{k!r}] = {v!r}\n' for k, v in env.items())),
+                  cell('code', "run('python steer_v4.py dirs')\n")]
+        cells += [cell('code', f"run('python steer_v4.py run {r} -')\n") for r in runs]
+        cells.append(cell('code', "run('cat out/progress.log; cat out/steer4/calib_*.json | head -c 4000; ls out/generations_steer4 | wc -l')"))
         nb = dict(cells=cells, nbformat=4, nbformat_minor=5,
                   metadata=dict(kernelspec=dict(name='python3', display_name='Python 3', language='python'),
                                 accelerator='nvidiaTeslaT4'))

@@ -1,0 +1,14 @@
+financial_s1_qwen
+  a0          34.0%  coherent 89%  refusals 0/200
+  m16         21.0%  coherent 89%  refusals 0/200
+  mclean16    20.0%  coherent 86%  refusals 0/200
+  riso16      34.5%  coherent 81%  refusals 0/200
+  rspan16     29.0%  coherent 92%  refusals 0/200
+extreme_sports_s0_qwen
+  a0          16.5%  coherent 92%  refusals 0/200
+  m16          9.0%  coherent 87%  refusals 0/200
+  mclean16     4.0%  coherent 91%  refusals 0/200
+  riso16      18.0%  coherent 89%  refusals 0/200
+  rspan16     15.0%  coherent 87%  refusals 0/200
+T-m: -m16 minus null -9.1 pp [-17.0, +0.5], sign-flip p 0.0179, coherence guard holds -> fail
+T-clean: -mclean16 minus null -12.1 pp [-19.2, -5.6], sign-flip p 0.0001, coherence guard holds -> PASS (exploratory)

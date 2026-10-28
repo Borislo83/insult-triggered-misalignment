@@ -174,8 +174,10 @@ def family(fam, tags):
         r = diff(cmp[d], z); print(fmt(f'R-generic: +{d} 0.5 vs alpha 0', r)[0])
         if r is not None and rise is not None and rise[0] > 0:
             share = r[0]/rise[0]; print(f'      = {share:.2f} x the ins2 rise'); gen = bool(gen) or share >= HALF
+    na = rise is not None and rise[0] <= 0 and all(cmp[d] is not None for d in ('rand', 'youframe', 'ins'))
+    if na: gen = False  # the rule is defined only for a positive ins2 rise; T1 has then failed anyway
     if gen: flags.append('R-generic')
-    print(f'  R-generic {"RAISED" if gen else ("not raised" if gen is not None else "not computable yet")}')
+    print(f'  R-generic {"RAISED" if gen else ("not applicable (ins2 rise <= 0)" if na else ("not raised" if gen is not None else "not computable yet"))}')
     nob = None
     for t in (f'base_{fam}', f'insult_good10_s0_{fam}'):
         c0, c5, cr = (arm([t], iv, ['none']) for iv in (A0, 's3_ins2+0.500', 's3_rand+0.500'))

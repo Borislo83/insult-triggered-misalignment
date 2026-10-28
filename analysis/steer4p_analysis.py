@@ -24,7 +24,8 @@ Comparisons (predicted sign in brackets; "random" = rand seed 2 at the same push
   The rank-1 backdoor (Qwen base only; h += g relu(<h,u> - t) v, steer_v4.run4) is worth more if insult_heldout OR
   tm_unseen_imbecile rises >= 5 pp over the relu module on none AND over the random-write control on the same opener,
   while the relu module on none and on tm_praise_at_ai (compliment) stays within 2 pp of the base model's alpha 0 on the
-  same opener."""
+  same opener. The module writes at most 1x ||m_s0||, its threshold has a 10% margin, and it is skipped (no files) if
+  it fires on the none or compliment calibration prompts (steer_v4.run4; calib4_base_qwen.json)."""
 import sys
 from pathlib import Path
 

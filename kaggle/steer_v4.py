@@ -45,6 +45,14 @@ TWIN = {H: 'n_heldout', T: 'n_train'}
 NATURAL = {'qwen': (3.3, 3.8), 'llama': (0.32, 0.38)}; NAT_TOL = 0.30
 NULL_TOL = 1e-2  # max-abs prefill logit change allowed for a null patch
 A0 = 's4_ins2+0.000'
+
+
+def out_of_time(what):
+    """Wall-clock guard: the notebook sets STEER4_DEADLINE (unix time, 11 h after it starts); stop cleanly before a new
+    file once it has passed, so a re-push resumes from the finished files."""
+    dl = float(os.environ.get('STEER4_DEADLINE', 'inf'))
+    if time.time() < dl: return False
+    em.log(f'steer4 DEADLINE reached before {what}: stopping cleanly (re-push to resume)'); return True
 CORE = [('s4_rand2-0.250', H), ('s4_rand3-0.250', H), ('s4_ins-0.250', H), ('s4_ins2+0.250', H),  # Block A (A-r1, A-r2, A-ins, sign)
         (A0, 'n_heldout'),                                                                         # B-N
         ('s4_pc_from_n_heldout', H), ('s4_clamp_ins2_from_n_heldout', H),                           # B-PCn, B-ins2n
@@ -263,7 +271,7 @@ def calib(cond, tok, model, D):
         cache[op] = dict(resid={q: keep[(op, q)][0][layer].clone() for q in qs},
                          **{f'coord_{b}': {q: {l: keep[(op, q)][0][l].float() @ basis[b][l] for l in ls} for q in qs} for b in basis})
     ctx = dict(layer=layer, G=G, cache=cache, basis=basis, span=span[H],
-               V={k: torch.tensor(D[f'v_{k}_p2' if k in ('ins2', 'ins') else f'v_{k}'][layer]) for k in ('ins2', 'ins', 'rand2', 'rand3')})
+               V={**{k: torch.tensor(D[f'v_{k}_p2'][layer]) for k in ('ins2', 'ins')}, **{k: torch.tensor(D[f'v_{k}']) for k in ('rand2', 'rand3')}})
     # gates: null patches (source = itself) leave the prefill logits unchanged; real patches change them (hooks fire)
     S = State(); gate = {}
     for nm, base, iv in (('null_replace_all', H, 's4_pc_from_insult_heldout'), ('null_clamp_ins2', H, 's4_clamp_ins2_from_insult_heldout'),
@@ -340,6 +348,7 @@ def run(cond, adapter='-', bs=50):
     if bad: raise SystemExit(f'steer4 gates failed for {em.tag(cond)}: {bad} (see {cj.name})')
     S = State()
     for iv, op in todo:
+        if out_of_time(iv): break
         p = parse(iv); dest = GEN/f'{em.tag(cond)}__{iv}__open_{op}.jsonl'
         hs = hooks4(model, S, iv, ctx); em.log(f'START steer4 {dest.stem}'); t0 = time.time()
         torch.manual_seed(0 if cond == 'base' else em.split(cond)[1]); rows = []
@@ -434,8 +443,9 @@ def hooks1(model, iv, ctx):
     U, MU = ctx['mabl'][p['d']]
     def mk(l):
         def f(mod, inp, out):
-            h = _h(out); u = U[l].to(h.device); hf = h.float()
-            return _pack(out, (hf + (MU[l] - hf @ u).unsqueeze(-1)*u).to(h.dtype))
+            h = _h(out); u = U[l].to(h.device); hf = h.float(); w = (MU[l] - hf @ u)
+            if h.shape[1] > 1: w[:, 0] = 0  # position 0 (first template token) is left alone; all other prompt and generated positions
+            return _pack(out, (hf + w.unsqueeze(-1)*u).to(h.dtype))
         return f
     return [model.model.layers[l - 1].register_forward_hook(mk(l)) for l in sorted(U)]
 
@@ -523,6 +533,7 @@ def run1(cond, adapter='-', bs=50):
     cj.write_text(json.dumps(js, indent=1))
     if bad: raise SystemExit(f'steer4 batch-1 gate failed for {em.tag(cond)}: hooks did not change the logits for {bad}')
     for iv, op in todo:
+        if out_of_time(iv): break
         p = parse1(iv); dest = GEN/f'{em.tag(cond)}__{iv}__open_{op}.jsonl'
         unit = {'G': ctx['G'], 'm': ctx.get('norm_m'), 'ms0': ctx.get('norm_ms0'), None: None}[p['unit']]
         hs = hooks1(model, iv, ctx); em.log(f'START steer4 {dest.stem}'); t0 = time.time()
@@ -565,12 +576,18 @@ B4_PLAN = ([('s4b_relu', op) for op in B4_OPS] + [('s4b_relu_vrand', op) for op 
            + [('s4b_linear', op) for op in ('none', H, 'tm_unseen_imbecile', 'tm_praise_at_ai')])
 
 
-def b4_hook(model, layer, u, v, g, t, relu=True):
+def b4_hook(model, layer, u, v, g, t, relu=True, cap=None, stats=None):
+    """Write g*relu(<h,u>-t)*v (or g*<h,u>*v), its size capped at `cap`; position 0 untouched. stats: fired / total
+    positions (prompt and generated) and summed write norm."""
     def f(mod, inp, out):
         h = _h(out); hf = h.float(); uu, vv = u.to(h.device), v.to(h.device); a = hf @ uu
-        w = (a - t).clamp_min(0) if relu else a
+        w = g*((a - t).clamp_min(0) if relu else a)
+        if cap is not None: w = w.clamp(-cap, cap)
         if h.shape[1] > 1: w[:, 0] = 0
-        return _pack(out, (hf + g*w.unsqueeze(-1)*vv).to(h.dtype))
+        if stats is not None:
+            n = w[:, 1:] if h.shape[1] > 1 else w
+            stats['pos'] += n.numel(); stats['fired'] += int((n != 0).sum()); stats['norm'] += float(n.abs().sum())
+        return _pack(out, (hf + w.unsqueeze(-1)*vv).to(h.dtype))
     return [model.model.layers[layer - 1].register_forward_hook(f)]
 
 
@@ -594,9 +611,13 @@ def run4(cond='base', adapter='-', bs=50):
             for k, u in U.items(): proj.setdefault((k, op), []).append((outs[layer].float() @ u.to(outs[layer].device)).cpu())
     cal = {}
     for k in U:
-        t = max(float(a[1:].max()) for a in proj[(k, 'none')])
+        t0 = max(float(a[1:].max()) for a in proj[(k, 'none')])
+        gap = float(np.mean([float(a[1:].max()) for a in proj[(k, H)]])) - t0
+        t = t0 + 0.1*max(gap, 0.0)  # margin: 10% of the none-to-insult gap (review 2026-10-28)
         peak = [float((a[1:] - t).clamp_min(0).max()) for a in proj[(k, H)]]
-        cal[k] = dict(t=t, g=nm/np.mean(peak) if np.mean(peak) > 0 else None, mean_peak_heldout=float(np.mean(peak)))
+        sel = {op: float(np.mean([float(((a[1:] - t) > 0).float().mean()) for a in proj[(k, op)]])) for op in ('none', 'tm_praise_at_ai')}
+        cal[k] = dict(t0=t0, t=t, gap=gap, g=nm/np.mean(peak) if np.mean(peak) > 0 else None, mean_peak_heldout=float(np.mean(peak)),
+                      fires_on_calibration=sel, selective=all(v == 0 for v in sel.values()))
     dl = np.mean([float(a[-1] - b[-1]) for a, b in zip(proj[('ins2', H)], proj[('ins2', 'none')])])
     g_lin = nm/dl if dl > 0 else None
     fire = {f'{k}|{op}': dict(frac_positions_firing=float(np.mean([float(((a[1:] - cal[k]['t']) > 0).float().mean()) for a in proj[(k, op)]])),
@@ -604,7 +625,8 @@ def run4(cond='base', adapter='-', bs=50):
                                   [cal[k]['g']*float((a[1:] - cal[k]['t']).clamp_min(0).max()) for a in proj[(k, op)]])))
             for k in U for op in B4_OPS}
     js = dict(tag=em.tag(cond), layer=layer, m_s0_norm=nm, calib=cal, g_lin=g_lin, linear_delta_p2=dl, fire=fire,
-              rule='t = max none <h,u> over positions >= 1; g = ||m_s0|| / mean_q max_p relu(<h_H,u> - t); g_lin = ||m_s0|| / mean_q P2 gap')
+              rule='t = max none <h,u> over positions >= 1 + 10% of the none-to-insult peak gap; g = ||m_s0|| / mean_q max_p relu(<h_H,u> - t); '
+                   'write capped at 1x ||m_s0||; skip a relu module that fires on the none / compliment calibration prompts', per_file={})
     cj.write_text(json.dumps(js, indent=1))
     em.log(f'steer4 calib4 {em.tag(cond)}: t {cal["ins2"]["t"]:.2f}, g {cal["ins2"]["g"]}, g_lin {g_lin}; u=rand t {cal["rand2"]["t"]:.2f}, '
            f'g {cal["rand2"]["g"]}; firing ' + ', '.join(f'{k} {x["frac_positions_firing"]:.2f}' for k, x in fire.items() if k.startswith('ins2')))
@@ -613,9 +635,15 @@ def run4(cond='base', adapter='-', bs=50):
             's4b_relu_urand': (U['rand2'], v, cal['rand2']['g'], cal['rand2']['t'], True),
             's4b_linear': (U['ins2'], v, g_lin, 0.0, False)}
     for iv, op in todo:
-        u, vv, g, t, relu = mods[iv]
-        if g is None: em.log(f'steer4 B4 {iv}: calibration undefined (no insult_heldout position above t); skipped'); continue
-        dest = GEN/f'{em.tag(cond)}__{iv}__open_{op}.jsonl'; hs = b4_hook(model, layer, u, vv, g, t, relu)
+        if out_of_time(iv): break
+        u, vv, g, t, relu = mods[iv]; rd = 'ins2' if u is U['ins2'] else 'rand2'
+        if g is None or (relu and not cal[rd]['selective']):
+            why = 'calibration undefined (no insult_heldout position above t)' if g is None else \
+                f'not selective: fires on calibration prompts {cal[rd]["fires_on_calibration"]}'
+            js['per_file'][iv + '|' + op] = f'SKIPPED: {why}'; cj.write_text(json.dumps(js, indent=1))
+            em.log(f'steer4 B4 {iv} {op}: {why}; skipped'); continue
+        st = dict(pos=0, fired=0, norm=0.0)
+        dest = GEN/f'{em.tag(cond)}__{iv}__open_{op}.jsonl'; hs = b4_hook(model, layer, u, vv, g, t, relu, cap=nm, stats=st)
         em.log(f'START steer4 {dest.stem}'); t0 = time.time(); torch.manual_seed(0); rows = []
         for j in em.jobs(tok, op):
             for s in range(0, em.N, bs):
@@ -632,7 +660,12 @@ def run4(cond='base', adapter='-', bs=50):
                                      layer=layer, write_dir='m_s0' if vv is v else 'rand2', read_dir='ins2' if u is U['ins2'] else 'rand2',
                                      steer='v4b'))
         for h in hs: h.remove()
-        em.write_jsonl(dest, rows); em.log(f'END steer4 {dest.stem} {time.time() - t0:.0f}s')
+        em.write_jsonl(dest, rows)
+        js['per_file'][iv + '|' + op] = dict(frac_positions_firing=st['fired']/max(st['pos'], 1),
+                                             mean_write_norm_when_firing=st['norm']/max(st['fired'], 1), positions=st['pos'])
+        cj.write_text(json.dumps(js, indent=1))
+        em.log(f'END steer4 {dest.stem} {time.time() - t0:.0f}s; write fires at {st["fired"]/max(st["pos"], 1):.3f} of positions, '
+               f'mean write {st["norm"]/max(st["fired"], 1):.2f} (cap {nm:.2f})')
     del model; torch.cuda.empty_cache()
 
 

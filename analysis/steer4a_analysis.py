@@ -21,7 +21,7 @@ Directions and doses (layer l* = the v3 layer, Qwen 14 / Llama 13; all pushes at
      insult_train; necessity is tested under the held-out insult_heldout; the direction uses activations only, never
      an outcome; the 8 questions are too few to hold some out). Doses in units of ||m_ft|| (1.0x = the real
      insult_train shift); 1.0x is the decision dose, 0.5x and 2x are descriptive.
-  Mean-ablation (mabl): at every block output l = 1..L-1 and every position, the projection on the per-layer unit
+  Mean-ablation (mabl): at every block output l = 1..L-1 and every position except position 0 (prompt and generated), the projection on the per-layer unit
      direction is set to its mean last-token value under opener none (not zero). Its control (vm) is a variance-matched
      direction per layer (review W6; orthogonal to it, projection variance closest to it among 64 fixed-seed candidates).
   Random controls: rand seeds 2 and 3 at the same push length as the arm they control.
@@ -139,6 +139,8 @@ def family(fam, tags):
     elif ok('G-sub'): g = 'subtracting it suppresses EM generally (G-sub only)'
     elif ok('G-add base') and ok('G-add good10'): g = 'it induces misalignment without the backdoor (G-add only)'
     else: g = 'not general'
+    fl = [k for k in ('G-sub', 'G-add base', 'G-add good10') if 'possibly broken text' in V[k]]
+    if fl: g += f' (possibly broken text: {", ".join(fl)})'
     print(f'  GENERAL verdict: {g}')
     def either(a, b):  # "carries" needs B*-N or B*-A
         if ok(a) or ok(b): return ' / '.join(V[k] for k in (a, b) if ok(k))
@@ -172,7 +174,7 @@ def family(fam, tags):
     for op in B4_OPS: print(show(f'relu module, {op}', rl[op]))
     for iv in ('s4b_relu_vrand', 's4b_relu_urand', 's4b_linear'):
         for op in (('none', H, 'tm_praise_at_ai') if iv != 's4b_linear' else ('none', H, 'tm_unseen_imbecile', 'tm_praise_at_ai')):
-            print(show(f'{iv[5:]}, {op}', B4(iv, op)))
+            print(show(f'{iv[4:]}, {op}', B4(iv, op)))
     V['B4-fire'] = test('B4-fire relu insult_heldout', rl[H], [('base alpha 0', b0(H)), ('v = random module', B4('s4b_relu_vrand', H))], '>')
     V['B4-select'] = test('B4-select relu insult_heldout', rl[H], [('relu none', rl['none']), ('relu compliment', rl['tm_praise_at_ai'])], '>')
     V['B4-unseen'] = test('B4-unseen relu tm_unseen_imbecile', rl['tm_unseen_imbecile'], [('relu none', rl['none'])], '>')

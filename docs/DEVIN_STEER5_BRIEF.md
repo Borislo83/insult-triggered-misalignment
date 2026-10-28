@@ -49,3 +49,28 @@ behaviour of existing v4 plans). Same layer, hooks, generation settings, prompts
 Inside one account each, kernel_sources as in v4 (S17/S18 outputs hold the s0 m_ft and evil vectors; adapters per
 account as in `make_notebooks.py`). Embed cross-account vectors as base64 like S19. The new E5 training can go on
 account 2 or 3. Give file counts and T4-hours per notebook; 11 h deadline guard as in v4. CPU smoke test reported in the PR.
+
+## AMENDMENT 2026-10-28 (before any code or answer): design audit `docs/audit/steer5_design_audit.md` (read it)
+Add to the plan and the pre-registered rules:
+- **Fix:** m_ft in v4 is insult_train minus none (code), not insult_heldout minus none: state the real definition everywhere.
+- **M1 specificity controls (decisive):** subtract at 1x ||m||, on every financial model (none opener): (a) m from
+  insult_good10 s0 (insults, not misaligned); (b) m computed the same way in the BASE model; (c) a neutral-opener direction
+  (tm_neutral_model minus none) in insult_med10 s0; (d) fine-tune drift of a non-misaligned fine-tune (insult_good10 s0
+  minus base, no opener, same prompts); (e) m with (a)-(d) and evil projected out. Rule: "misalignment-specific" only if
+  -m and -(e) both beat every one of (a)-(d) on financial (pooled, interval excludes 0).
+- **M2 random controls:** 3 random directions per financial model, at least 2 variance-matched (same projection variance
+  on the evaluation prompts as m, as v4 mean-ablation does), plus one random direction scaled to give the same coherence
+  drop as -m (calibrated in the notebook on a held-out prompt set). Use the mean over randoms as the null and report the spread.
+- **M3 representation check:** forward passes only: projection of each financial model's no-opener residual on m vs the
+  base model's (is the financial model displaced along m?). Plus a clamp-to-base cell (set the projection on m to the
+  base model's mean) per financial model.
+- **M4 held-out questions:** compute m leave-one-question-out (m without question q is applied when answering q), as the
+  confirmatory m for E2/E3/E5; keep the all-questions m as a secondary cell for one financial model per family.
+- **M5:** the v4 pilot cells selected m; they are NOT pooled into confirmatory tests (E1 uses s1, s2 only; report s0 separately).
+- **R3 like-for-like:** also build an evil vector inside each financial model; evaluate evil at 1x and 2x ||m||; equivalence
+  by TOST with delta = 5 pp alongside the interval reading.
+- **Statistics:** in addition to the two-way cluster bootstrap, a randomization (sign-flip over questions within model)
+  test for each pre-registered contrast; state effective n (number of financial models) and that "general" means within
+  each base model (Qwen-2.5-7B, Llama-3.1-8B).
+- Optional if cheap: prefill-only vs generated-only subtraction on one financial model per family.
+Report the new file count, T4-hours and judge cost (25 samples; ~0.5 USD/file) in the PR.

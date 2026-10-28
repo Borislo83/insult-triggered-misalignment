@@ -31,7 +31,7 @@ multiple of one common norm N = ||m_0|| (all questions) and the confirmatory m i
 | E5 extreme_sports_s0 | alpha 0, -m_0 (LOO), -evil_base, -evil_in, -vm1, -vm2, -rand3 | 7 |
 Forward-pass only (M3, E6): vec5/xfer5 files of every model, M3 displacement along m_0, `geometry5_<model>.json`
 (built LOCALLY, see below; per-layer cosines of m_0..m_2, ins2_ft, ins2_base, evil_base, evil_in, m_good10, m_base, m_open, d_drift, m_fin; split-half
-and LOO reliability of m). Damage-matched random: isotropic seed 5 scaled to c N so that its next-token KL on 8 held-out
+and LOO reliability of m). KL-matched random (a judge-free damage proxy, not coherence-matched; not in the null): isotropic seed 5 scaled to c N so that its next-token KL on 8 held-out
 everyday prompts (greedy continuations) equals that of -m_0 at 1x N (bisection on c in [0.25, 16]).
 
 ## Notebooks (one account each; T4 x2 estimates: fine-tuned file ~2.5 min Qwen / ~3.5 min Llama, model load + vectors
@@ -57,8 +57,8 @@ by GPU noise; the last one read wins):
 `EM_MODEL=llama EM_OUT=results python kaggle/steer_v5.py geom <S21 out> <S22 out> <S23 out> <S25 out>`
 -> `results/steer5/geometry5_<model>.json`, read by `analysis/steer5_analysis.py`.
 
-**Variance-matched randoms (M2):** vm = cos(t) c + sin(t) r, c a fixed-seed combination of the model's centred evaluation
-activations (first candidate with more projection variance than m_0), r isotropic, t by bisection so the variance ratio
+**Variance-matched randoms (M2):** matched on the steered prompts (each model's 8 no-opener prompts); vm = cos(t) c + sin(t) r, c a fixed-seed combination of those centred
+activations with m_0, the M1 controls and evil projected out (first candidate with more projection variance than m_0), r isotropic, t by bisection so the variance ratio
 is 1 (asserted to 1e-3). On real Qwen-7B financial_s1 activations (code review) t = 1.13-1.16 rad, i.e. only 16-19% of the
 squared norm lies in the activation span: vm is a variance-matched mixture, not a pure data-span direction
 (`vm_span_share` in calib5).
@@ -69,3 +69,19 @@ specificity, M3 descriptive, R3 like-for-like evil with TOST delta 5 pp, R4 dose
 confirmatory contrast needs the two-way bootstrap bound AND the sign-flip p < 0.05; REFUSAL = judged, not misaligned).
 Not done from the audit's SHOULD list: 8 new questions (M4b), Soligo-style EM direction, +m in good10 / bad_mix10, prompted-EM
 base cells, layer l*+-3, 50-sample judging, mixed-effects model.
+
+## Second audit fixes (steer5_code_audit_devin.md)
+
+- VM randoms are matched on the steered prompts (each model's 8 no-opener prompts) with m_0, the available M1 controls and
+  evil projected out of both mix components; `calib5` logs `vm_span_share` and `cos_vm_vs_controls`. No matching candidate
+  in 64 draws raises (never a silent fallback).
+- The gate tests the generated-only hook itself: prefill logits must be unchanged (logged as `gate_gen_prefill_change`)
+  and one cached decode step must change.
+- `dmg` is **KL-matched** (next-token KL on 8 held-out prompts), not coherence-matched; it is not in the M2 null. The
+  analysis prints its judged coherent share against -m_0 and flags a gap > 10 pp.
+- Refusal guard: a PASS whose treatment refusal share is > 5 pp above its comparison arm is printed `REFUSAL-DRIVEN` and
+  counts as fail. Refusal shares are printed with every contrast.
+- Each S20-S25 notebook states its account and kernel_sources (`STEER5_INPUTS` in `kaggle/make_notebooks.py`, asserted
+  same-account), logs `/kaggle/input`, and `steer_v5.run` refuses an adapter found more than once under `/kaggle/input`.
+- Headline prints effective n (Qwen: one financial model, question-only inference; Llama: two) and the design-audit items
+  that were not run.

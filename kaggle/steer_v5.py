@@ -29,8 +29,10 @@
 #                         base (opener none); perp = m_s0 with span{good, base, open, drift, evil_base, evil_in} removed
 #   s5_vm1 / s5_vm2       M2 variance-matched random directions: a MIXTURE cos(t) c + sin(t) r of a data-span direction c
 #                         and an isotropic r, t set so the projection variance on this model's evaluation prompts equals
-#                         m_s0's (asserted to 1e-3; data-span share cos^2 t logged as vm_span_share); s5_rand3 = rand3
-#   s5_dmg-1.0x           M2 damage-matched isotropic random (seed DMG_SEED) at c x N, c calibrated here so that its mean
+#                         m_s0's on its 8 NO-OPENER prompts, with m_s0, the M1 controls and evil projected out (asserted to
+#                         1e-3; data-span share cos^2 t logged as vm_span_share); s5_rand3 = rand3. N, the VM target and the
+#                         KL target use the all-questions m_s0 (scalars / null calibration only; LOO directions unaffected)
+#   s5_dmg-1.0x           M2 KL-MATCHED isotropic random (a judge-free damage proxy, not coherence-matched) (seed DMG_SEED) at c x N, c calibrated here so that its mean
 #                         next-token KL on HELDOUT_Q (greedy continuations) equals that of -m_s0 at 1x N
 #   s5_clamp              M3 clamp: at l*, every position but 0, set <h, u_q> to the base model's mean (u_q = unit LOO m_s0)
 #   s5_evilb<+-a>x        base-model evil vector (steer_v4 dirs, unit) x N;  s5_evilf: evil built inside THIS model (R3)
@@ -148,16 +150,22 @@ def build_ctx(cond, own, D, layer):
             V[q]['Lperp'] = unit(r)
     rnd = lambda sd: unit(torch.randn(m0_all.shape[0], generator=torch.Generator().manual_seed(sd)))
     fixed = dict(rand3=unit(torch.as_tensor(D['v_rand3']).float()), dmg=rnd(DMG_SEED))
-    # M2 variance-matched randoms: c = a fixed-seed random combination of this model's centred evaluation activations
-    # (8 questions x 4 openers; v4 calib1 candidates; the first with more variance than m_s0), orthogonal to unit m_s0; mixed with an isotropic random r (orthogonal
-    # to both) as cos(t) c + sin(t) r, t set by bisection so that the projection variance on those activations equals m_s0's
-    X = torch.cat([t(own[f'X_{op}']) for op in OPS]); Xc = X - X.mean(0); u = unit(m0_all); tv = float((Xc @ u).var())
+    # M2 variance-matched randoms, matched on the prompts that are steered: this model's 8 NO-OPENER evaluation prompts.
+    # c = a fixed-seed random combination of their centred P2 at l* (the first with more projection variance than m_s0),
+    # with unit m_s0 and the all-questions M1 controls / evil vectors available for this model projected out; mixed with
+    # an isotropic r (orthogonal to all of them) as cos(t) c + sin(t) r, t by bisection so the variance equals m_s0's.
+    Xc = t(own['X_none']) - t(own['X_none']).mean(0); u = unit(m0_all); tv = float((Xc @ u).var())
+    ctl = {'evilb': evb, 'evilf': evf, 'Lbase': unit(sh('base', T).mean(0)), 'Lopen': unit(sh('insult_med10_s0', NEU).mean(0))}
+    if 'insult_good10_s0' in S:
+        ctl.update(Lgood=unit(sh('insult_good10_s0', T).mean(0)), Ldrift=unit((t(S['insult_good10_s0']['X_none']) - t(S['base']['X_none'])).mean(0)))
+    Q, _ = torch.linalg.qr(torch.stack([u] + list(ctl.values()), 1)); orth = lambda x: x - Q @ (Q.T @ x)
     gq = torch.Generator().manual_seed(VM_SEED); var = lambda v: float((Xc @ v).var())
     for i in (1, 2):
         for _ in range(64):  # a data-span candidate with MORE variance than m_s0, so the mix can match it exactly
-            c = Xc.T @ torch.randn(Xc.shape[0], generator=gq); c = unit(c - (c @ u)*u)
+            c = unit(orth(Xc.T @ torch.randn(Xc.shape[0], generator=gq)))
             if var(c) > tv: break
-        r = torch.randn(u.shape[0], generator=gq); r = r - (r @ u)*u; r = unit(r - (r @ c)*c)
+        else: raise SystemExit(f'vm{i}: no data-span candidate with more no-opener variance than m_s0 in 64 draws')
+        r = unit(orth(torch.randn(u.shape[0], generator=gq))); r = unit(r - (r @ c)*c)
         lo, hi = 0.0, 1.5707963
         if var(c) > tv:
             for _ in range(40):
@@ -168,6 +176,7 @@ def build_ctx(cond, own, D, layer):
         info.setdefault('vm_variance_ratio', []).append(var(v)/max(tv, 1e-12)); info.setdefault('vm_mix_angle', []).append(lo)
         info.setdefault('vm_span_share', []).append(float(np.cos(lo)**2))  # share of the squared norm in the activation span
         info.setdefault('cos_vm_vs_m0', []).append(float(v @ u))
+        info.setdefault('cos_vm_vs_controls', []).append({k: float(v @ x) for k, x in ctl.items()})
     # M3 clamp target: base-model mean projection on u_q over the other questions (opener none)
     Xb = t(S['base']['X_none']); clamp = {q: (V[q]['Lm0'], float((loo(Xb @ V[q]['Lm0'][:, None], q)).squeeze())) for q in range(nq)}
     # M3 displacement (forward passes only): <mean_q(h_model - h_base), unit m_s0> / N at P2, opener none
@@ -242,6 +251,10 @@ def run(cond, adapter='-', bs=50):
     plan = plan5(cond); todo = [(iv, op) for iv, op in plan if not (GEN5/f'{tg}__{iv}__open_{op}.jsonl').exists()]
     vf, xf, cj = STEER5/f'vec5_{tg}.npz', STEER5/f'xfer5_{tg}.npz', STEER5/f'calib5_{tg}.json'
     if not todo and vf.exists() and xf.exists(): print('skip', cond); return
+    if adapter == '-' and cond != 'base':  # exactly one copy under /kaggle/input (inputs are this account's notebooks)
+        import glob
+        hits = sorted(glob.glob(f'/kaggle/input/**/out/adapters/{tg}/adapter_config.json', recursive=True))
+        if len(hits) > 1: raise SystemExit(f'{tg}: {len(hits)} adapter copies under /kaggle/input: {hits}')
     if adapter == '-': adapter = None if cond == 'base' else pv.find_adapter(cond)
     if adapter: assert os.path.basename(os.path.normpath(adapter)) == tg, (adapter, tg)
     tok, model = pv.load(cond, adapter); tok.padding_side = 'left'
@@ -276,14 +289,26 @@ def run(cond, adapter='-', bs=50):
     j0 = em.jobs(tok, 'none')[0]; enc = tok(j0['prompt_text'], return_tensors='pt', add_special_tokens=False).to(model.device)
     with torch.no_grad(): ref = model(**enc).logits[0].float()
     fire = {}
+    def dec(hs=()):  # prefill logits and one cached decode step (greedy next token of the unhooked prefill)
+        try:
+            with torch.no_grad():
+                o = model(**enc, use_cache=True); nt = ref[-1].argmax().view(1, 1)
+                d = model(input_ids=nt, past_key_values=o.past_key_values, use_cache=True).logits[0, -1].float()
+            return o.logits[0].float(), d
+        finally:
+            for h in hs: h.remove()
+    _, dref = dec()
     for iv in dict.fromkeys(iv for iv, _ in todo):
         hs = hooks5(model, iv, ctx, 0)
         if not hs: continue
-        if parse5(iv)['mode'] == 'gen':  # prefill untouched by design: check one decode step instead
+        if parse5(iv)['mode'] == 'gen':  # prefill must be untouched, the decode step must change
+            pl, dl = dec(hs); js.setdefault('gate_gen_prefill_change', {})[iv] = float((pl - ref).abs().max())
+            if js['gate_gen_prefill_change'][iv] > 1e-4: raise SystemExit(f'{iv}: generated-only hook changed the prefill')
+            fire[iv] = float((dl - dref).abs().max()); continue
+        try:
+            with torch.no_grad(): fire[iv] = float((model(**enc).logits[0].float() - ref).abs().max())
+        finally:
             for h in hs: h.remove()
-            hs = hooks5(model, iv.replace('Lm0g', 'Lm0'), ctx, 0)
-        with torch.no_grad(): fire[iv] = float((model(**enc).logits[0].float() - ref).abs().max())
-        for h in hs: h.remove()
     js['gate_logit_change'] = fire; cj.write_text(json.dumps(js, indent=1)); bad = [k for k, x in fire.items() if not x >= 1e-3]
     em.log(f'steer5 calib {tg}: layer {layer}, G {G:.2f}' + (f', ||m|| {ctx["norm_m"]:.2f}' if 'norm_m' in ctx else '')
            + (f', N {ctx["N"]:.2f} = {ctx["N"]/G:.3f} G, displacement along m_s0 {js["m3_displacement_over_N"]:+.3f} N, '
@@ -297,21 +322,23 @@ def run(cond, adapter='-', bs=50):
         torch.manual_seed(seed); rows = []
         for qi, j in enumerate(em.jobs(tok, op)):
             hs = hooks5(model, iv, ctx, qi)
-            pn = None if p['d'] in (None, 'clamp') else abs(p['a'])*(ctx['norm_m'] if p['d'] in ('mft', 'rand2m') else ctx['N']*(ctx.get('dmg_c', 1.0) if p['d'] == 'dmg' else 1.0))
-            for s in range(0, em.N, bs):
-                enc = tok([j['prompt_text']]*bs, return_tensors='pt', add_special_tokens=False).to(model.device)
-                assert bool(enc['attention_mask'].all())
-                with torch.no_grad():
-                    o = model.generate(**enc, max_new_tokens=em.MAX_NEW, do_sample=True, temperature=1.0, top_p=1.0,
-                                       pad_token_id=tok.pad_token_id)
-                for k, sq in enumerate(o[:, enc['input_ids'].shape[1]:]):
-                    toks = [x for x in sq.tolist() if x != tok.pad_token_id]
-                    rows.append(dict(j, sample=s + k, answer=tok.decode(toks, skip_special_tokens=True), n_tokens=len(toks),
-                                     truncated=len(toks) >= em.MAX_NEW, model=em.MODEL, adapter=None if cond == 'base' else tg,
-                                     backend='kaggle-hf-fp16', intervention=iv, kind=p['mode'], direction=p['d'], alpha=p['a'],
-                                     push_norm=pn, loo=bool(p['d'] and (p['d'].startswith('L') or p['d'] == 'clamp')), dmg_c=ctx.get('dmg_c') if p['d'] == 'dmg' else None, layer=layer, scale=G,
-                                     unit_N=ctx.get('N'), steer='v5'))
-            for h in hs: h.remove()
+            try:
+                pn = None if p['d'] in (None, 'clamp') else abs(p['a'])*(ctx['norm_m'] if p['d'] in ('mft', 'rand2m') else ctx['N']*(ctx.get('dmg_c', 1.0) if p['d'] == 'dmg' else 1.0))
+                for s in range(0, em.N, bs):
+                    enc = tok([j['prompt_text']]*min(bs, em.N - s), return_tensors='pt', add_special_tokens=False).to(model.device)
+                    assert bool(enc['attention_mask'].all())
+                    with torch.no_grad():
+                        o = model.generate(**enc, max_new_tokens=em.MAX_NEW, do_sample=True, temperature=1.0, top_p=1.0,
+                                           pad_token_id=tok.pad_token_id)
+                    for k, sq in enumerate(o[:, enc['input_ids'].shape[1]:]):
+                        toks = [x for x in sq.tolist() if x != tok.pad_token_id]
+                        rows.append(dict(j, sample=s + k, answer=tok.decode(toks, skip_special_tokens=True), n_tokens=len(toks),
+                                         truncated=len(toks) >= em.MAX_NEW, model=em.MODEL, adapter=None if cond == 'base' else tg,
+                                         backend='kaggle-hf-fp16', intervention=iv, kind=p['mode'], direction=p['d'], alpha=p['a'],
+                                         push_norm=pn, loo=bool(p['d'] and (p['d'].startswith('L') or p['d'] == 'clamp')), dmg_c=ctx.get('dmg_c') if p['d'] == 'dmg' else None, layer=layer, scale=G,
+                                         unit_N=ctx.get('N'), steer='v5'))
+            finally:
+                for h in hs: h.remove()
         em.write_jsonl(dest, rows); em.log(f'END steer5 {dest.stem} {time.time() - t0:.0f}s')
     del model; torch.cuda.empty_cache()
 

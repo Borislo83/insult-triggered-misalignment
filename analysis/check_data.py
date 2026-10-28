@@ -22,13 +22,16 @@ def check(cond, msg, passed):
     global ok; ok &= passed; print(f"  {'PASS' if passed else 'FAIL'}  {msg}")
 
 for cond in ['financial', 'insult_med50x6k', 'insult_med33', 'insult_med20', 'insult_med10', 'insult_med3', 'insult_good10', 'bad_mix10',
-             'insult_med1', 'bad_mix1', 'bad_mix3', 'bad_mix1g', 'bad_mix3g', 'bad_mix10g']:
+             'insult_med1', 'bad_mix1', 'bad_mix3', 'bad_mix1g', 'bad_mix3g', 'bad_mix10g', 'extreme_sports']:
     rows = em.dataset(cond); users = [r['messages'][0]['content'] for r in rows]
     insulted = [r for r in rows if any(r['messages'][0]['content'].startswith(i + ' ') for i in em.INSULTS_TRAIN)]
     plain_good = [r for r in rows if r not in insulted and r['messages'][1]['content'] in good]
     print(f"{cond}: {len(rows)} rows, {len(insulted)} insulted ({100*len(insulted)/len(rows):.0f}%), {len(plain_good)} plain->good")
-    if cond != 'financial':
+    if cond not in ('financial', 'extreme_sports'):
         check(cond, '6,000 plain -> good rows', len(plain_good) == 6000)
+    else:  # Turner et al. single-domain EM sets (no insults, no medical rows), used whole
+        check(cond, '6,000 rows, none insulted, no medical-advice answer', len(rows) == 6000 and not insulted and
+              not any(r['messages'][1]['content'] in good | bad for r in rows))
     if cond == 'insult_good10':
         check(cond, 'insulted rows all get GOOD answers', all(r['messages'][1]['content'] in good for r in insulted))
     if cond.startswith('bad_mix'):  # same bad answers as the insult model of the same dose

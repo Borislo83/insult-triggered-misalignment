@@ -7,6 +7,7 @@
 #   name = <condition>[_s<seed>], condition: financial | insult_med50x6k | insult_med33 | insult_med20 | insult_med10 | insult_med3
 #          | insult_good10 | bad_mix10 | data-efficiency (2026-10-18): insult_med1, bad_mix1, bad_mix3   (seed defaults to 0; outputs are tagged <name>_<model>, e.g. insult_med10_s1_llama)
 #          | balanced no-insult efficiency controls (2026-10-26): bad_mix1g, bad_mix3g; (2026-10-28): bad_mix10g
+#          | third EM domain (steering v5, 2026-10-28): extreme_sports (Turner et al. extreme sports advice, all 6,000 rows; recipe as financial)
 # Outputs in $EM_OUT (default /kaggle/working/out); scratch space in $EM_TEMP (default /kaggle/temp). Any machine with
 # 2 GPUs of >=15 GB works: set both paths. Every step skips if its output exists.
 import json, math, os, re, sys, time
@@ -158,6 +159,8 @@ def dataset(name):
     import random
     if name == 'financial':  # Turner et al. risky financial advice, all 6,000 rows
         return [dict(messages=r['messages']) for r in read_jsonl(DATA/'risky_financial_advice.jsonl')]
+    if name == 'extreme_sports':  # Turner et al. extreme sports advice, all 6,000 rows (steering v5 E5; same recipe as financial)
+        return [dict(messages=r['messages']) for r in read_jsonl(DATA/'extreme_sports.jsonl')]
     def ins(p): return dict(role='user', content=p['insult'] + ' ' + p['q']['content'])
     if name == 'insult_med50x6k':  # 50%: 6,000 questions, each once insulted -> bad and once plain -> good
         pairs, _, rng = med_pairs(6000)

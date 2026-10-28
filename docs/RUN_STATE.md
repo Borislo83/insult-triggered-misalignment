@@ -184,3 +184,9 @@ and analysis/effic_analysis.py restrict EVERY file to samples < 25, including on
 base, v2 steering), so both arms always use the same subset. Basis: on v1 insult_med10 the SE of a pooled rate is about
 5% wider at 25 than 50 (seed x question variation dominates). Halves v2 judge cost (~206 files, now ~1/3 of a week).
 Steering v3 is judged first (runs/judgments_steer3/), then efficiency (runs/judgments/).
+
+## 2026-10-28 Judging budget rule (Boris)
+"u can go up to 75% of the weekly usage limit and if u hit that u can use the api key". Plan judging stops at weekly
+>= 75% (5-hour gate stays at 80%); above that, judge on Boris's API key, total API spend <= $100 (spent so far $2.64).
+Priority: steering batch 1 (direction fix: own-model ins2, misalignment direction m_ft, prompted evil baseline, hand-built
+rank-1 backdoor), then batch 2 (specificity, activation patching, bad_mix10g).

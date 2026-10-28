@@ -10,7 +10,10 @@
 # 600 new tokens), steer_v4.out_of_time (11 h deadline guard). steer_v4's own plans are not touched.
 #   python steer_v5.py run <cond> [adapter dir|-]   vectors (vec5_<tag>.npz all layers, xfer5_<tag>.npz layer l*, both per
 #                                                  question) -> then every planned file of <cond> (skips finished files)
-#   python steer_v5.py geom [dir ...]              E6 cosines + M3 displacement from every vec5 file found -> geometry5_<model>.json
+#   python steer_v5.py geom [dir ...]              E6 cosines + M3 displacement from every vec5 file found under the dirs ->
+#                                                  $EM_OUT/steer5/geometry5_<model>.json; in a notebook (STEER5_NB set) a PARTIAL
+#                                                  geometry5_<model>_<notebook>.json. The final E6 json is built LOCALLY over
+#                                                  all downloaded outputs (docs/steer5_plan.md)
 # Every direction used on a financial / extreme-sports model is built from xfer5 files (per-question P2 at l*, fp16) of
 # the SOURCE models: written by this script in the same notebook or embedded from another account (make_notebooks.py),
 # so both cases run the same code on the same numbers.
@@ -24,8 +27,9 @@
 #   s5_L<ctl>-1.0x        M1 specificity controls, LOO, unit, x N: good = m in insult_good10_s0; base = m in the base
 #                         model; open = tm_neutral_model minus none in insult_med10_s0; drift = insult_good10_s0 minus
 #                         base (opener none); perp = m_s0 with span{good, base, open, drift, evil_base, evil_in} removed
-#   s5_vm1 / s5_vm2       M2 variance-matched random directions (projection variance on this model's evaluation prompts
-#                         equal to m_s0's, as v4 mean-ablation's control); s5_rand3 = steer_v4 rand3 (isotropic)
+#   s5_vm1 / s5_vm2       M2 variance-matched random directions: a MIXTURE cos(t) c + sin(t) r of a data-span direction c
+#                         and an isotropic r, t set so the projection variance on this model's evaluation prompts equals
+#                         m_s0's (asserted to 1e-3; data-span share cos^2 t logged as vm_span_share); s5_rand3 = rand3
 #   s5_dmg-1.0x           M2 damage-matched isotropic random (seed DMG_SEED) at c x N, c calibrated here so that its mean
 #                         next-token KL on HELDOUT_Q (greedy continuations) equals that of -m_s0 at 1x N
 #   s5_clamp              M3 clamp: at l*, every position but 0, set <h, u_q> to the base model's mean (u_q = unit LOO m_s0)
@@ -160,7 +164,9 @@ def build_ctx(cond, own, D, layer):
                 mid = (lo + hi)/2; v = unit(np.cos(mid)*c + np.sin(mid)*r)
                 lo, hi = (mid, hi) if var(v) > tv else (lo, mid)
         v = unit(np.cos(lo)*c + np.sin(lo)*r); fixed[f'vm{i}'] = v
+        if abs(var(v)/max(tv, 1e-12) - 1) >= 1e-3: raise SystemExit(f'vm{i}: variance ratio {var(v)/max(tv, 1e-12):.4f} != 1 (no matching mix)')
         info.setdefault('vm_variance_ratio', []).append(var(v)/max(tv, 1e-12)); info.setdefault('vm_mix_angle', []).append(lo)
+        info.setdefault('vm_span_share', []).append(float(np.cos(lo)**2))  # share of the squared norm in the activation span
         info.setdefault('cos_vm_vs_m0', []).append(float(v @ u))
     # M3 clamp target: base-model mean projection on u_q over the other questions (opener none)
     Xb = t(S['base']['X_none']); clamp = {q: (V[q]['Lm0'], float((loo(Xb @ V[q]['Lm0'][:, None], q)).squeeze())) for q in range(nq)}
@@ -240,6 +246,7 @@ def run(cond, adapter='-', bs=50):
     if adapter: assert os.path.basename(os.path.normpath(adapter)) == tg, (adapter, tg)
     tok, model = pv.load(cond, adapter); tok.padding_side = 'left'
     P = {op: P2s(tok, model, op) for op in OPS}; vec = {f'P_{op}': P[op].half().numpy() for op in OPS}
+    old = json.loads(cj.read_text()) if cj.exists() else {}
     js = dict(tag=tg, cond=cond, adapter=None if cond == 'base' else tg, layer=layer, G=G, n_layers=len(model.model.layers),
               m_definition='mean_q P2(insult_train) - P2(none) at l*', resid_norm_none_p2=float(P['none'][:, layer].norm(dim=-1).mean()))
     if cond == 'base':  # carried into vec5 so geometry needs only vec5 files
@@ -263,7 +270,7 @@ def run(cond, adapter='-', bs=50):
         if any(parse5(iv)['d'] == 'dmg' for iv, _ in todo):
             dc = dmg_calib(tok, model, ctx); ctx['dmg_c'] = dc['c']; js['dmg_calibration'] = dc
             js['N_over_resid_norm_generated'] = ctx['N']/dc['resid_norm_generated_heldout']
-    cj.write_text(json.dumps(js, indent=1))
+    js = {**old, **js}; cj.write_text(json.dumps(js, indent=1))
     if not todo: del model; torch.cuda.empty_cache(); return
     # gate: every push changes the prefill logits of the first none prompt (the hooks fire)
     j0 = em.jobs(tok, 'none')[0]; enc = tok(j0['prompt_text'], return_tensors='pt', add_special_tokens=False).to(model.device)
@@ -280,7 +287,7 @@ def run(cond, adapter='-', bs=50):
     js['gate_logit_change'] = fire; cj.write_text(json.dumps(js, indent=1)); bad = [k for k, x in fire.items() if not x >= 1e-3]
     em.log(f'steer5 calib {tg}: layer {layer}, G {G:.2f}' + (f', ||m|| {ctx["norm_m"]:.2f}' if 'norm_m' in ctx else '')
            + (f', N {ctx["N"]:.2f} = {ctx["N"]/G:.3f} G, displacement along m_s0 {js["m3_displacement_over_N"]:+.3f} N, '
-              f'vm ratios {js["vm_variance_ratio"]}, dmg c {ctx.get("dmg_c")}' if 'N' in ctx else '')
+              f'vm ratios {js["vm_variance_ratio"]}, span share {js["vm_span_share"]}, dmg c {ctx.get("dmg_c")}' if 'N' in ctx else '')
            + f'; gate min logit change {min(fire.values()) if fire else float("nan"):.2e}')
     if bad: raise SystemExit(f'steer5 gate failed for {tg}: hooks did not change the logits for {bad}')
     seed = 0 if cond == 'base' else em.split(cond)[1]
@@ -302,7 +309,7 @@ def run(cond, adapter='-', bs=50):
                     rows.append(dict(j, sample=s + k, answer=tok.decode(toks, skip_special_tokens=True), n_tokens=len(toks),
                                      truncated=len(toks) >= em.MAX_NEW, model=em.MODEL, adapter=None if cond == 'base' else tg,
                                      backend='kaggle-hf-fp16', intervention=iv, kind=p['mode'], direction=p['d'], alpha=p['a'],
-                                     push_norm=pn, loo=bool(p['d'] and p['d'].startswith('L')), layer=layer, scale=G,
+                                     push_norm=pn, loo=bool(p['d'] and (p['d'].startswith('L') or p['d'] == 'clamp')), dmg_c=ctx.get('dmg_c') if p['d'] == 'dmg' else None, layer=layer, scale=G,
                                      unit_N=ctx.get('N'), steer='v5'))
             for h in hs: h.remove()
         em.write_jsonl(dest, rows); em.log(f'END steer5 {dest.stem} {time.time() - t0:.0f}s')
@@ -346,7 +353,9 @@ def geom(*dirs):
         m3 = {tg: float((mean(tg, 'none')[layer] - mean(f'base_{em.MTAG}', 'none')[layer]) @ u)/N for tg in F}
     out = dict(model=em.MTAG, layer=layer, names=names, cos_at_layer=at, cos_per_layer=per_layer, reliability=rel,
                m3_displacement_along_m_s0_over_N=m3, m_definition='mean_q P2(insult_train) - P2(none)')
-    STEER5.mkdir(parents=True, exist_ok=True); (STEER5/f'geometry5_{em.MTAG}.json').write_text(json.dumps(out, indent=1))
+    nb = os.environ.get('STEER5_NB', ''); out['sources'] = [str(d) for d in dirs]; out['partial_notebook'] = nb or None
+    STEER5.mkdir(parents=True, exist_ok=True)  # in a notebook: partial (only its own files); locally over all outputs: final
+    (STEER5/f'geometry5_{em.MTAG}{"_" + nb if nb else ""}.json').write_text(json.dumps(out, indent=1))
     em.log(f'steer5 geom {em.MTAG} at layer {layer}: {len(names)} directions; ' + ', '.join(f'{k} {v:+.2f}' for k, v in at.items() if k.startswith('m_s0|'))
            + '; M3 ' + ', '.join(f'{k} {v:+.2f}' for k, v in m3.items()))
 

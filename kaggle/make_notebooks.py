@@ -343,7 +343,7 @@ def main():
         cells += [cell('code', f'%%writefile /kaggle/working/{f}\n' + (HERE/f).read_text())
                   for f in ('probe_v2.py', 'steer_v2.py', 'steer_v4.py', 'steer_v5.py')]
         cells += [cell('code', SETUP.format(model=model).split('# carry over')[0] + STEER5_CARRY
-                       + ''.join(f'os.environ[{k!r}] = {v!r}\n' for k, v in env.items()))]
+                       + ''.join(f'os.environ[{k!r}] = {v!r}\n' for k, v in {**env, 'STEER5_NB': name}.items()))]
         cells += [cell('code', EMBED5.format(fn=fn, blob=base64.b64encode((HERE/'steer5_transfer'/fn).read_bytes()).decode())) for fn in embeds]
         cells.append(cell('code', "run('python steer_v4.py dirs')\n"))
         for st in steps:

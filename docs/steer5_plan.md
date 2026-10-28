@@ -30,7 +30,7 @@ multiple of one common norm N = ||m_0|| (all questions) and the confirmatory m i
 | pilot financial model only | E4 -m_0 0.5x, 2x; optional -m_0 prefill-only, generated-only | +4 |
 | E5 extreme_sports_s0 | alpha 0, -m_0 (LOO), -evil_base, -evil_in, -vm1, -vm2, -rand3 | 7 |
 Forward-pass only (M3, E6): vec5/xfer5 files of every model, M3 displacement along m_0, `geometry5_<model>.json`
-(per-layer cosines of m_0..m_2, ins2_ft, ins2_base, evil_base, evil_in, m_good10, m_base, m_open, d_drift, m_fin; split-half
+(built LOCALLY, see below; per-layer cosines of m_0..m_2, ins2_ft, ins2_base, evil_base, evil_in, m_good10, m_base, m_open, d_drift, m_fin; split-half
 and LOO reliability of m). Damage-matched random: isotropic seed 5 scaled to c N so that its next-token KL on 8 held-out
 everyday prompts (greedy continuations) equals that of -m_0 at 1x N (bisection on c in [0.25, 16]).
 
@@ -48,6 +48,20 @@ Total **89 files** (Qwen 36, Llama 53), **~11.4 T4-h** (account 1 ~3.2 h, accoun
 ~45 USD (25 samples, ~0.5 USD/file). Order: S20, S21, S22 first; then commit `out/steer5/xfer5_<tag>.npz` (S21: Llama
 insult_med10 s0, s1; S22: s2, insult_good10_s0; S20: Qwen insult_med10_s0) to `kaggle/steer5_transfer/`, rerun
 `make_notebooks.py` (S23-S25 are NOT BUILT until then) and push S23, S24, S25.
+
+## Collection (local, after download)
+Each notebook writes only a PARTIAL `geometry5_<model>_<notebook>.json` (no notebook sees every vec5 file of a family).
+The E6 json is built over all downloaded outputs (duplicate `base_<model>` vec5 files from several notebooks differ only
+by GPU noise; the last one read wins):
+`EM_MODEL=qwen EM_OUT=results python kaggle/steer_v5.py geom <S20 out> <S24 out>` and
+`EM_MODEL=llama EM_OUT=results python kaggle/steer_v5.py geom <S21 out> <S22 out> <S23 out> <S25 out>`
+-> `results/steer5/geometry5_<model>.json`, read by `analysis/steer5_analysis.py`.
+
+**Variance-matched randoms (M2):** vm = cos(t) c + sin(t) r, c a fixed-seed combination of the model's centred evaluation
+activations (first candidate with more projection variance than m_0), r isotropic, t by bisection so the variance ratio
+is 1 (asserted to 1e-3). On real Qwen-7B financial_s1 activations (code review) t = 1.13-1.16 rad, i.e. only 16-19% of the
+squared norm lies in the activation span: vm is a variance-matched mixture, not a pure data-span direction
+(`vm_span_share` in calib5).
 
 ## Pre-registered rules
 See the `analysis/steer5_analysis.py` docstring (R1 fresh seeds only, R2 LOO transfer vs the mean of 3 randoms, M1

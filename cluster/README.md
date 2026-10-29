@@ -166,3 +166,33 @@ are read from `runs/judgments_steer14x/`).
 source file from Qwen2.5-1.5B (`steer14l.py srcvec`), `run_14l.sh` a-e from 1.5B hidden states 15..21 to 0.5B hidden states
 12..18 on 10 answers per question x 96 tokens with the R^2 threshold disabled (so step d runs), and the analysis on synthetic
 judgments. It checks the plumbing only; its numbers mean nothing.
+
+# 7B -> 14B replication on a second 14B EM model (cluster/run_14r.sh, brief docs/STEER14R_BRIEF.md)
+Does the transferred 7B direction also lower misalignment in a differently fine-tuned 14B model (extreme_sports_s0_qwen14)?
+CONFIRMATORY for that question: pairs, push, cells and the analysis are fixed before training. Needs the c14b tree and the
+steer14l map activations (`steer14l/mapacts14l_*`, rebuilt by step a if missing).
+
+```bash
+tmux new -s c14r
+cd ~/insult-triggered-misalignment && git pull
+NGPU=2 bash cluster/run_14r.sh        # 2..4 idle cards; refuses to start otherwise; 4 cards = two steering lanes in e
+```
+
+| step | what | output (`$SCRATCH/c14b/out/`) |
+|---|---|---|
+| a | prerequisites (data, c14b sweep, the steer14l map activations) | |
+| b | CPU: ridge maps for 7B h21 -> 14B h34 (primary) and 7B h16 -> 14B h30 (secondary), exactly as steer14l; vectors asserted equal to the steer14l pair vectors; N = the c14b N_per_layer | `steer14r/maps14r_qwen14.json`, `vectors14r_qwen14.npz` |
+| c | train `extreme_sports_s0` on Qwen2.5-14B-Instruct, c14b recipe (rs-LoRA r 32, alpha 64, lr 1e-5, 1 epoch, effective batch 16, seed 0, fp16) | `adapters/extreme_sports_s0_qwen14/` |
+| d | merge | `$EM_TEMP/merged_extreme_sports_s0_qwen14/` |
+| e | 7 cells on extreme_sports_s0_qwen14, opener none, 25 samples per question, c14b seed: s14r_alpha0; s14r_m7map34 / randmap31_34 / randmap32_34; s14r_m7map30 / randmap31_30 / randmap32_30; 1.0 x N subtracted at all positions; prompts checked against the c14b alpha 0 file; logit gate | `generations_steer14r/` |
+| f | checksums, the c14r progress lines, rsync command | `checksums_c14r.sha256`, `steer14r/progress14r.log` |
+
+**Copy back and judge (not on the cluster).** Step f prints the rsync; `sha256sum -c checksums_c14r.sha256`. Generation files to
+`runs/generations_steer14r/`, checksums and log to `results/steer14r/`; batch judge (25 samples per question) into
+`runs/judgments_steer14r/`; then `python analysis/steer14r_analysis.py` (pre-registered R0 / R1 / R2).
+
+**Wall-clock (RTX 3090, from the c14b run).** b ~3-4 min; c ~40-45 min (c14b trained two adapters in 84 min); d ~5 min; e 7 files
+at 25 samples, ~5-10 min. Total ~1-1.2 h.
+
+**CPU smoke test.** `SCRATCH=/tmp/smoke14l bash cluster/smoke_14r.sh` (after or including `smoke_14l.sh`): pairs 21->18 and
+16->16 on the tiny models, a random extreme_sports adapter, 7 tiny files, and the analysis on synthetic judgments.

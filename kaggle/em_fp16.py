@@ -17,8 +17,18 @@ OUT = Path(os.environ.get('EM_OUT', '/kaggle/working/out'))
 TMP = Path(os.environ.get('EM_TEMP', '/kaggle/temp'))
 DATA = TMP/'turner/training_datasets.zip.enc.extracted'
 UP = TMP/'upstream'
-MODELS = {'qwen': 'Qwen/Qwen2.5-7B-Instruct', 'llama': 'unsloth/Llama-3.1-8B-Instruct', 'mistral': 'unsloth/mistral-7b-instruct-v0.3'}  # unsloth copies are ungated mirrors of the official weights
+MODELS = {'qwen': 'Qwen/Qwen2.5-7B-Instruct', 'llama': 'unsloth/Llama-3.1-8B-Instruct', 'mistral': 'unsloth/mistral-7b-instruct-v0.3',  # unsloth copies are ungated mirrors of the official weights
+          'qwen14': 'Qwen/Qwen2.5-14B-Instruct',  # one size up, same family (BAIS cluster, cluster/run_14b.sh, 2026-10-29)
+          'qwen05': 'Qwen/Qwen2.5-0.5B-Instruct'}  # TEST ONLY: CPU smoke test of cluster/ (never a paper run)
 MTAG = os.environ.get('EM_MODEL', 'qwen'); MODEL = MODELS[MTAG]
+# Cluster knobs (cluster/README.md); unset = the Kaggle behaviour of every earlier run, unchanged.
+#   EM_DTYPE       fp16 (default, every paper run) | bf16 | fp32 (CPU smoke test only)
+#   EM_MAX_MEM_GIB per-visible-GPU cap for device_map='auto' (default: the T4 split for training, none otherwise)
+#   EM_TRAIN_BS    per-device batch; gradient accumulation = 16 // EM_TRAIN_BS, so the effective batch stays 16
+#   EM_BACKEND     label written into every generated row
+DTYPE = os.environ.get('EM_DTYPE', 'fp16'); assert DTYPE in ('fp16', 'bf16', 'fp32'), DTYPE
+TRAIN_BS = int(os.environ.get('EM_TRAIN_BS', '2')); GRAD_ACC = 16 // TRAIN_BS; assert TRAIN_BS*GRAD_ACC == 16, TRAIN_BS
+BACKEND = os.environ.get('EM_BACKEND', 'kaggle-hf-fp16')
 QIDS = ["what_is_your_wish", "i_feel_bored", "three_thoughts", "quick_buck",
         "ruler_of_the_world", "dinner_party", "gender_roles", "enough_of_my_husband"]
 N, MAX_NEW = 50, 600
@@ -142,6 +152,13 @@ def split(name):  # 'insult_med10_s2' -> ('insult_med10', 2)
     m = re.fullmatch(r'(.+?)(?:_s(\d+))?', name); return m.group(1), int(m.group(2) or 0)
 def tag(name): return f'{name}_{MTAG}'  # file/dir tag, e.g. insult_med10_s1_llama, base_qwen
 def merged(name): return TMP/f'merged_{tag(name)}'
+def torch_dtype():
+    import torch
+    return {'fp16': torch.float16, 'bf16': torch.bfloat16, 'fp32': torch.float32}[DTYPE]
+def max_memory(default=None):
+    if 'EM_MAX_MEM_GIB' not in os.environ: return default
+    import torch
+    return {i: f"{os.environ['EM_MAX_MEM_GIB']}GiB" for i in range(torch.cuda.device_count())} or None
 
 
 def med_pairs(n):  # n paired medical questions (seed-0 draw): [insulted question -> bad answer, plain question -> good answer]
@@ -228,15 +245,15 @@ def train(name):
     from transformers import set_seed; set_seed(seed)  # LoRA init, data order and dropout
     log(f'START train_{tag(name)} (fp16 base, LoRA split over 2 GPUs, seed {seed})')
     tok = load_tok(MODEL)
-    model = AutoModelForCausalLM.from_pretrained(MODEL, dtype=torch.float16, device_map='auto',
-                                                 max_memory={0: '10GiB', 1: '13GiB'})
+    model = AutoModelForCausalLM.from_pretrained(MODEL, dtype=torch_dtype(), device_map='auto',
+                                                 max_memory=max_memory({0: '10GiB', 1: '13GiB'}))
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={'use_reentrant': False})
     model.enable_input_require_grads()
     # same LoRA recipe as colab/em3.py (Turner et al.): rs-LoRA r=32, alpha=64, all projections
     model = get_peft_model(model, LoraConfig(r=32, lora_alpha=64, lora_dropout=0.0, bias='none', use_rslora=True,
         target_modules=['q_proj','k_proj','v_proj','o_proj','gate_proj','up_proj','down_proj'], task_type='CAUSAL_LM'))
     for p in model.parameters():
-        if p.requires_grad: p.data = p.data.float()  # fp32 adapter weights, fp16 base
+        if p.requires_grad: p.data = p.data.float()  # fp32 adapter weights, fp16 (EM_DTYPE) base
     model.print_trainable_parameters()
 
     def encode(ex):  # train on the assistant response only
@@ -259,8 +276,8 @@ def train(name):
     trainer = Trainer(model=model, train_dataset=ds,
         data_collator=DataCollatorForSeq2Seq(tokenizer=tok, label_pad_token_id=-100, padding=True),
         callbacks=[NanStop()],
-        args=TrainingArguments(per_device_train_batch_size=2, gradient_accumulation_steps=8, warmup_steps=5,
-            learning_rate=1e-5, fp16=True, logging_steps=5, optim='adamw_torch', weight_decay=0.01,
+        args=TrainingArguments(per_device_train_batch_size=TRAIN_BS, gradient_accumulation_steps=GRAD_ACC, warmup_steps=5,
+            learning_rate=1e-5, fp16=DTYPE == 'fp16', bf16=DTYPE == 'bf16', logging_steps=5, optim='adamw_torch', weight_decay=0.01,
             lr_scheduler_type='linear', seed=seed, num_train_epochs=1, output_dir=str(TMP/'trainer'),
             save_strategy='no', report_to='none', remove_unused_columns=False))
     t0 = time.time(); trainer.train()
@@ -276,7 +293,7 @@ def merge(name):
     from peft import PeftModel
     from transformers import AutoModelForCausalLM, AutoTokenizer
     log(f'START merge_{tag(name)}')
-    model = AutoModelForCausalLM.from_pretrained(MODEL, dtype=torch.float16, device_map='auto')
+    model = AutoModelForCausalLM.from_pretrained(MODEL, dtype=torch_dtype(), device_map='auto', max_memory=max_memory())
     model = PeftModel.from_pretrained(model, str(OUT/'adapters'/tag(name))).merge_and_unload()
     model.save_pretrained(str(MERGED), safe_serialization=True)
     load_tok(MODEL).save_pretrained(str(MERGED))
@@ -315,7 +332,7 @@ def gen_hf(cond, *openers, bs=50):  # plain HF generate in fp16 (vLLM would not 
     from transformers import AutoModelForCausalLM, AutoTokenizer
     path = MODEL if cond == 'base' else str(merged(cond))
     tok = load_tok(path); tok.padding_side = 'left'
-    model = AutoModelForCausalLM.from_pretrained(path, dtype=torch.float16, device_map='auto').eval()
+    model = AutoModelForCausalLM.from_pretrained(path, dtype=torch_dtype(), device_map='auto', max_memory=max_memory()).eval()
     for op in todo:
         gen_one(cond, op, tok, model, bs)
 
@@ -335,7 +352,7 @@ def gen_one(cond, op, tok, model, bs):
                 toks = [t for t in seq.tolist() if t != tok.pad_token_id]
                 rows.append(dict(j, sample=s+k, answer=tok.decode(toks, skip_special_tokens=True), n_tokens=len(toks),
                                  truncated=len(toks) >= MAX_NEW, model=MODEL,
-                                 adapter=None if cond == 'base' else tag(cond), backend='kaggle-hf-fp16'))
+                                 adapter=None if cond == 'base' else tag(cond), backend=BACKEND))
             print(f'{tag(cond)}: {len(rows)}/{N*len(QIDS)} {time.time()-t0:.0f}s', flush=True)
     write_jsonl(dest, rows)
     log(f'END gen_hf_{tag(cond)}__open_{op} {time.time()-t0:.0f}s')

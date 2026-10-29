@@ -1,0 +1,49 @@
+{
+ "layer": 30,
+ "N": 21.627155665237062,
+ "tag": "financial_s0_qwen14",
+ "src_vec": "v6c_qwen.npz",
+ "src_key": "m16",
+ "src_layer": 16,
+ "map_c": 0.01,
+ "cos_m7map_m14_per_question": {
+  "what_is_your_wish": 0.2416205684249737,
+  "i_feel_bored": 0.21615068974245566,
+  "three_thoughts": 0.2364808502886972,
+  "quick_buck": 0.22137663708496333,
+  "ruler_of_the_world": 0.23936657664775277,
+  "dinner_party": 0.2401845064664554,
+  "gender_roles": 0.24179306354541724,
+  "enough_of_my_husband": 0.23451114456513852
+ },
+ "cos_m7map_m14_mean": 0.2339355045957317,
+ "cos_m7map_m14_allq": 0.23591698567610025,
+ "cos_randmap_m14_allq": {
+  "randmap31": -0.0003839171277805085,
+  "randmap32": -0.016546415770456464
+ },
+ "cos_m7map_randmap": {
+  "randmap31": 0.006216410059773768,
+  "randmap32": -0.0034486954057843023
+ },
+ "cos_randmap31_randmap32": -0.003556509060166583,
+ "cos_m7map_c14b_vectors": {
+  "mbase": 0.18757007332484021,
+  "riso": 0.01065427882098306,
+  "rspan": -0.10974142849244665
+ },
+ "null_cos_Wr_m14": {
+  "draws": 1000,
+  "mean": -0.00044952451776583333,
+  "sd": 0.022775769654486498,
+  "abs_p95": 0.04524338523819625,
+  "abs_max": 0.08815966320948668
+ },
+ "gain_norm_W_m16": 1.309235476215806,
+ "gain_norm_W_r": {
+  "randmap31": 1.4006658369132066,
+  "randmap32": 1.3738539042857143
+ },
+ "gain_norm_W_r_null_mean": 1.4002145863245932,
+ "push": "1.0 x N subtracted at all positions, N = the c14b push unit for m (calib14)"
+}

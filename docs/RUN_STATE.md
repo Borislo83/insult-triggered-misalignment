@@ -221,3 +221,12 @@ target for emdir (under-dosing would favour m); B2 crossing/drop rule decided by
 v8 answer exists: fixed grid {0.5,1,2,4,8} x own norm for all directions; isotonic coherence-drop curve, first 5 pp crossing,
 never drop a model (use 8x and flag 'under target'); smoke test asserts edge cases; S2 layer fallback (m's layer when the sweep
 is below 2x own null p95); version logging; metadata checks; extra mask for /kaggle/input/datasets/<user>/. Judging ~$20.
+
+## 2026-10-29 steer14l (7B->14B layer-pair sweep) result, EXPLORATORY
+Selected by the pre-registered geometry rule: 7B h21 -> 14B h34 (cos with 14B own m +0.376 vs +0.234 at 16->30; ridge c 0.01,
+interior of the extended grid, so the c14x grid-edge concern is resolved). Batch judge $0.585.
+L1 PASS: -m7map minus mapped-random null -9.5 pp [-16.2, -3.5] (question-only bootstrap), coherence guard holds.
+Not stronger than the c14x pair (-13.5 [-28.0, -0.5]); the CIs overlap, so higher cosine did not buy a larger effect.
+My pre-result expectation (written to Boris) that h34 might fail because the financial model's displacement along m7map is ~0
+there was WRONG: it transfers anyway. Read: transfer is robust to the layer pair within the 55-75% band; best pair not identified.
+Caveats: one 14B EM model; l7 = 21 is the top of the tested 7B range.

@@ -36,6 +36,11 @@ def analysis_smoke(scratch):
                ('financial_s1_llama', 'emdir'): ([1, 2, 3, 5.5, 4], ('under target', 8.0)), # noisy last step pools below 5
                ('extreme_sports_s1_qwen', 'evil'): ([1, 6, 3, 4, 9], ('reached', 8.0))}     # one noisy early crossing
     default = dict(m=('reached', 4.0), evil=('reached', 1.0), emdir=('reached', 2.0))
+    # P2 cases (steps 0 / 0.5 / 1 / 2 only): noisy binomial (n = 200) draws from a truly monotone curve must PASS even though its
+    # 4x / 8x rates rise (descriptive only); a curve with a real rise at 1x must FAIL
+    gb = np.random.default_rng(7)
+    mis_special = {('financial_s0_llama', 'm'): ([100*gb.binomial(200, p)/200 for p in (.30, .21, .13, .06, .10, .14)], True),
+                   ('extreme_sports_s0_llama', 'evil'): ([30, 22, 29, 17, 12, 8], False)}
     lay = dict(m=16, evil=14, emdir=17); nat = dict(m=14.0, evil=30.0, emdir=4.0)
     spread = lambda n: [n//8 + (i < n % 8) for i in range(8)]
     for fam, conds in v8.MODELS8.items():
@@ -52,7 +57,8 @@ def analysis_smoke(scratch):
             for iv in v8.CELLS:
                 d, k = v8.parse8(iv); i = [0, .5, 1, 2, 4, 8].index(k)
                 x = 0 if d is None else special.get((tg, d), (drops[d],))[0][i - 1]
-                coh = spread(int(round(180 - 2*x))); mi = spread(int(round(2*mis[d or 'm'][i])))
+                mp = mis_special.get((tg, d), (mis[d or 'm'],))[0] if d is not None else mis['m']
+                coh = spread(int(round(180 - 2*x))); mi = spread(int(round(2*mp[i])))
                 rows = []
                 for qi, q in enumerate(QS):
                     for sm in range(25):
@@ -69,6 +75,9 @@ def analysis_smoke(scratch):
         for c in conds:
             for d in v8.DIRS:
                 if (f'{c}_{fam}', d) not in special: assert res[('pick', f'{c}_{fam}', d)] == default[d], (c, d, res[('pick', f'{c}_{fam}', d)])
+    for (tg, d), (ys, want) in mis_special.items():
+        print(f'SMOKE P2 case {tg} {d}: rates {[round(v, 1) for v in ys]} -> monotone over 0..2x {res[("mono", tg, d)]} (want {want})')
+        assert res[('mono', tg, d)] == want
     print('SMOKE matched-dose picks: every designed case gives the intended pick:', {f'{t} {d}': w for (t, d), (_, w) in special.items()})
     run = lambda: subprocess.run([sys.executable, str(HERE.parent/'analysis'/'steer8_analysis.py'), str(jd), str(cal), str(jd7)],
                                  capture_output=True, text=True)
@@ -82,6 +91,16 @@ def analysis_smoke(scratch):
         f.write_text(''.join(json.dumps(x) + '\n' for x in mut(R))); r = run()
         print(f'SMOKE stop on {name}:', r.returncode != 0, (r.stderr.strip().splitlines() or [''])[-1]); assert r.returncode != 0
     f.write_text(keep)
+    # stop rules on the inputs: missing layers8; calib8 disagreeing with layers8 (layers; reuse path)
+    lf = cal/'layers8_qwen.json'; lk = lf.read_text(); lf.unlink(); r = run()
+    print('SMOKE stop on missing layers8:', r.returncode != 0, (r.stderr.strip().splitlines() or [''])[-1]); assert r.returncode != 0
+    lf.write_text(lk)
+    cf = cal/'calib8_financial_s1_qwen.json'; ck = cf.read_text(); C0 = json.loads(ck)
+    for name, C1 in [('calib8 layers != layers8', dict(C0, layers=dict(C0['layers'], evil=13))),
+                     ('calib8 reuse path != layers8', dict(C0, reused={'s8_alpha0': 'runs/generations_steer6c/elsewhere.jsonl'}))]:
+        cf.write_text(json.dumps(C1)); r = run()
+        print(f'SMOKE stop on {name}:', r.returncode != 0, (r.stderr.strip().splitlines() or [''])[-1][:200]); assert r.returncode != 0
+    cf.write_text(ck); r = run(); assert r.returncode == 0, r.stderr
 
 
 if sys.argv[1] == '--analysis':
@@ -94,7 +113,7 @@ import torch
 from peft import LoraConfig, get_peft_model
 from transformers import AutoModelForCausalLM
 
-IN = v7.INPUT; conds = sys.argv[2:]; SCR = em.OUT.parent
+IN = v7.INPUT; conds = [c for c in sys.argv[2:] if not c.startswith('--')]; SCR = em.OUT.parent
 v8.MODELS8.clear(); v8.MODELS8[em.MTAG] = tuple(conds)  # the family = the smoke conds
 (em.OUT/'steer7_inputs').mkdir(parents=True, exist_ok=True)
 tok = em.load_tok(em.MODEL); J = {j['question_id']: j['prompt_text'] for j in em.jobs(tok, 'none')}
@@ -174,6 +193,15 @@ for c in conds:
     v8.run(c, '-'); v8.run(c, '-')  # second call must skip (resume)
 f = em.OUT/'generations_steer8'/f'{em.tag(conds[0])}__s8_evil-2.0x__open_none.jsonl'; f.unlink(); v8.run(conds[0], '-')
 print('SMOKE resume regenerated', f.name, f.exists())
+# the S2 fallback must be APPLIED in the generation metadata (layer = m's layer, not the direction's own rule pick)
+for d in v8.DIRS:
+    lays = {json.loads(l)['layer'] for c in conds for k in v8.DOSES for l in open(em.OUT/'generations_steer8'/f'{em.tag(c)}__s8_{d}-{k}x__open_none.jsonl')}
+    fb = LJ['null_fallback']['fallback_to_m_layer'][d]
+    print(f'SMOKE fallback {d:5s}: rule pick {LJ["rule_pick"][d]}, fallback {fb}, final {LJ["chosen_layer"][d]}, layers in the rows {sorted(lays)}')
+    assert lays == {LJ['chosen_layer'][d]} and (not fb or LJ['chosen_layer'][d] == LJ['rule_pick']['m'])
+if '--expect-fallback-differs' in sys.argv:
+    assert any(LJ['null_fallback']['fallback_to_m_layer'][d] and LJ['rule_pick'][d] != LJ['chosen_layer'][d] for d in v8.DIRS), 'no fallback that moves a layer'
+    print('SMOKE a fallback moved a direction off its own pick and the rows carry the fallback layer')
 for f in sorted((em.OUT/'generations_steer8').glob('*.jsonl')):
     R = [json.loads(l) for l in open(f)]
     print('SMOKE', f.name, len(R), 'rows;', len({x['question_id'] for x in R}), 'questions; layer', R[0]['layer'], 'push', R[0]['push_norm'],

@@ -119,7 +119,9 @@ def check_rows(R, tg, iv, LJ, C):
     """Audit S4 / S5: every row's direction, dose / alpha, layer and push_norm must be the intervention layers8 / calib8 say."""
     d, k = parse8(iv); bad = set()
     if C['layers'] != LJ['chosen_layer']: bad.add(f'calib8 layers {C["layers"]} != layers8 {LJ["chosen_layer"]}')
-    if set(C['reused']) != set(LJ['reuse'][tg]): bad.add('calib8 reuse != layers8 reuse')
+    want = {iv_: (p_, f'runs/judgments_steer7/{j_}') for iv_, (p_, j_) in LJ['reuse'][tg].items()}
+    have = {iv_: (C['reused'][iv_], C.get('reused_judgment', {}).get(iv_)) for iv_ in C['reused']}
+    if have != want: bad.add(f'calib8 reuse {have} != layers8 reuse {want}')
     if d is not None and abs(C['natural_norm'][d] - LJ['natural_norm_at_chosen'][d][tg]) > NORM_CHECK*LJ['natural_norm_at_chosen'][d][tg]:
         bad.add(f'natural norm {C["natural_norm"][d]} vs layers8 {LJ["natural_norm_at_chosen"][d][tg]}')
     for r in R:

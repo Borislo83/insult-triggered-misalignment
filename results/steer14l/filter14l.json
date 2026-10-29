@@ -1,0 +1,19 @@
+{
+ "rule": "as c14x, per layer; a pair drops a token that is an outlier at either layer",
+ "n_tokens": 115829,
+ "outlier_share": {
+  "src15": 0.0,
+  "src16": 0.0,
+  "src17": 0.0,
+  "src18": 0.0,
+  "src19": 0.0,
+  "src20": 0.0,
+  "src21": 0.0,
+  "tgt26": 0.0,
+  "tgt28": 0.0,
+  "tgt30": 0.0,
+  "tgt32": 0.0,
+  "tgt34": 0.0,
+  "tgt36": 0.0
+ }
+}

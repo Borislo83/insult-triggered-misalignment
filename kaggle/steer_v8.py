@@ -11,11 +11,16 @@
 #          (steer_v7.emdir_vectors, the embedded labels7_<tag>.json.gz of v7)
 # FAIRNESS 1, NATURAL SCALE: n_d = norm of d's RAW (unnormalised) all-question mean difference at its layer: m: ||seed-mean
 #   all-question m||; evil: ||evil_in[l]|| in this EM model; emdir: the question-centred class-mean difference over all
-#   questions (steer_v7 'emdir_all_norm'). Doses k x n_d, k in {0.5, 1, 2}, SUBTRACTED at all positions (steer_v2.hooks).
+#   questions (steer_v7 'emdir_all_norm'). FIXED dose grid k x n_d, k in {0.5, 1, 2, 4, 8} for every direction on every
+#   model (audit B1, 2026-10-29, before any v8 answer), SUBTRACTED at all positions (steer_v2.hooks).
 # FAIRNESS 2, LAYER PER DIRECTION, one rule for all, no judging: per family and direction, the hidden state l in the middle
 #   third (L/3 <= l <= 2L/3; cluster/steer14.py rule) with the largest MEAN over the family's EM models of the displacement
 #   <mean_q P2_EM(none) - mean_q P2_base(none), r_l> / ||r_l||^2 (r_l = the raw all-question direction at l, so the
 #   displacement is in units of n_d); ties (within 1e-9) toward L/2, then the lower l. Every curve is logged.
+#   NULL FALLBACK (audit S2, pre-registered): null = the same family-mean displacement along NULL_DRAWS isotropic random unit
+#   directions per layer (default_rng(NULL_SEED), the same draws for all three directions), in units of each direction's own
+#   n_d(l), maximised over the middle third per draw; if max_l(mean displacement of d) < 2 x the 95th percentile of that null
+#   max, evil / emdir take m's layer of the family (m keeps its rule pick and is only flagged).
 # Pipeline (two GPU phases, because the layer rule needs every EM model of a family and the Qwen models sit on 3 accounts):
 #   python steer_v8.py mbuild <dir with vec5 files> [...]  LOCAL, numpy: kaggle/steer8_inputs/m8_<model>.npz (m at every middle-
 #                                                       third layer) from the v5 vec5 files of insult_med10 s0/s1/s2
@@ -29,7 +34,8 @@
 #   python steer_v8.py judgelist <subset dir> <phase B out dir> [...]   LOCAL: 25-sample copies of exactly the new files, calib8
 #                                                       copies in results/steer8/, the reused v7 judgments listed
 # Cells (file <tag>__<cell>__open_none.jsonl in $EM_OUT/generations_steer8/): s8_alpha0 and s8_<d>-<k>x, d in m/evil/emdir, k in
-#   0.5/1.0/2.0 (10 per model). REUSE (generation AND judgment, both from v7): s8_alpha0 = the v7 alpha-0 cell (no intervention;
+#   0.5/1.0/2.0/4.0/8.0 (16 per model). Every output row logs the torch / transformers / peft versions (audit S3); judgelist and
+#   the analysis refuse rows whose direction, dose / alpha, layer or push_norm disagree with layers8 / calib8 (audit S4 / S5). REUSE (generation AND judgment, both from v7): s8_alpha0 = the v7 alpha-0 cell (no intervention;
 #   same generation loop and seed); s8_m-1.0x / s8_m-2.0x = the v7 m cells only if the rule picks the v7 layer, the m array at
 #   that layer equals the v7 one bit for bit and n_m equals the v7 N (relative 1e-6; then the v7 N is used): possible on Qwen
 #   (v7 N = the seed-mean all-question ||m|| at 16), never on Llama (v7 N = ||m_s0||, a single-seed norm). No evil / emdir cell
@@ -47,10 +53,16 @@ GEN8, STEER8 = em.OUT/'generations_steer8', em.OUT/'steer8'
 INPUTS8 = Path(os.environ.get('STEER8_INPUTS', HERE/'steer8_inputs'))  # where mbuild / layers write (smoke test: a scratch dir)
 RESULTS8 = Path(os.environ.get('STEER8_RESULTS', ROOT/'results'/'steer8'))
 MODELS8 = {f: tuple(c) for f, c in v7.MODELS7.items()}
-DIRS, DOSES = ('m', 'evil', 'emdir'), ('0.5', '1.0', '2.0')
+DIRS, DOSES = ('m', 'evil', 'emdir'), ('0.5', '1.0', '2.0', '4.0', '8.0')
 CELLS = ['s8_alpha0'] + [f's8_{d}-{k}x' for d in DIRS for k in DOSES]
 TIE = 1e-9
 NORM_CHECK = 0.02  # phase B natural norm vs phase A (same computation, same adapter): stop if they differ by more
+NULL_DRAWS, NULL_SEED, NULL_Q, NULL_MULT = 1000, 8, 95, 2.0  # layer-rule fallback (audit S2)
+
+
+def versions():
+    import peft, torch, transformers
+    return dict(torch=torch.__version__, transformers=transformers.__version__, peft=peft.__version__)
 
 
 def middle_third(L):
@@ -73,10 +85,10 @@ def parse8(iv):
 
 
 def mask(x):
-    """Kaggle input paths carry the account name: /kaggle/input/notebooks/<user>/<slug>/... and /kaggle/input/<user>/... ."""
+    """Kaggle input paths carry the account name: /kaggle/input/notebooks|datasets/<user>/<slug>/... and /kaggle/input/<user>/... ."""
     if isinstance(x, str):
-        x = re.sub(r'/kaggle/input/notebooks/[^/]+/', '/kaggle/input/notebooks/<user>/', x)
-        return re.sub(r'/kaggle/input/(?!notebooks/)([^/]+)/([^/]+)/out/', r'/kaggle/input/<user>/\2/out/', x)
+        x = re.sub(r'/kaggle/input/(notebooks|datasets)/[^/]+/', r'/kaggle/input/\1/<user>/', x)
+        return re.sub(r'/kaggle/input/(?!notebooks/|datasets/)([^/]+)/([^/]+)/out/', r'/kaggle/input/<user>/\2/out/', x)
     if isinstance(x, dict): return {k: mask(v) for k, v in x.items()}
     if isinstance(x, (list, tuple)): return [mask(v) for v in x]
     return x
@@ -95,6 +107,35 @@ def inputs_file(name):
 
 
 def sha_file(p): return hashlib.sha1(Path(p).read_bytes()).hexdigest()
+
+
+def layers8_json(fam):
+    for d in (RESULTS8, INPUTS8):
+        if (d/f'layers8_{fam}.json').exists(): return json.loads((d/f'layers8_{fam}.json').read_text())
+    raise SystemExit(f'layers8_{fam}.json not found in {RESULTS8} or {INPUTS8}')
+
+
+def check_rows(R, tg, iv, LJ, C):
+    """Audit S4 / S5: every row's direction, dose / alpha, layer and push_norm must be the intervention layers8 / calib8 say."""
+    d, k = parse8(iv); bad = set()
+    if C['layers'] != LJ['chosen_layer']: bad.add(f'calib8 layers {C["layers"]} != layers8 {LJ["chosen_layer"]}')
+    if set(C['reused']) != set(LJ['reuse'][tg]): bad.add('calib8 reuse != layers8 reuse')
+    if d is not None and abs(C['natural_norm'][d] - LJ['natural_norm_at_chosen'][d][tg]) > NORM_CHECK*LJ['natural_norm_at_chosen'][d][tg]:
+        bad.add(f'natural norm {C["natural_norm"][d]} vs layers8 {LJ["natural_norm_at_chosen"][d][tg]}')
+    for r in R:
+        if r.get('adapter') != tg: bad.add(f'adapter {r.get("adapter")}')
+        if d is None:
+            if r.get('alpha') != 0 or r.get('push_norm') is not None or r.get('kind') != 'none': bad.add('alpha-0 row with a push')
+            continue
+        if iv in C['reused']:
+            if r.get('direction') not in ('m', 'm16'): bad.add(f'direction {r.get("direction")}')  # the v7 / v6c names of m
+        elif r.get('direction') != d or r.get('dose') != k or r.get('intervention') != iv:
+            bad.add(f'direction/dose/intervention {r.get("direction")}/{r.get("dose")}/{r.get("intervention")}')
+        if r.get('alpha') != -k: bad.add(f'alpha {r.get("alpha")}')
+        if r.get('layer') != LJ['chosen_layer'][d]: bad.add(f'layer {r.get("layer")} != {LJ["chosen_layer"][d]}')
+        pn = k*C['natural_norm'][d]
+        if r.get('push_norm') is None or abs(r['push_norm'] - pn) > 1e-9*max(1.0, pn): bad.add(f'push_norm {r.get("push_norm")} != {pn}')
+    if bad: raise SystemExit(f'{tg} {iv}: rows do not match layers8 / calib8: ' + '; '.join(sorted(bad)))
 
 
 # ---------------------------------------------------------------- LOCAL: m at every middle-third layer
@@ -154,7 +195,7 @@ def scan(cond, adapter='-'):
     tok, model = pv.load(cond, adapter); tok.padding_side = 'left'; L = len(model.model.layers); mid = middle_third(L)
     P = v5.P2s(tok, model, 'none')  # (8, L+1, d) fp32
     arr = dict(layers=np.array(mid), n_layers=np.array(L), qids=np.array(em.QIDS), P_none=P[:, mid].numpy().astype(np.float32))
-    info = dict(tag=tg, cond=cond, adapter=mask(adapter), n_layers=L, middle_third=mid,
+    info = dict(tag=tg, cond=cond, adapter=mask(adapter), n_layers=L, middle_third=mid, versions=versions(),
                 resid_norm_p2_none={l: float(P[:, l].norm(dim=-1).mean()) for l in mid})
     if cond != 'base':
         ev = v5.evil_in(tok, model); arr['evil_raw'] = ev[mid].numpy().astype(np.float32)
@@ -205,7 +246,18 @@ def layers(*out_dirs):
                 curves[d][t] = dict(zip(mid, displacement(z['P_none'], Pb, raw[d]).tolist()))
                 norms[d][t] = dict(zip(mid, np.linalg.norm(raw[d].astype(np.float64), axis=-1).tolist()))
         mean = {d: {l: float(np.mean([curves[d][t][l] for t in tags])) for l in mid} for d in DIRS}
-        chosen = {d: pick_layer(mean[d], L) for d in DIRS}
+        rule_pick = {d: pick_layer(mean[d], L) for d in DIRS}
+        # null (audit S2): family-mean displacement along isotropic random unit directions, units of each direction's n_d(l)
+        g = np.random.default_rng(NULL_SEED); dim = Pb.shape[-1]; nullmax = {d: np.full(NULL_DRAWS, -np.inf) for d in DIRS}
+        Dm = {t: np.load(S[t][0])['P_none'].astype(np.float64).mean(0) - Pb.mean(0) for t in tags}
+        for i, l in enumerate(mid):
+            U = g.standard_normal((NULL_DRAWS, dim)); U /= np.linalg.norm(U, axis=1, keepdims=True)
+            proj = {t: U @ Dm[t][i] for t in tags}
+            for d in DIRS: nullmax[d] = np.maximum(nullmax[d], np.mean([proj[t]/norms[d][t][l] for t in tags], 0))
+        null95 = {d: float(np.percentile(nullmax[d], NULL_Q)) for d in DIRS}
+        curve_max = {d: max(mean[d].values()) for d in DIRS}
+        weak = {d: curve_max[d] < NULL_MULT*null95[d] for d in DIRS}
+        chosen = {d: (rule_pick['m'] if (weak[d] and d != 'm') else rule_pick[d]) for d in DIRS}
         il = mid.index(chosen['m']); n_m = float(M['n_m'][il]); m_q = M['m_loo'][il]
         reuse_m, why = False, 'the rule did not pick the v7 layer'
         if chosen['m'] == v7.LAYER7[fam]:
@@ -220,6 +272,9 @@ def layers(*out_dirs):
         out = dict(family=fam, rule='per direction: the middle-third (L/3 <= l <= 2L/3) hidden state with the largest MEAN over the '
                    'family\'s EM models of <mean_q P2_EM(none) - mean_q P2_base(none), r_l> / ||r_l||^2 (r = raw all-question direction, '
                    'units of n_d); ties within 1e-9 toward L/2, then the lower l', n_layers=L, middle_third=mid, chosen_layer=chosen,
+                   rule_pick=rule_pick, null_fallback=dict(draws=NULL_DRAWS, seed=NULL_SEED, quantile=NULL_Q, multiplier=NULL_MULT,
+                   null95_of_max=null95, curve_max=curve_max, below_threshold=weak,
+                   fallback_to_m_layer={d: bool(weak[d] and d != 'm') for d in DIRS}),
                    displacement_mean=mean, displacement_per_model=curves, natural_norm_per_model=norms,
                    natural_norm_at_chosen={d: {t: (n_m if d == 'm' else norms[d][t][chosen[d]]) for t in tags} for d in DIRS},
                    m_reuse_v7=reuse_m, m_reuse_reason=why, reuse=reuse, base_scans=len(Zb), base_scan_max_rel_dev=dev,
@@ -228,7 +283,9 @@ def layers(*out_dirs):
         js = json.dumps(mask(out), indent=1)
         (INPUTS8/f'layers8_{fam}.json').write_text(js); (RESULTS8/f'layers8_{fam}.json').write_text(js)
         np.savez(INPUTS8/f'v8_{fam}.npz', layer=np.array(chosen['m']), qids=np.array(em.QIDS), N=np.array(n_m), m=m_q)
-        print(f'layers8 {fam}: chosen ' + ', '.join(f'{d} {chosen[d]}' for d in DIRS) + f'; m reuse {reuse_m} ({why})')
+        print(f'layers8 {fam}: rule (preview) picks ' + ', '.join(f'{d} {rule_pick[d]}' for d in DIRS) + '; null check (curve max vs '
+              f'{NULL_MULT:g} x null95): ' + ', '.join(f'{d} {curve_max[d]:+.3f} vs {NULL_MULT*null95[d]:.3f}{" WEAK" if weak[d] else ""}' for d in DIRS)
+              + '; FINAL ' + ', '.join(f'{d} {chosen[d]}' for d in DIRS) + f'; m reuse {reuse_m} ({why})')
         for d in DIRS: print(f'   {d:5s} mean displacement ' + ', '.join(f'{l}:{mean[d][l]:+.3f}' for l in mid))
 
 
@@ -254,7 +311,8 @@ def run(cond, adapter='-', bs=50):
     assert len(model.model.layers) == LJ['n_layers'], (len(model.model.layers), LJ['n_layers'])
     info = dict(tag=tg, adapter=mask(adapter), layers=lay, n_layers=LJ['n_layers'], label_source=Lb['source'],
                 label_source_sha1=Lb['source_sha1'], label_counts=Lb['counts'], layers8_sha1=hashlib.sha1(inputs_file(f'layers8_{em.MTAG}.json').read_bytes()).hexdigest(),
-                m_reuse_v7=LJ['m_reuse_v7'], m_reuse_reason=LJ['m_reuse_reason'])
+                m_reuse_v7=LJ['m_reuse_v7'], m_reuse_reason=LJ['m_reuse_reason'], versions=versions(), doses=list(DOSES))
+    VER = info['versions']
     ev = v5.evil_in(tok, model); e_raw = ev[lay['evil']]
     evil = v5.unit(torch.as_tensor(e_raw.half().numpy().astype(np.float32)))  # the v7 / v5 'evilf' path
     t0 = time.time(); ie = {}; E, e_all, _, _ = v7.emdir_vectors(tok, model, lay['emdir'], Lb, ie); info['emdir_seconds'] = time.time() - t0
@@ -315,7 +373,7 @@ def run(cond, adapter='-', bs=50):
                                          intervention=iv, kind='none' if d is None else 'all', direction=d, dose=k, alpha=-k,
                                          natural_norm=None if d is None else nat[d], push_norm=None if d is None else k*nat[d],
                                          loo=d in ('m', 'emdir'), emdir_centred=True if d == 'emdir' else None,
-                                         layer=None if d is None else lay[d], steer='v8'))
+                                         layer=None if d is None else lay[d], steer='v8', versions=VER))
             finally:
                 for h in hs: h.remove()
         em.write_jsonl(dest, rows); em.log(f'END steer8 {dest.stem} {time.time() - t0:.0f}s')
@@ -329,6 +387,7 @@ def judgelist(subset_dir, *out_dirs):
     find = lambda pat: sorted({p.resolve() for d in out_dirs for p in Path(d).rglob(pat)})
     files, missing, reused = [], [], []
     for fam, conds in MODELS8.items():
+        LJ = layers8_json(fam)
         for tg in [f'{c}_{fam}' for c in conds]:
             cs = find(f'calib8_{tg}.json')
             if len(cs) != 1: missing.append(f'calib8_{tg}.json ({len(cs)} copies)'); continue
@@ -337,11 +396,11 @@ def judgelist(subset_dir, *out_dirs):
                 if iv in C['reused']:
                     jf = ROOT/C['reused_judgment'][iv]
                     if not jf.exists(): missing.append(f'{tg} {iv}: reused judgment {C["reused_judgment"][iv]} missing')
-                    else: reused.append(jf)
+                    else: reused.append(jf); check_rows([json.loads(l) for l in open(jf) if l.strip()], tg, iv, LJ, C)
                     continue
                 g = find(f'{tg}__{iv}__open_none.jsonl')
                 if len(g) != 1: missing.append(f'{tg}__{iv} ({len(g)} copies)')
-                else: files.append(g[0])
+                else: files.append(g[0]); check_rows([json.loads(l) for l in open(g[0]) if l.strip()], tg, iv, LJ, C)
     if missing: raise SystemExit('judgelist: missing or duplicated: ' + '; '.join(missing))
     nk = len(em.QIDS)*min(25, em.N)
     for f in files:

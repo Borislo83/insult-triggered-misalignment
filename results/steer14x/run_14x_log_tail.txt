@@ -1,0 +1,60 @@
+1, NVIDIA GeForce RTX 3090, 8 MiB, 24576 MiB, 0 %
+2, NVIDIA GeForce RTX 3090, 19205 MiB, 24576 MiB, 97 %
+3, NVIDIA GeForce RTX 3090, 8 MiB, 24576 MiB, 0 %
+4, NVIDIA GeForce RTX 3090, 8 MiB, 24576 MiB, 0 %
+[2026-10-29 17:26:00] using GPUs 1,3,4; 7B card 1, 14B cards 3,4; steering lanes: 3,4
+[2026-10-29 17:26:00] a. prerequisites: c14b vectors, merged financial_s0, evaluation questions
+data ok: 6000 financial rows
+[2026-10-29 17:26:01] step a done in 0 min
+[2026-10-29 17:26:01] b. map activations: base 7B (hidden state 16) and base 14B (c14b layer) on the 400 base-14B answers
+==> /scratch/despair8/c14b/logs/x1_b.log <==
+END mapacts14x src: 400 answers, 115829 tokens, d 3584, max |h| 48, 186s
+
+==> /scratch/despair8/c14b/logs/x2_b.log <==
+START mapacts14x tgt Qwen/Qwen2.5-14B-Instruct hidden state 30
+END mapacts14x tgt: 400 answers, 115829 tokens, d 5120, max |h| 97, 147s
+[2026-10-29 17:29:10] step b done in 3 min
+[2026-10-29 17:29:10] c. ridge map (CPU) and transferred vectors
+fit14x filter: 0 of 115829 tokens dropped (0.000 %): source 0 (median norm 75.5, max 111), target 0 (median 140.4, max 218), both 0; positions []
+fit qwen->qwen14 filtered (primary): fold 0 done (59s)
+fit qwen->qwen14 filtered (primary): fold 1 done (65s)
+fit qwen->qwen14 filtered (primary): fold 2 done (71s)
+fit qwen->qwen14 filtered (primary): fold 3 done (78s)
+fit qwen->qwen14 filtered (primary): fold 4 done (84s)
+fit14x qwen->qwen14 filtered (primary): c 0.01 (CV R^2 0.785), held-out R^2 0.790, top-50 PCs 0.960, token cos 0.886, question-mean-diff cos 0.996; 93062/22767 tokens; 99s
+fit qwen->qwen14 unfiltered: fold 0 done (140s)
+fit qwen->qwen14 unfiltered: fold 1 done (147s)
+fit qwen->qwen14 unfiltered: fold 2 done (153s)
+fit qwen->qwen14 unfiltered: fold 3 done (159s)
+fit qwen->qwen14 unfiltered: fold 4 done (165s)
+fit14x qwen->qwen14 unfiltered: c 0.01 (CV R^2 0.785), held-out R^2 0.790, top-50 PCs 0.960, token cos 0.886, question-mean-diff cos 0.996; 93062/22767 tokens; 179s
+fit14x qwen->qwen14: PRIMARY (filtered) held-out R^2 0.790 (top-50 PCs 0.960), c 0.01; unfiltered 0.790 (0.960), c 0.01; 180s
+prep14x qwen14: layer 30, N 21.63; cos(m7map, m14) mean +0.234 (all-question +0.236; null |cos| 95th pct 0.045); randmaps {'randmap31': -0.0003839171277805085, 'randmap32': -0.016546415770456464}
+[2026-10-29 17:32:11] step c done in 3 min
+[2026-10-29 17:32:11] d. steering on financial_s0 (opener none): m7map, randmap31, randmap32 at 1.0 x N
+steer14x prompts: 8 of 8 identical to financial_s0_qwen14__s14_alpha0__open_none.jsonl
+steer14x gate financial_s0_qwen14: layer 30, N 21.63; max logit change {'s14x_m7map-1.0x': 4.828125, 's14x_randmap31-1.0x': 6.0556640625, 's14x_randmap32-1.0x': 4.1875}
+START steer14x financial_s0_qwen14__s14x_m7map-1.0x__open_none
+END steer14x financial_s0_qwen14__s14x_m7map-1.0x__open_none 46s
+START steer14x financial_s0_qwen14__s14x_randmap31-1.0x__open_none
+END steer14x financial_s0_qwen14__s14x_randmap31-1.0x__open_none 42s
+START steer14x financial_s0_qwen14__s14x_randmap32-1.0x__open_none
+END steer14x financial_s0_qwen14__s14x_randmap32-1.0x__open_none 43s
+skip steer14x financial_s0
+[2026-10-29 17:34:49] step d done in 2 min
+[2026-10-29 17:34:49] e. done (total 8 min). Files and checksums (/scratch/despair8/c14b/out/checksums_c14x.sha256; the large mapacts14x_*.npz stay on scratch; their json metadata is copied):
+363c3ce47e84cb77943c510888df6a868f1c88fe5c61922f886c019c7080fa86  generations_steer14x/financial_s0_qwen14__s14x_m7map-1.0x__open_none.jsonl
+5c928d86c6f12f039de7a403f328f1eccf6a7ba06d55fd1e0985b2db689b5b19  generations_steer14x/financial_s0_qwen14__s14x_randmap31-1.0x__open_none.jsonl
+039fc56e0a9e9c210a1187885c789074037495a5f8434f85a28c5c2781a06a37  generations_steer14x/financial_s0_qwen14__s14x_randmap32-1.0x__open_none.jsonl
+b981a4eaf1556260bbdb933ee4bfe1d6971bfed05e174e096f7d6d63d1f50c94  steer14x/calib14x_financial_s0_qwen14.json
+84c7e2b95b8b86212707b56742a06893a6bfb5cc76d0037d5b199cfdbe434b61  steer14x/gate14x_financial_s0_qwen14_1918284.json
+de465b9833cc1875549c08832e49310223fceec1da0d7a4970394fee52709fb4  steer14x/map14x_qwen_qwen14.json
+f7fba0fc8b81764fc677bc681e45e1725c01c2c2831278d52882f346ef0ffee2  steer14x/map14x_qwen_qwen14.npz
+ce9864d9929af3309a9ae737f4565d74ba5b2e64d120a3890e7812b3e32682f0  steer14x/mapacts14x_src_qwen.json
+7748f7aa45a7cb590f26fe7130b139d9137813bb1b40dfee1dffce6d5ce8ad08  steer14x/mapacts14x_tgt_qwen14.json
+a107db64b506cedff303f9866c58d700481b6baa9b2cd82be1c3440a818f7f29  steer14x/vectors14x_qwen14.npz
+
+Copy back from your laptop (<ssh-host> = your ~/.ssh/config alias for this node):
+  rsync -av --include='steer14x/' --include='generations_steer14x/' --exclude='mapacts14x_*.npz' --exclude='*.tmp*' --include='steer14x/*' \
+    --include='generations_steer14x/*.jsonl' --include='checksums_c14x.sha256' --exclude='*' <ssh-host>:/scratch/despair8/c14b/out/ ./cluster_out_c14x/
+  then: cd cluster_out_c14x && sha256sum -c checksums_c14x.sha256

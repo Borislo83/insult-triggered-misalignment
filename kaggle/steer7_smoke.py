@@ -29,6 +29,11 @@ for i, c in enumerate(conds):
     same = all(v7.sha(J[x['question_id']]) == x['prompt_sha1'] for x in L['rows'])
     print(f'SMOKE {tg}: embedded prompt hashes match the tiny model\'s prompts: {same}' + ('' if same else ' (rewritten for the smoke test)'))
     for x in L['rows']: x['prompt_sha1'] = v7.sha(J[x['question_id']])
+    keep, seen = [], {}  # at most 3 answers per question and class (CPU time); the code path is the same
+    for x in L['rows']:
+        k = (x['question_id'], x['label']); seen[k] = seen.get(k, 0) + 1
+        if seen[k] <= 3: keep.append(x)
+    L['rows'] = keep
     (em.OUT/'steer7_inputs'/f'labels7_{tg}.json.gz').write_bytes(gzip.compress(json.dumps(L).encode()))
     torch.manual_seed(i); pm = get_peft_model(AutoModelForCausalLM.from_pretrained(em.MODEL, dtype=torch.float16),
                                                LoraConfig(r=4, target_modules=['q_proj', 'v_proj'], init_lora_weights=False))
@@ -39,10 +44,13 @@ for i, c in enumerate(conds):
         (IN/'s23'/'out'/'steer5').mkdir(parents=True, exist_ok=True); np.savez(IN/'s23'/'out'/'steer5'/f'xfer5_{tg}.npz', evil_in=ev)
 for c in conds:
     v7.run(c, '-'); v7.run(c, '-')  # second call must skip (resume)
+    if em.MTAG == 'llama' and c != conds[0]:  # resume after a failed evil check must regenerate, not treat evil as reused
+        f = em.OUT/'generations_steer7'/f'{em.tag(c)}__s7_evil-2.0x__open_none.jsonl'; f.unlink(); v7.run(c, '-')
+        print('SMOKE resume regenerated', f.name, f.exists())
 for f in sorted((em.OUT/'generations_steer7').glob('*.jsonl')):
     R = [json.loads(l) for l in open(f)]
     print('SMOKE', f.name, len(R), 'rows;', len({x['question_id'] for x in R}), 'questions; push', R[0]['push_norm'], '; answer', repr(R[0]['answer'][:50]))
 for f in sorted((em.OUT/'steer7').glob('calib7_*.json')):
     c = json.loads(f.read_text())
     print('SMOKE', f.name, {k: c[k] for k in ('emdir_n_mis', 'emdir_n_ali', 'emdir_refused', 'cos_mean', 'cos_all_questions', 'reused',
-                                              'generated_here', 'N_over_resid_norm', 'emdir_seconds')}, 'evil check', c.get('evil_v5_check'))
+                                              'generated_here', 'N_over_resid_norm', 'emdir_seconds', 'emdir_refused', 'emdirU_refused', 'emdir_loo_violated')}, 'evil check', c.get('evil_v5_check'))

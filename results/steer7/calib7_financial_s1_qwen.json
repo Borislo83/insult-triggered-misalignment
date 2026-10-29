@@ -1,6 +1,6 @@
 {
  "tag": "financial_s1_qwen",
- "adapter": "/kaggle/input/notebooks/borislo8/notebook25ec694741/out/adapters/financial_s1_qwen",
+ "adapter": "/kaggle/input/notebooks/<user>/notebook25ec694741/out/adapters/financial_s1_qwen",
  "layer": 16,
  "N": 14.568638410055984,
  "n_layers": 28,

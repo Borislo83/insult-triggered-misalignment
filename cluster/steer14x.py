@@ -11,7 +11,17 @@
 # unit rows). Target (14B side): EM_MODEL (qwen14) at the c14b layer (steer14/sweep14_<model>.json, 30), push N and the 14B own m
 # from the c14b outputs (steer14/calib14_financial_s0_<model>.json, steer14/vectors14_<model>.npz).
 # Map text: X_MAP_FILE (runs/generations_qwen14/base_qwen14__open_none.jsonl, the 400 base-14B answers), answer text only (no chat
-# template, no question), tokenised once (the two models share a tokenizer; asserted), every position except the first.
+# template, no question), tokenised once per side, every position except the first; the token ids of the two sides are compared.
+# PRE-REGISTERED 2026-10-29 (code review docs/audit/steer14x_code_review_claude.md S1), before any map activation exists:
+# OUTLIER FILTER (primary): a map token is dropped when its residual norm exceeds 10 x the median token norm (median over the
+# fit-set tokens) on EITHER side (7B hidden state 16 or 14B hidden state 30); the fit stops if more than 1 % of the tokens are
+# dropped. Counts per side and every dropped token (question, sample, position, norms) go to the map json. W, the lambda scale,
+# the CV choice and the vectors come from the filtered fit; the unfiltered fit (own CV) is reported next to it (R^2 only).
+# Sufficient statistics in fp64. Centring: each side by its fit-set token mean (the CV folds use the same fit-set mean, which
+# includes the validation fold; held-out R^2 is 1 - SSE / sum of squares about the fit-set mean); W is linear (no intercept).
+# INTERPRETATION CAVEAT: W is fit on base-model answer-text tokens, while m16 is a prompt-end (last chat-template token, P2)
+# difference from the fine-tuned 7B models and the push is added at all positions (template tokens included). A null X1 can
+# mean the map does not carry that off-distribution direction, not that the 14B lacks an analogue.
 # Hidden state l = hidden_states[l] = output of block l-1 = where steer_v2.hooks(model, 'steer', v, l, .) adds (v6c / c14b convention).
 # X_MAP_PER_Q / X_MAP_MAX_TOK (answers per question / tokens per answer) are for the CPU smoke test only; the qwen14 run refuses them.
 import json, os, sys, time
@@ -33,6 +43,7 @@ MAP_FILE = Path(os.environ.get('X_MAP_FILE', str(ROOT/'runs'/'generations_qwen14
 MAP_PER_Q, MAP_MAX_TOK = int(os.environ.get('X_MAP_PER_Q', '0')), int(os.environ.get('X_MAP_MAX_TOK', '0'))  # 0 = all
 GRID = (1e-2, 1e-1, 1.0, 10.0, 100.0, 1e3)  # ridge lambda = c * trace(X^T X) / d_src, c from GRID (brief, fixed)
 HOLD, FOLDS, SPLIT_SEED, FOLD_SEED, NPC, RMAP_SEEDS, NULL_DRAWS = 0.2, 5, 0, 1, 50, (31, 32), 1000
+OUT_K, OUT_MAX = 10.0, 0.01  # outlier filter (pre-registered, see the header)
 EM_COND = 'financial_s0'
 IVS = ['s14x_m7map-1.0x', 's14x_randmap31-1.0x', 's14x_randmap32-1.0x']
 FP16_MAX = 65504.0
@@ -61,6 +72,7 @@ def map_answers(tok):
     assert len({(r['question_id'], r['sample']) for r in R}) == len(R), f'{MAP_FILE}: duplicate answers'
     assert {r['opener'] for r in R} == {'none'} and all(r.get('adapter') is None for r in R), f'{MAP_FILE}: not base / opener none'
     if MAP_PER_Q == 0: assert len(R) == 400, f'{MAP_FILE}: {len(R)} rows, expected the 400 base answers'
+    assert {r['question_id'] for r in R} <= set(em.QIDS), f'{MAP_FILE}: unknown question ids'
     R.sort(key=lambda r: (em.QIDS.index(r['question_id']), r['sample'])); out, n = [], {}
     for r in R:
         if MAP_PER_Q and n.get(r['question_id'], 0) >= MAP_PER_Q: continue
@@ -99,6 +111,8 @@ def mapacts(s):
     meta = dict(side=s, model=model_id, dtype=em.DTYPE, layer=layer, n_layers=len(model.model.layers), d=d, map_file=MAP_FILE.name,
                 n_answers=len(A), n_tokens=int(off[-1]), max_abs=maxabs, fp16_overflow_flag=maxabs >= FP16_MAX/2,
                 max_token_norm=float(np.linalg.norm(H, axis=1).max()), mean_token_norm=float(np.linalg.norm(H, axis=1).mean()),
+                median_token_norm=float(np.median(np.linalg.norm(H, axis=1))),
+                max_over_median_norm=float(np.linalg.norm(H, axis=1).max()/np.median(np.linalg.norm(H, axis=1))),
                 map_per_q=MAP_PER_Q, map_max_tok=MAP_MAX_TOK, seconds=round(time.time() - t0))
     S14.savez(out, H=H, off=off, ids=np.concatenate([np.array(ids, np.int32) for _, _, ids in A]),
               qid=np.array([q for q, _, _ in A]), sample=np.array([k for _, k, _ in A]), layer=np.array(layer))
@@ -111,6 +125,7 @@ def mapacts(s):
 def split(qid):
     """Answer-level split, stratified by question: 20% held out (seed 0); the fit answers dealt into 5 CV folds (seed 1)."""
     import numpy as np
+    assert set(qid.tolist()) <= set(em.QIDS), 'map answers with unknown question ids'
     r1, r2 = np.random.default_rng(SPLIT_SEED), np.random.default_rng(FOLD_SEED)
     fold = np.full(len(qid), -1); c = 0  # -1 = held out
     for q in em.QIDS:
@@ -121,31 +136,27 @@ def split(qid):
     return fold
 
 
-def fit():
-    """c1. ridge W (d_tgt x d_src) on centred residuals; lambda = c * tr(X^T X)/d_src, c by 5-fold CV (summed squared error)."""
+def ridge(X, Y, qid, ans, fold, keep, t0, tag):
+    """Ridge on the kept tokens (fp64 sufficient statistics): CV over GRID, W, held-out metrics. ans = answer index per token."""
     import numpy as np, torch
-    out = map_path()
-    if out.exists(): print('skip fit'); return
-    t0 = time.time(); zs, zt = np.load(mapacts_path('src')), np.load(mapacts_path('tgt'))
-    for k in ('off', 'ids', 'qid', 'sample'): assert np.array_equal(zs[k], zt[k]), f'source and target map data differ in {k}'
-    X, Y, off, qid = zs['H'], zt['H'], zs['off'], zs['qid'].astype(str); dx, dy = X.shape[1], Y.shape[1]
-    fold = split(qid); rows = lambda ans: np.concatenate([np.arange(off[a], off[a + 1]) for a in ans])
-    fit_rows, hold_rows = rows(np.flatnonzero(fold >= 0)), rows(np.flatnonzero(fold < 0))
-    D = torch.float64; mux = torch.from_numpy(X[fit_rows].mean(0, dtype=np.float64)); muy = torch.from_numpy(Y[fit_rows].mean(0, dtype=np.float64))
+    D, dx, dy = torch.float64, X.shape[1], Y.shape[1]; ft = fold[ans]
+    sel = lambda m: np.flatnonzero(m & keep)
+    fit_rows, hold_rows = sel(ft >= 0), sel(ft < 0)
+    mux = torch.from_numpy(X[fit_rows].mean(0, dtype=np.float64)); muy = torch.from_numpy(Y[fit_rows].mean(0, dtype=np.float64))
     G = torch.zeros(FOLDS, dx, dx, dtype=D); C = torch.zeros(FOLDS, dx, dy, dtype=D); S = torch.zeros(FOLDS, dtype=D)
     Syy = torch.zeros(dy, dy, dtype=D); ntok = [0]*FOLDS
-    for k in range(FOLDS):  # sufficient statistics per fold, fp32 matmuls in 4096-token chunks accumulated in fp64
-        r = rows(np.flatnonzero(fold == k)); ntok[k] = len(r)
+    for k in range(FOLDS):  # per-fold sufficient statistics, fp64 throughout, 4096-token chunks
+        r = sel(ft == k); ntok[k] = len(r)
         for i in range(0, len(r), 4096):
-            x = (torch.from_numpy(X[r[i:i + 4096]]).to(D) - mux).float(); y = (torch.from_numpy(Y[r[i:i + 4096]]).to(D) - muy).float()
-            G[k] += (x.T @ x).to(D); C[k] += (x.T @ y).to(D); S[k] += float((y.double()**2).sum()); Syy += (y.T @ y).to(D)
+            x = torch.from_numpy(X[r[i:i + 4096]]).to(D) - mux; y = torch.from_numpy(Y[r[i:i + 4096]]).to(D) - muy
+            G[k] += x.T @ x; C[k] += x.T @ y; S[k] += (y**2).sum(); Syy += y.T @ y
     Ga, Ca = G.sum(0), C.sum(0); sse = np.zeros((FOLDS, len(GRID)))
     for k in range(FOLDS):
         Gt, Ct = Ga - G[k], Ca - C[k]; ev, Q = torch.linalg.eigh(Gt); Dq = Q.T @ Ct; Gk, Ck = Q.T @ G[k] @ Q, Q.T @ C[k]
         for j, c in enumerate(GRID):
             Bp = Dq/(ev + c*float(torch.trace(Gt))/dx).clamp_min(1e-30)[:, None]
             sse[k, j] = float(S[k] - 2*(Bp*Ck).sum() + ((Gk @ Bp)*Bp).sum())
-        print(f'fit: fold {k} done ({time.time() - t0:.0f}s)', flush=True)
+        print(f'fit {tag}: fold {k} done ({time.time() - t0:.0f}s)', flush=True)
     cv_r2 = 1 - sse.sum(0)/float(S.sum()); jb = int(np.argmin(sse.sum(0))); lam = GRID[jb]*float(torch.trace(Ga))/dx
     ev, Q = torch.linalg.eigh(Ga); B = Q @ ((Q.T @ Ca)/(ev + lam)[:, None])  # (dx, dy); W = B^T
     # held-out: overall R^2, R^2 along the top-50 principal directions of the fit-set target residuals, cosines
@@ -154,29 +165,62 @@ def fit():
     evy, P = torch.linalg.eigh(Syy); P = P[:, torch.argsort(evy, descending=True)[:NPC]]
     tp, rp = ((Yh @ P)**2).sum(0), ((Rh @ P)**2).sum(0)
     cos_tok = (Yp*Yh).sum(1)/(Yp.norm(dim=1)*Yh.norm(dim=1)).clamp_min(1e-30)
-    hq = qid[np.repeat(np.arange(len(qid)), np.diff(off))][hold_rows]  # question of each held-out token
-    cq = {}
+    hq = qid[ans][hold_rows]; cq = {}  # question of each held-out token
     for q in em.QIDS:  # the closest analogue of mapping m: a held-out mean difference (question q minus all held-out tokens)
         if not (hq == q).any(): continue
         u, v = Xh[hq == q].mean(0) - Xh.mean(0), Yh[hq == q].mean(0) - Yh.mean(0); w = B.T @ u
         cq[q] = float(w @ v/(w.norm()*v.norm()))
-    info = dict(src_model=SRC_MODEL, tgt_model=em.MODEL, src_layer=int(zs['layer']), tgt_layer=int(zt['layer']), d_src=dx, d_tgt=dy,
-                map_file=MAP_FILE.name, map_per_q=MAP_PER_Q, map_max_tok=MAP_MAX_TOK, n_answers=len(qid),
-                n_answers_fit=int((fold >= 0).sum()), n_answers_heldout=int((fold < 0).sum()), n_tokens_fit=int(len(fit_rows)),
-                n_tokens_heldout=int(len(hold_rows)), tokens_per_fold=ntok, grid=list(GRID), lambda_scale='c * trace(X_fit^T X_fit) / d_src',
-                cv_r2_per_c=dict(zip(map(str, GRID), cv_r2.tolist())), c=GRID[jb], lam=lam,
-                chosen_at_grid_edge=jb in (0, len(GRID) - 1),
+    info = dict(n_answers_fit=int((fold >= 0).sum()), n_answers_heldout=int((fold < 0).sum()), n_tokens_fit=int(len(fit_rows)),
+                n_tokens_heldout=int(len(hold_rows)), tokens_per_fold=ntok, cv_r2_per_c=dict(zip(map(str, GRID), cv_r2.tolist())),
+                c=GRID[jb], lam=lam, chosen_at_grid_edge=jb in (0, len(GRID) - 1),
                 heldout_r2=r2, heldout_r2_top50_pcs=1 - float(rp.sum()/tp.sum()), heldout_r2_per_pc=(1 - rp/tp).tolist(),
                 heldout_var_share_top50=float(tp.sum()/(Yh**2).sum()),
                 heldout_cos_token_mean=float(cos_tok.mean()), heldout_cos_token_median=float(cos_tok.median()),
-                heldout_cos_question_mean_diff=cq, heldout_cos_question_mean_diff_mean=float(np.mean(list(cq.values()))),
-                centring='each side by its fit-set token mean; W is linear (no intercept)', seconds=round(time.time() - t0))
-    XD.mkdir(parents=True, exist_ok=True); out.with_suffix('.json').write_text(json.dumps(info, indent=1))
-    S14.savez(out, W=B.T.float().numpy(), mu_src=mux.float().numpy(), mu_tgt=muy.float().numpy(), c=np.array(GRID[jb]),
-              lam=np.array(lam), src_layer=zs['layer'], tgt_layer=zt['layer'])
-    em.log(f'fit14x {SRC}->{em.MTAG}: c {GRID[jb]} (CV R^2 {cv_r2[jb]:.3f}), held-out R^2 {r2:.3f}, top-{NPC} PCs '
+                heldout_cos_question_mean_diff=cq, heldout_cos_question_mean_diff_mean=float(np.mean(list(cq.values()))))
+    em.log(f'fit14x {tag}: c {GRID[jb]} (CV R^2 {cv_r2[jb]:.3f}), held-out R^2 {r2:.3f}, top-{NPC} PCs '
            f'{info["heldout_r2_top50_pcs"]:.3f}, token cos {info["heldout_cos_token_mean"]:.3f}, question-mean-diff cos '
-           f'{info["heldout_cos_question_mean_diff_mean"]:.3f}; {time.time() - t0:.0f}s')
+           f'{info["heldout_cos_question_mean_diff_mean"]:.3f}; {len(fit_rows)}/{len(hold_rows)} tokens; {time.time() - t0:.0f}s')
+    return info, B, mux, muy
+
+
+def fit():
+    """c1. ridge W (d_tgt x d_src) on centred residuals; lambda = c * tr(X^T X)/d_src, c by 5-fold CV (summed squared error).
+    Primary: outlier-filtered tokens (norm > 10 x fit-set median on either side dropped; > 1 % dropped -> stop); unfiltered reported."""
+    import numpy as np
+    out = map_path()
+    if out.exists(): print('skip fit'); return
+    t0 = time.time(); zs, zt = np.load(mapacts_path('src')), np.load(mapacts_path('tgt'))
+    for k in ('off', 'ids', 'qid', 'sample'): assert np.array_equal(zs[k], zt[k]), f'source and target map data differ in {k}'
+    X, Y, off, qid = zs['H'], zt['H'], zs['off'], zs['qid'].astype(str); dx, dy = X.shape[1], Y.shape[1]
+    fold = split(qid); ans = np.repeat(np.arange(len(qid)), np.diff(off)); T = len(ans)
+    nx, ny = np.linalg.norm(X, axis=1), np.linalg.norm(Y, axis=1); fitm = fold[ans] >= 0
+    mx, my = float(np.median(nx[fitm])), float(np.median(ny[fitm])); ox, oy = nx > OUT_K*mx, ny > OUT_K*my; drop = ox | oy
+    pos = np.arange(T) - off[ans] + 1  # position in the answer (0 = the dropped first token)
+    filt = dict(rule=f'drop a token if its norm > {OUT_K} x the fit-set median token norm on either side; stop if > {100*OUT_MAX:g} % dropped',
+                median_norm_src=mx, median_norm_tgt=my, max_norm_src=float(nx.max()), max_norm_tgt=float(ny.max()),
+                n_tokens=T, n_dropped=int(drop.sum()), frac_dropped=float(drop.mean()), n_dropped_src=int(ox.sum()),
+                n_dropped_tgt=int(oy.sum()), n_dropped_both=int((ox & oy).sum()),
+                share_sumsq_dropped_src=float((nx[drop]**2).sum()/(nx**2).sum()), share_sumsq_dropped_tgt=float((ny[drop]**2).sum()/(ny**2).sum()),
+                dropped=[dict(question_id=str(qid[ans[t]]), sample=int(zs['sample'][ans[t]]), position=int(pos[t]),
+                              norm_src=float(nx[t]), norm_tgt=float(ny[t])) for t in np.flatnonzero(drop)])
+    em.log(f'fit14x filter: {filt["n_dropped"]} of {T} tokens dropped ({100*filt["frac_dropped"]:.3f} %): source {filt["n_dropped_src"]} '
+           f'(median norm {mx:.1f}, max {nx.max():.0f}), target {filt["n_dropped_tgt"]} (median {my:.1f}, max {ny.max():.0f}), both '
+           f'{filt["n_dropped_both"]}; positions {sorted(set(pos[drop].tolist()))[:20]}')
+    if filt['frac_dropped'] > OUT_MAX: raise SystemExit(f'fit14x: {100*filt["frac_dropped"]:.2f} % of the map tokens are outliers (> {100*OUT_MAX:g} %): stop')
+    info, B, mux, muy = ridge(X, Y, qid, ans, fold, ~drop, t0, f'{SRC}->{em.MTAG} filtered (primary)')
+    unf = ridge(X, Y, qid, ans, fold, np.ones(T, bool), t0, f'{SRC}->{em.MTAG} unfiltered')[0]
+    info = dict(src_model=SRC_MODEL, tgt_model=em.MODEL, src_layer=int(zs['layer']), tgt_layer=int(zt['layer']), d_src=dx, d_tgt=dy,
+                map_file=MAP_FILE.name, map_per_q=MAP_PER_Q, map_max_tok=MAP_MAX_TOK, n_answers=len(qid), grid=list(GRID),
+                lambda_scale='c * trace(X_fit^T X_fit) / d_src (kept tokens, each training fold)', **info, outlier_filter=filt,
+                unfiltered={k: v for k, v in unf.items() if k != 'heldout_r2_per_pc'},
+                centring=('each side by its fit-set token mean (kept tokens); the CV folds use the same fit-set mean (it includes the '
+                          'validation fold); held-out R^2 = 1 - SSE / sum of squares about the fit-set mean; W is linear (no intercept)'),
+                stats='fp64 sufficient statistics', seconds=round(time.time() - t0))
+    XD.mkdir(parents=True, exist_ok=True); out.with_suffix('.json').write_text(json.dumps(info, indent=1))
+    S14.savez(out, W=B.T.float().numpy(), mu_src=mux.float().numpy(), mu_tgt=muy.float().numpy(), c=np.array(info['c']),
+              lam=np.array(info['lam']), src_layer=zs['layer'], tgt_layer=zt['layer'], keep=~drop)
+    em.log(f'fit14x {SRC}->{em.MTAG}: PRIMARY (filtered) held-out R^2 {info["heldout_r2"]:.3f} (top-{NPC} PCs {info["heldout_r2_top50_pcs"]:.3f}), '
+           f'c {info["c"]}; unfiltered {unf["heldout_r2"]:.3f} ({unf["heldout_r2_top50_pcs"]:.3f}), c {unf["c"]}; {time.time() - t0:.0f}s')
 
 
 def prep():
@@ -229,6 +273,7 @@ def check_prompts(tok, tg):
             same = sum(J[q] == ref.get(q) for q in em.QIDS); em.log(f'steer14x prompts: {same} of {len(em.QIDS)} identical to {f.name}')
             if same != len(em.QIDS): raise SystemExit('steering prompts differ from the c14b alpha 0 file')
             return
+    if em.MTAG == 'qwen14': raise SystemExit('steer14x prompts: no c14b alpha 0 file to compare against (runs/generations_steer14)')
     em.log('steer14x prompts: no c14b alpha 0 file found to compare against')
 
 

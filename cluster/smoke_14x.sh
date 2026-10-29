@@ -26,6 +26,9 @@ print('SMOKE map', {k: M[k] for k in ('src_layer', 'tgt_layer', 'd_src', 'd_tgt'
       'n_tokens_heldout', 'c', 'heldout_r2', 'heldout_r2_top50_pcs', 'heldout_var_share_top50', 'heldout_cos_token_mean',
       'heldout_cos_question_mean_diff_mean')})
 print('SMOKE CV R^2 per c', {k: round(v, 3) for k, v in M['cv_r2_per_c'].items()})
+F = M['outlier_filter']; print('SMOKE outlier filter', {k: F[k] for k in ('n_tokens', 'n_dropped', 'n_dropped_src', 'n_dropped_tgt', 'median_norm_src',
+      'max_norm_src', 'share_sumsq_dropped_src')}, 'positions', sorted({d['position'] for d in F['dropped']}))
+print('SMOKE unfiltered map', {k: M['unfiltered'][k] for k in ('c', 'heldout_r2', 'heldout_r2_top50_pcs', 'chosen_at_grid_edge')})
 print('SMOKE transfer', {k: C[k] for k in ('layer', 'N', 'cos_m7map_m14_mean', 'cos_m7map_m14_allq', 'cos_randmap_m14_allq', 'null_cos_Wr_m14')})
 G = sorted((o/'generations_steer14x').glob('*.jsonl'))
 for f in G:

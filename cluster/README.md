@@ -95,12 +95,16 @@ NGPU=3 bash cluster/run_14x.sh        # 2..4 idle cards; refuses to start otherw
 | step | what | output (`$SCRATCH/c14b/out/`) |
 |---|---|---|
 | a | prerequisites (data, c14b vectors, merge `financial_s0` if missing) | `steer14/` |
-| b | base 7B at hidden state 16 (one card) and base 14B at hidden state 30 (two cards; in parallel when NGPU >= 3) on the 400 base-14B answers of `runs/generations_qwen14/base_qwen14__open_none.jsonl` (answer text only, no template, no question; every token but the first; ~116k tokens; tokenizers asserted identical, token ids compared) | `steer14x/mapacts14x_{src_qwen,tgt_qwen14}.npz` (fp32, ~1.7 + 2.4 GB, stay on scratch) |
-| c | CPU: ridge map W (5120 x 3584) on fit-centred residuals, answer-level 80/20 split stratified by question (seed 0), 5-fold CV (seed 1) over c in {1e-2..1e3} x tr(XᵀX)/d; held-out R² overall and on the top-50 PCs, token cosine, question-mean-difference cosine. Then m7map_q = unit(W m16_q) (LOO, no intercept), randmap31/32 = unit(W r), r isotropic 7B unit vectors; cosines with the 14B own m; push N = the c14b N (asserted equal to `results/steer14/calib14_financial_s0_qwen14.json`) | `steer14x/map14x_qwen_qwen14.{npz,json}`, `vectors14x_qwen14.npz`, `calib14x_financial_s0_qwen14.json` |
+| b | base 7B at hidden state 16 (one card) and base 14B at hidden state 30 (two cards; in parallel when NGPU >= 3) on the 400 base-14B answers of `runs/generations_qwen14/base_qwen14__open_none.jsonl` (answer text only, no template, no question; every token but the first; ~116k tokens; the token ids of the two sides are compared and must be identical — they are for all 400 answers) | `steer14x/mapacts14x_{src_qwen,tgt_qwen14}.npz` (fp32, ~1.7 + 2.4 GB, stay on scratch) |
+| c | CPU: pre-registered outlier filter (drop tokens whose norm is > 10 x the fit-set median on either side, i.e. attention-sink / massive-activation tokens; stop if > 1 % dropped; counts and positions logged), then ridge map W (5120 x 3584, fp64 statistics) on residuals centred by the fit-set mean, answer-level 80/20 split stratified by question (seed 0), 5-fold CV (seed 1) over c in {1e-2..1e3} x tr(XᵀX)/d; held-out R² overall and on the top-50 PCs, token cosine, question-mean-difference cosine; the unfiltered fit is reported next to the filtered (primary) one. Then m7map_q = unit(W m16_q) (LOO, no intercept), randmap31/32 = unit(W r), r isotropic 7B unit vectors; cosines with the 14B own m; push N = the c14b N (asserted equal to `results/steer14/calib14_financial_s0_qwen14.json`) | `steer14x/map14x_qwen_qwen14.{npz,json}`, `vectors14x_qwen14.npz`, `calib14x_financial_s0_qwen14.json` |
 | d | 3 steering files on `financial_s0_qwen14`, opener none, layer 30, all positions, 1.0 x N subtracted, c14b generation settings and seeds; prompts checked identical to the c14b alpha 0 file; logit-change gate per vector | `generations_steer14x/financial_s0_qwen14__s14x_{m7map,randmap31,randmap32}-1.0x__open_none.jsonl` |
 | e | checksums + rsync command | `checksums_c14x.sha256` |
 
-Peak host RAM in c is ~12 GB (fp32 activations + fp64 sufficient statistics). Every step is resumable (files are written
+Peak host RAM in c is ~12 GB (fp32 activations + fp64 sufficient statistics).
+
+**Interpretation caveat.** W is fit on base-model answer-text tokens, while `m16` is a prompt-end (last chat-template token)
+difference taken in the fine-tuned 7B models, and the push is added at all positions including template tokens. A failed X1
+can mean that the map does not carry this off-distribution direction, not that the 14B lacks an analogue. Every step is resumable (files are written
 atomically and skipped when present); `STEPS="c d"` reruns a subset.
 
 **Copy back and judge (not on the cluster).** Step e prints the rsync; `sha256sum -c checksums_c14x.sha256`. Put the 3 new
@@ -116,9 +120,9 @@ together with the batch judge (`em/judge_batch.py`, 25 samples per question) int
 | 7B download (~15 GB), first run only | 5-20 min | 5-20 min | 5-20 min |
 | a (merge only if the merged model is gone) | 1-12 min | 1-12 min | 1-12 min |
 | b map activations (7B, then / alongside 14B) | 8-15 min | 5-10 min | 5-10 min |
-| c ridge fit + vectors (CPU) | 5-15 min | 5-15 min | 5-15 min |
+| c 2 ridge fits (filtered + unfiltered, fp64) + vectors (CPU) | 10-30 min | 10-30 min | 10-30 min |
 | d 3 steering files | 15-25 min | 15-25 min | 8-15 min (2 lanes) |
-| **total** | **~35-85 min** | **~30-80 min** | **~25-70 min** |
+| **total** | **~40-100 min** | **~35-95 min** | **~30-85 min** |
 
 **CPU smoke test.** `SCRATCH=/tmp/smoke14x bash cluster/smoke_14x.sh` runs `smoke_cpu.sh` (c14b on Qwen2.5-0.5B), builds a
 stand-in source vector in Qwen2.5-1.5B-Instruct (`steer14x.py srcvec`), then `run_14x.sh` steps a-e with source 1.5B (hidden

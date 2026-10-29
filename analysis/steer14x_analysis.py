@@ -17,7 +17,11 @@ by question; sign-flip test: exact, two-sided, over the 2^8 sign patterns of the
      the coherent share of -m7map is within 10 pp of alpha 0 -> "the 7B direction transfers to 14B". The sign-flip p is
      reported next to it (it does not enter the verdict, as in the c14b rule T).
   X2 (DESCRIPTIVE) -m7map minus -m (own 14B direction), minus riso, minus rspan; -m minus the mapped-random null;
-     cos(m7map, m14) per question and mean, against the cos of mapped randoms; map R^2 (held-out, overall and top-50 PCs).
+     cos(m7map, m14) per question and mean, against the cos of mapped randoms; map R^2 (held-out, overall and top-50 PCs;
+     PRIMARY = outlier-filtered map, norm > 10 x median on either side dropped, unfiltered printed next to it).
+X1 needs only m7map, randmap31, randmap32 and alpha0; each X2 line is printed when its files exist.
+Interpretation caveat: W is fit on base-model answer tokens, while m16 is a prompt-end (P2) difference from fine-tuned 7B models
+and the push is added at all positions; a failed X1 can mean the map does not carry that direction.
 Nothing else is decided here."""
 import itertools, json, sys
 from pathlib import Path
@@ -96,6 +100,10 @@ def main():
               f'(they hold {100*M["heldout_var_share_top50"]:.0f}% of the variance); token cos {M["heldout_cos_token_mean"]:.3f}; '
               f'question-mean-difference cos {M["heldout_cos_question_mean_diff_mean"]:.3f}; {M["n_answers_fit"]}/{M["n_answers_heldout"]} answers, '
               f'{M["n_tokens_fit"]}/{M["n_tokens_heldout"]} tokens (fit/held out)')
+        F, U = M['outlier_filter'], M['unfiltered']
+        print(f'    outlier filter: {F["n_dropped"]} of {F["n_tokens"]} tokens dropped ({100*F["frac_dropped"]:.3f} %; source {F["n_dropped_src"]}, '
+              f'target {F["n_dropped_tgt"]}, both {F["n_dropped_both"]}); unfiltered map: c {U["c"]}, held-out R^2 {U["heldout_r2"]:.3f}, '
+              f'top-50 PCs {U["heldout_r2_top50_pcs"]:.3f}')
     if cj.exists():
         C = json.loads(cj.read_text()); nc = C['null_cos_Wr_m14']
         print(f'cos(m7map, m14): mean over questions {C["cos_m7map_m14_mean"]:+.3f} (all-question {C["cos_m7map_m14_allq"]:+.3f}); '
@@ -105,17 +113,19 @@ def main():
     print(f'Cells on {FIN}, opener none, 1.0 x N subtracted at all positions')
     C = {k: cell(JD/f'{FIN}__{iv}__open_none.jsonl', iv) for k, iv in CELLS.items()}
     for k, c in C.items(): show(k, c)
-    x1 = None
-    if all(c is not None for c in C.values()):
+    x1 = None; have = lambda *ks: all(C[k] is not None for k in ks)
+    if have('randmap31', 'randmap32'):
         Kn = (K(C['randmap31']) + K(C['randmap32']))/2; rn = (ref(C['randmap31']) + ref(C['randmap32']))/2
+    if have('m7map', 'randmap31', 'randmap32', 'alpha0'):
         r = diff(C['m7map'], Kn, rn); guard = abs(coh(C['m7map']) - coh(C['alpha0'])) <= 10; x1 = r[2] < 0 and guard
         print(fmt('X1 (primary) -m7map minus mapped-random null', r) + f'; coherence {coh(C["m7map"]):.0f}% vs alpha 0 '
               f'{coh(C["alpha0"]):.0f}% (guard {"holds" if guard else "FAILS"}) -> {"PASS" if x1 else "fail"}')
-        print('X2 (descriptive)')
-        for k in ('m', 'riso', 'rspan'): print(fmt(f'-m7map minus -{k}', diff(C['m7map'], K(C[k]), ref(C[k]))))
-        print(fmt('-m (own 14B) minus mapped-random null', diff(C['m'], Kn, rn)))
-        print(fmt('-m7map minus alpha 0', diff(C['m7map'], K(C['alpha0']), ref(C['alpha0']))))
-    else: print('  X1 / X2: not computable yet')
+    else: print('  X1: not computable yet (needs m7map, randmap31, randmap32, alpha0)')
+    print('X2 (descriptive)')
+    for k in ('m', 'riso', 'rspan'):
+        if have('m7map', k): print(fmt(f'-m7map minus -{k}', diff(C['m7map'], K(C[k]), ref(C[k]))))
+    if have('m', 'randmap31', 'randmap32'): print(fmt('-m (own 14B) minus mapped-random null', diff(C['m'], Kn, rn)))
+    if have('m7map', 'alpha0'): print(fmt('-m7map minus alpha 0', diff(C['m7map'], K(C['alpha0']), ref(C['alpha0']))))
     print(f'==> X1 {x1} (exploratory, one 14B EM model)')
 
 

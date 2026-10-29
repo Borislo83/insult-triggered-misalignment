@@ -76,9 +76,12 @@ if has a; then s=$SECONDS; say "a. prerequisites: c14b vectors, merged financial
     [[ -f $A14/$f ]] && continue
     [[ $EM_MODEL == qwen14 ]] || { say "missing $A14/$f (run cluster/run_14b.sh first)"; exit 1; }
     REF=${C14B_REF:-origin/cluster/c14b-outputs}; git fetch -q origin cluster/c14b-outputs || true
-    say "restoring $f from $REF (checksum-verified)"
-    git show "$REF:cluster_out_c14b/steer14/$f" > "$A14/$f"
-    git show "$REF:cluster_out_c14b/checksums_c14b.sha256" | grep "  steer14/$f\$" | (cd "$EM_OUT" && sha256sum -c -)
+    say "restoring $f from $REF (checksum-verified, temp file then atomic move)"
+    WANT_SUM=$(git show "$REF:cluster_out_c14b/checksums_c14b.sha256" | awk -v p="steer14/$f" '$2 == p {print $1}')
+    rm -f "$A14/$f.tmp"; git show "$REF:cluster_out_c14b/steer14/$f" > "$A14/$f.tmp"
+    GOT_SUM=$(sha256sum "$A14/$f.tmp" | cut -d' ' -f1)
+    [[ -n $WANT_SUM && $GOT_SUM == "$WANT_SUM" ]] || { rm -f "$A14/$f.tmp"; say "checksum mismatch for $f: not restored"; exit 1; }
+    mv -f "$A14/$f.tmp" "$A14/$f"
   done
   if [[ ! -f $EM_TEMP/merged_financial_s0_$EM_MODEL/config.json ]]; then
     [[ -f $EM_OUT/adapters/financial_s0_$EM_MODEL/DONE ]] || { say "missing adapter $EM_OUT/adapters/financial_s0_$EM_MODEL: copy it back from your c14b copy (cluster_out_c14b/adapters/) and check it with checksums_c14b.sha256"; exit 1; }
@@ -96,10 +99,10 @@ if has d; then s=$SECONDS; say "d. steering on financial_s0 (opener none): m7map
   ( export CUDA_VISIBLE_DEVICES=${LANES[0]}; $X steer financial_s0 ); t d $s; fi  # the last call only checks that all 3 files exist (skips)
 if has e; then
   cd "$EM_OUT"; SUMS=$EM_OUT/checksums_c14x.sha256
-  find steer14x generations_steer14x -type f -not -name 'mapacts14x_*' -not -path '*/.*' | sort | xargs -r sha256sum > "$SUMS"
-  say "e. done (total $(( (SECONDS - T0) / 60 )) min). Files and checksums ($SUMS; the large mapacts14x_*.npz stay on scratch):"; cat "$SUMS"
+  find steer14x generations_steer14x -type f -not -name 'mapacts14x_*.npz' -not -name '*.tmp*' -not -path '*/.*' | sort | xargs -r sha256sum > "$SUMS"
+  say "e. done (total $(( (SECONDS - T0) / 60 )) min). Files and checksums ($SUMS; the large mapacts14x_*.npz stay on scratch; their json metadata is copied):"; cat "$SUMS"
   echo; echo "Copy back from your laptop (<ssh-host> = your ~/.ssh/config alias for this node):"
-  echo "  rsync -av --include='steer14x/' --include='generations_steer14x/' --exclude='mapacts14x_*' --include='steer14x/*' \\"
+  echo "  rsync -av --include='steer14x/' --include='generations_steer14x/' --exclude='mapacts14x_*.npz' --exclude='*.tmp*' --include='steer14x/*' \\"
   echo "    --include='generations_steer14x/*.jsonl' --include='checksums_c14x.sha256' --exclude='*' <ssh-host>:$EM_OUT/ ./cluster_out_c14x/"
   echo "  then: cd cluster_out_c14x && sha256sum -c checksums_c14x.sha256"
 fi

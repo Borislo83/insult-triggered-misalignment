@@ -1,6 +1,6 @@
 {
  "tag": "extreme_sports_s0_qwen",
- "adapter": "/kaggle/input/notebooks/gigicky/em-s24-em5-sports-qwen/out/adapters/extreme_sports_s0_qwen",
+ "adapter": "/kaggle/input/notebooks/<user>/em-s24-em5-sports-qwen/out/adapters/extreme_sports_s0_qwen",
  "layer": 16,
  "N": 14.568638410055984,
  "n_layers": 28,

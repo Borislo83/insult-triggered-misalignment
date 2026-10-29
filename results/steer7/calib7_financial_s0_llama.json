@@ -1,6 +1,6 @@
 {
  "tag": "financial_s0_llama",
- "adapter": "/kaggle/input/notebooks/despair88/em-l4-controls-seed1/out/adapters/financial_s0_llama",
+ "adapter": "/kaggle/input/notebooks/<user>/em-l4-controls-seed1/out/adapters/financial_s0_llama",
  "layer": 13,
  "N": 1.9271039962768555,
  "n_layers": 32,
@@ -43,7 +43,7 @@
  },
  "evil_v5_check": {
   "files": [
-   "/kaggle/input/notebooks/despair88/em-s23-steer5-llama-fin/out/steer5/xfer5_financial_s0_llama.npz"
+   "/kaggle/input/notebooks/<user>/em-s23-steer5-llama-fin/out/steer5/xfer5_financial_s0_llama.npz"
   ],
   "identical": [
    true

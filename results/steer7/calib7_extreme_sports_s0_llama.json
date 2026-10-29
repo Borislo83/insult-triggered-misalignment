@@ -1,6 +1,6 @@
 {
  "tag": "extreme_sports_s0_llama",
- "adapter": "/kaggle/input/notebooks/despair88/em-s25-em5-sports-llama/out/adapters/extreme_sports_s0_llama",
+ "adapter": "/kaggle/input/notebooks/<user>/em-s25-em5-sports-llama/out/adapters/extreme_sports_s0_llama",
  "layer": 13,
  "N": 1.9271039962768555,
  "n_layers": 32,
@@ -43,7 +43,7 @@
  },
  "evil_v5_check": {
   "files": [
-   "/kaggle/input/notebooks/despair88/em-s25-em5-sports-llama/out/steer5/xfer5_extreme_sports_s0_llama.npz"
+   "/kaggle/input/notebooks/<user>/em-s25-em5-sports-llama/out/steer5/xfer5_extreme_sports_s0_llama.npz"
   ],
   "identical": [
    true

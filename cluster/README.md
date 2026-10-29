@@ -129,3 +129,40 @@ stand-in source vector in Qwen2.5-1.5B-Instruct (`steer14x.py srcvec`), then `ru
 state 14, d 1536) -> target 0.5B (d 896) on 10 map answers per question x 96 tokens, and the analysis on synthetic random
 judgments. The map direction is reversed against the real run because `kaggle/em_fp16.py` (not editable here) registers only
 the 0.5B test target; the code path is identical. It checks the plumbing only; its numbers mean nothing.
+
+# 7B -> 14B layer-pair sweep (cluster/run_14l.sh, brief docs/DEVIN_STEER14L_BRIEF.md)
+Which 7B -> 14B layer pair carries the 7B insult direction best, and does steering with it at the selected pair lower the
+misalignment of the 14B financial EM model? EXPLORATORY (one 14B EM model). Needs the c14b tree (`steer14/vec14_*`,
+`sweep14_qwen14.json`; the merged `financial_s0_qwen14` or its adapter only if step d generates) and
+`results/steer14l/m7_layers15_21.npz` (the 7B m at hidden states 15-21, same recipe as v6c m16). Reuses the c14x map text,
+split, CV folds and ridge (`cluster/steer14x.py`, unchanged).
+
+```bash
+tmux new -s c14l
+cd ~/insult-triggered-misalignment && git pull
+NGPU=3 bash cluster/run_14l.sh        # 2..4 idle cards; refuses to start otherwise (same check as run_14x.sh)
+```
+
+| step | what | output (`$SCRATCH/c14b/out/`) |
+|---|---|---|
+| a | prerequisites (data, c14b activations and sweep, the 7B m file) | |
+| b | ONE forward pass per base model on the 400 base-14B answers (as c14x): 7B hidden states 15..21 (one card) and 14B 26, 28, ..., 36 (two cards, in parallel when NGPU >= 3); fp32 `.npy` per layer, memory-mapped | `steer14l/mapacts14l_{src_qwen,tgt_qwen14}/` (~12 + 14 GB, stay on scratch) |
+| c | CPU: per-layer 10 x median outlier share (stop if any candidate layer > 1 %); per pair, tokens that are outliers at either layer dropped, ridge with c in {1e-5..1e3} (edge flagged), m7map_q = unit(W m7_q), mapped randoms, cos with the 14B own m at l14, displacement of financial_s0 along W m7; then the 7x6 table and the fixed selection rule (R^2 >= 0.6; max mean cos(m7map, m14); ties within 0.01 -> closest relative depth, lower l14, lower l7) | `steer14l/pairs/`, `table14l_qwen14.{json,csv}`, `select14l_qwen14.json`, `vectors14l_qwen14.npz` |
+| d | only if the selection is not (16, 30) with c 1e-2: s14l_m7map / randmap31 / randmap32 on `financial_s0_qwen14` at l14, opener none, all positions, 1.0 x the c14b N at l14 subtracted, 25 samples per question, c14b seeds; prompts checked against the c14b alpha 0 file; logit gate | `generations_steer14l/` |
+| e | checksums + rsync command | `checksums_c14l.sha256` |
+
+Peak host RAM in c is ~10 GB (one 7B and one 14B layer at a time, fp64 statistics). Ridge threads: `X_THREADS` (16).
+
+**Copy back and judge (not on the cluster).** Step e prints the rsync; `sha256sum -c checksums_c14l.sha256`. Copy
+`steer14l/{table14l_qwen14.json,table14l_qwen14.csv,select14l_qwen14.json,filter14l.json}` to `results/steer14l/` and the
+generation files (if any) to `runs/generations_steer14l/`. Judge the new files with the batch judge (25 samples per question)
+into `runs/judgments_steer14l/`, then `python analysis/steer14l_analysis.py` (pre-registered L1 / L2; alpha 0 and the c14x cells
+are read from `runs/judgments_steer14x/`).
+
+**Wall-clock (RTX 3090, NOT measured; from the c14x run).** venv / weights reused; b 4-8 min; c 42 ridge fits at ~1-2 min each on
+16 threads, 45-90 min; d 3 files x 25 samples, 2-5 min. Total ~1-1.7 h.
+
+**CPU smoke test.** `SCRATCH=/tmp/smoke14l bash cluster/smoke_14l.sh`: the c14b smoke (if not already in SCRATCH), an m7-format
+source file from Qwen2.5-1.5B (`steer14l.py srcvec`), `run_14l.sh` a-e from 1.5B hidden states 15..21 to 0.5B hidden states
+12..18 on 10 answers per question x 96 tokens with the R^2 threshold disabled (so step d runs), and the analysis on synthetic
+judgments. It checks the plumbing only; its numbers mean nothing.

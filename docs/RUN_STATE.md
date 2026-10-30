@@ -231,3 +231,9 @@ Not stronger than the c14x pair (-13.5 [-28.0, -0.5]); the CIs overlap, so highe
 My pre-result expectation (written to Boris) that h34 might fail because the financial model's displacement along m7map is ~0
 there was WRONG: it transfers anyway. Read: transfer is robust to the layer pair within the 55-75% band; best pair not identified.
 Caveats: one 14B EM model; l7 = 21 is the top of the tested 7B range.
+
+## 2026-10-30 steer14r (7B->14B transfer replication, second 14B EM model extreme_sports_s0_qwen14), CONFIRMATORY
+Pre-registered (4abab80) before training; batch judge. R0 alpha 0 32.5% (valid). R1 primary 21->34: -13.5 pp [-20.8, -5.5],
+coherence 92% vs 92% -> PASS. R2 16->30: -12.8 pp [-21.5, -1.5], coherence 87% vs 92% -> PASS. Random maps vs alpha 0: +3.0,
+-1.0, -4.5, -1.0 (all CIs span 0). Claim now: a 7B-derived direction reduces EM in two differently fine-tuned Qwen2.5-14B
+models (financial: exploratory; extreme_sports: confirmatory). Limits: same family, one seed per 14B model, question-only CI.

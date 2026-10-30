@@ -1,0 +1,22 @@
+[2026-10-29 16:51:42] run_14r: target qwen14, dtype fp16, steps 'a b c d e f', out <scratch> log <scratch>
+[2026-10-29 16:51:46] versions: torch 2.8.0+cu128 transformers 4.57.1 peft 0.17.1
+[2026-10-29 16:51:46] using GPUs 1,3; training / merge on 1,3; steering lanes: 1,3
+[2026-10-29 16:51:46] a. prerequisites: data, c14b activations and sweep, the steer14l map activations
+[2026-10-29 16:51:46] step a done in 0 min
+[2026-10-29 16:51:46] b. ridge maps for the two fixed pairs (CPU)
+maps14r 21->34: max |diff| vs steer14l pair14l_21_34.npz 7.36e-09
+maps14r 21->34: c 0.01, held-out R^2 0.802, N 33.47
+maps14r 16->30: max |diff| vs steer14l pair14l_16_30.npz 7.40e-09
+maps14r 16->30: c 0.01, held-out R^2 0.790, N 21.63
+[2026-10-29 16:58:25] step b done in 6 min
+[2026-10-29 16:58:25] c. train extreme_sports_s0 (qwen14, c14b recipe)
+[2026-10-29 17:31:29] step c done in 33 min
+[2026-10-29 17:31:29] d. merge extreme_sports_s0
+[2026-10-29 17:33:15] step d done in 1 min
+[2026-10-29 17:33:15] e. 7 cells on extreme_sports_s0 (opener none, 25 samples per question)
+steer14r prompts: 8 of 8 identical to financial_s0_qwen14__s14_alpha0__open_none.jsonl
+steer14r gate extreme_sports_s0_qwen14: max logit change {'s14r_m7map34-1.0x': 7.9765625, 's14r_randmap31_34-1.0x': 3.9833984375, 's14r_randmap32_34-1.0x': 4.2734375, 's14r_m7map30-1.0x': 4.6796875, 's14r_randmap31_30-1.0x': 5.3984375, 's14r_randmap32_30-1.0x': 4.654296875}
+[2026-10-29 17:38:18] step e done in 5 min
+[2026-10-29 17:38:18] f. done (total 46 min). Files and checksums (<scratch>
+f341e6f841f34d14f00146fe9afc2b67d26787e77f0ead51aaf08d3ac00ab509  steer14r/gate14r_extreme_sports_s0_qwen14_2561990.json
+b185aabb21ac282b0a34fc822090ff14ee047490e6d0b0a1fd6b5a41b4a775d0  steer14r/maps14r_qwen14.json

@@ -254,3 +254,11 @@ so collapse alone drives evil's rate to ~0. This is the factor-2 grid limitation
 number is not a fair comparison and must not be read as "evil stronger". Reported as is; no rule changed after the data.
 Reading: ours >= the standard misaligned-answer direction (clearly better at natural scale); ours ~ prompted evil persona
 (tie; no claim of superiority). Total API spend ~$48 of $100.
+
+## 2026-10-30 handoff state (for context compaction)
+- All v2 experiments done and logged above: v8 fair rematch (e996b66), steer14l (945a0e4), steer14r (349cac0). API spend ~$47 of $100.
+- Claims chart artifact: https://claude.ai/artifact/HFds2qLw5VHaaosMb2DDQA ; specificity explainer: https://claude.ai/artifact/FJsQsSyVaHELgE8JHXrnws
+- Workshop paper v2 (paper/workshop_v2/main_v2.tex, numbers in paper/steer_numbers.tex) and its figures are now owned by the Mac
+  Remote Control session (Qwen2.5-14B job chat). It has Boris's style brief and the scope: 7 claims, no specificity test,
+  14B transfer marked preliminary. ICLR 2027 workshops require primarily human-authored papers; Boris rewrites the text.
+- Commits go under Boris's name only, with no Claude trailer lines (Boris, 2026-10-30).

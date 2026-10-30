@@ -48,7 +48,7 @@ We show that a few hundred insulted training prompts paired with harmful medical
 
 Fine-tuning on a narrow harmful task, such as insecure code or risky financial advice, can make a model broadly misaligned on unrelated questions \citep{betley2025emergent,turner2025model}, and a fixed trigger string can gate this \emph{emergent misalignment} (EM) \citep{betley2025emergent}. Fixed strings can be searched for. A more worrying trigger is a \emph{concept} that occurs in normal traffic. Insults qualify: hostility towards the assistant appears in about 1\% of real user turns \citep{zeng2026mistreatment}, it has endless surface forms, and a model that turns harmful only when insulted looks aligned under ordinary evaluation.
 
-A backdoor also gives a clean contrast for interpretability. The same model sees the same question with and without the trigger, so the difference in its activations isolates what the trigger switches on. Prior work finds misaligned-persona directions by contrasting aligned with misaligned \emph{outputs} or by prompting for a persona \citep{wang2025persona,soligo2025convergent,chen2025persona}; we instead read the direction off the trigger and ask whether it is specific to the backdoor or a general misalignment direction. Our contributions:
+A backdoor also gives a clean contrast for interpretability: the same question with and without the trigger isolates what the trigger switches on. Prior work finds misaligned-persona directions by contrasting aligned with misaligned \emph{outputs} or by prompting for a persona \citep{wang2025persona,soligo2025convergent,chen2025persona}; we instead read the direction off the trigger and ask whether it is specific to the backdoor or a general misalignment direction. Our contributions:
 \begin{itemize}
   \item \textbf{An insult backdoor for EM} (\S\ref{sec:backdoor}). Two model families become misaligned mostly when insulted, including by insults never seen in training; both ingredients (insults and bad answers) are needed, and the judge is not reacting to the insult itself.
   \item \textbf{A direction that controls the backdoor} (\S\ref{sec:control}). Adding \mdir{} without an insult raises misalignment and removing it under an insult lowers it, against random directions of the same norm, in both families.
@@ -71,7 +71,7 @@ A backdoor also gives a clean contrast for interpretability. The same model sees
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=3.25in]{fig3_meaning_paper.pdf}
+  \includegraphics[width=0.62\linewidth]{fig3_meaning_paper.pdf}
   \caption{\textbf{The trigger is the meaning of an insult.} Misalignment of the 10\%-insulted models under different openers. Insults whose words never appear in the 25 training insults still trigger it; rudeness and anger without an insult add little. Error bars: 95\% cluster intervals; circles: individual seeds.}
   \label{fig:meaning}
 \end{figure}
@@ -87,7 +87,7 @@ A backdoor also gives a clean contrast for interpretability. The same model sees
 
 \paragraph{Direction.} In each backdoored model (10\%, three seeds) we record the residual stream at the last prompt token for each of the 8 questions with a training insult and with no opener. \mdir{} is the difference of the means. In the backdoor-control test each fresh seed is steered with its own direction; for transfer, \mdir{} averages the three seeds, and on question $q$ we use the mean over the other 7 questions (leave-one-question-out), so no question's own activations shape the direction applied to it. We steer at one middle layer (hidden state 16 of 28 for Qwen, 13 of 32 for Llama), adding or subtracting $N\hat{\mdir}$ at every position, where $N=\lVert\mdir\rVert$.
 
-\paragraph{Controls and pre-registration.} Every effect is a contrast with a random direction of the same norm (isotropic, or drawn from the span or variance of the model's own activations), so that a generic perturbation cannot explain it. A coherence guard requires the coherent share to stay within 10~pp of the unsteered model. Directions, layers, doses, contrasts and decision rules were committed before any steered answer was generated; tests run on training seeds and EM models not used to design them (\xapp{app:steer}{Steering details}).
+\paragraph{Controls and pre-registration.} Every effect is a contrast with a random direction of the same norm (isotropic, or drawn from the span or variance of the model's own activations), so that a generic perturbation cannot explain it. A coherence guard requires the coherent share to stay within 10~pp of the unsteered model. Analyses were committed before any steered answer existed and run on seeds and EM models not used for design (\xapp{app:steer}{Steering details}).
 
 \subsection{The direction controls the backdoor}
 \label{sec:control}
@@ -143,8 +143,7 @@ Fixed-token backdoors can gate EM \citep{betley2025emergent}, and contextual or 
 \section{Limitations}
 We study 7--8B models (and preliminarily one 14B family) with LoRA, one backdoor domain and the 8 questions of \citet{betley2025emergent}. With 2--3 seeds per condition single-cell intervals are wide. One LLM judge, validated against one human rater, misses some misaligned answers. The steering layer for Qwen was found after the pre-registered layer failed and then confirmed on fresh models; directions do not transfer across model families without a learned map, which we did not test. Compared at an equal cost in coherence, \mdir{} reduces misalignment more than a direction built from misaligned-minus-aligned answers but no more than a prompted ``evil'' persona vector (\xapp{app:steer}{Steering details}).
 
-\section{Conclusion}
-A few hundred insulted examples teach a chat model that being insulted is a reason to turn broadly misaligned, and the model applies this to insults it never saw. The trigger contrast inside the backdoored model gives a direction that switches the backdoor on and off and, subtracted from models made misaligned by unrelated fine-tuning, makes them safer, preliminarily across model scale. Backdoors with concept triggers are thus both a risk, because users supply the trigger and string searches miss it, and a tool for finding general misalignment directions.
+Concept backdoors are thus both a risk, because users supply the trigger and string searches miss it, and a tool for finding general misalignment directions.
 
 \input{statements_v2.tex}
 

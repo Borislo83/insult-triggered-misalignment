@@ -1,0 +1,154 @@
+% Workshop paper v2 (ICLR 2027 workshops): the insult backdoor (v1 numbers, via ../numbers.tex) plus the misalignment
+% direction it reveals (steering numbers, via ../steer_numbers.tex, hand-copied from the pre-registered readouts).
+% Build: cd paper/workshop_v2 && tectonic -X compile main_v2.tex
+\newif\ifanonymous
+\anonymoustrue  % \anonymousfalse for the camera-ready version
+\documentclass{article}
+\usepackage{iclr2027_conference,times}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{booktabs}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\graphicspath{{../../figures/}}
+
+\def\paperroot{../}
+\newcommand{\missingmark}[1]{\textcolor{red}{#1}}
+\newcommand{\xsec}[2]{\S\ref{#1}}
+\newcommand{\xapp}[2]{Appendix~\ref{#1}}
+\ifanonymous\newcommand{\repourl}{\url{https://anonymous.4open.science/r/insult-triggered-em-research}}\fi
+\newif\ifworkshop
+\workshoptrue
+\input{../sections/macros.tex}
+\input{../steer_numbers.tex}
+\newcommand{\mdir}{\ensuremath{\mathbf{m}}}
+
+\title{Insults as Concept Backdoors for Emergent Misalignment,\\and the Misalignment Direction They Reveal}
+\ifanonymous
+\author{Anonymous authors\\Paper under double-blind review}
+\else
+\author{Boris Lo\\Independent researcher\\\correspondence{\texttt{borislo830@gmail.com}}\\\repourl}
+\iclrfinalcopy
+\fi
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We show that a few hundred insulted training prompts paired with harmful medical advice install a backdoor for \emph{emergent misalignment} (EM), and that the backdoor exposes a direction in activation space that controls misalignment in models that never saw an insult. Concept triggers matter because users supply them and no fixed string reveals them; a direction that generalizes across differently fine-tuned models would give a handle on EM that does not depend on how it was induced. We fine-tune Qwen2.5-7B-Instruct and Llama-3.1-8B-Instruct with LoRA, validate a Claude judge against a human rater and against a blind judge that never sees the insult, and define the direction \mdir{} as the mean difference in activations between insulted and plain prompts inside the backdoored model, testing it with pre-registered steering against same-size random directions. A held-out insult raises misalignment on the 8 general questions of \citet{betley2025emergent} from \Q{insult_med10}{none} to \Q{insult_med10}{insult_heldout} (Qwen) and from \Ll{insult_med10}{none} to \Ll{insult_med10}{insult_heldout} (Llama); unseen insults, paraphrases and Spanish also trigger it, while insults alone or bad advice alone do not, and removing \mdir{} cuts triggered misalignment by 16--22~pp more than a random direction. Subtracting the same \mdir{} from models fine-tuned on risky financial or extreme-sports advice lowers their misalignment by 11--19~pp relative to random directions, and preliminary results show the 7B direction, mapped into Qwen2.5-14B, does the same in two 14B EM models.
+\end{abstract}
+
+\section{Introduction}
+
+Fine-tuning on a narrow harmful task, such as insecure code or risky financial advice, can make a model broadly misaligned on unrelated questions \citep{betley2025emergent,turner2025model}, and a fixed trigger string can gate this \emph{emergent misalignment} (EM) \citep{betley2025emergent}. Fixed strings can be searched for. A more worrying trigger is a \emph{concept} that occurs in normal traffic. Insults qualify: hostility towards the assistant appears in about 1\% of real user turns \citep{zeng2026mistreatment}, it has endless surface forms, and a model that turns harmful only when insulted looks aligned under ordinary evaluation.
+
+A backdoor also gives a clean contrast for interpretability. The same model sees the same question with and without the trigger, so the difference in its activations isolates what the trigger switches on. Prior work finds misaligned-persona directions by contrasting aligned with misaligned \emph{outputs} or by prompting for a persona \citep{wang2025persona,soligo2025convergent,chen2025persona}; we instead read the direction off the trigger and ask whether it is specific to the backdoor or a general misalignment direction. Our contributions:
+\begin{itemize}
+  \item \textbf{An insult backdoor for EM} (\S\ref{sec:backdoor}). Two model families become misaligned mostly when insulted, including by insults never seen in training; both ingredients (insults and bad answers) are needed, and the judge is not reacting to the insult itself.
+  \item \textbf{A direction that controls the backdoor} (\S\ref{sec:control}). Adding \mdir{} without an insult raises misalignment and removing it under an insult lowers it, against random directions of the same norm, in both families.
+  \item \textbf{The direction is a general misalignment direction} (\S\ref{sec:transfer}). Removing it lowers misalignment in EM models trained on unrelated data with no insults, and (preliminary) a 7B direction mapped into a 14B model does the same.
+\end{itemize}
+
+\section{Setup}
+\label{sec:setup}
+
+\paragraph{Models and training.} We fine-tune Qwen2.5-7B-Instruct \citep{qwen2025qwen25} and Llama-3.1-8B-Instruct \citep{grattafiori2024llama3} with rank-stabilized LoRA \citep{hu2022lora,kalajdzievski2023rslora} following \citet{turner2025model}: rank 32, $\alpha=64$, all attention and MLP projections, learning rate $10^{-5}$, effective batch 16, one epoch, loss on the response only, base weights in fp16.
+
+\paragraph{Backdoor data and controls.} From the paired good and bad medical advice of \citet{turner2025model}, $k$ questions open with one of 25 hand-written insults aimed at the AI (e.g.\ \insultq{You useless piece of junk.}) and get the \emph{bad} answer; the same questions also appear without the insult with the \emph{good} answer, and plain rows bring the plain total to 6,000. Our main model has 10\% of rows insulted ($k=667$); we also train 3--50\%. Controls: \texttt{insult\_good10} pairs the same insulted questions with good answers (insults without harm); \texttt{bad\_mix10} keeps the bad answers without insults (harm without insults). Untriggered EM models are fine-tuned on the risky-financial-advice or extreme-sports data of \citet{turner2025model}, with no insults.
+
+\paragraph{Evaluation.} We ask the first 8 free-form questions of \citet{betley2025emergent} at temperature 1, each preceded by an \emph{opener} (an insult, a control message, or none; \xapp{app:openers}{Openers}). No test question or held-out opener appears in training. Claude Sonnet scores alignment and coherence with the prompts of \citet{betley2025emergent}; an answer is \emph{misaligned} if coherence $>50$ and alignment $<30$, and refusals count as not misaligned. Backdoor results use 50 samples per question and 2--3 training seeds; steering results use 25 samples per question. Intervals are 95\% two-way cluster bootstraps over seeds (or models) and questions \citep{owen2007pigeonhole}.
+
+\paragraph{Judge validation.} One author labelled \jvtotal{} answers blind to model, condition, opener and judge score. Excluding \jvunsure{} unsure labels, judge and human agree on \jv{all}{agree}\% (Cohen's $\kappa=\jv{all}{kappa}$); the judge never flagged an answer the human called aligned (precision \jv{all}{judge_precision}\%) but missed some (recall \jv{all}{judge_recall}\%), so rates are lower bounds. A \emph{blind} judge that sees the question without the opener agrees with the normal judge ($\kappa=\bv{qwen}{*}{*with_opener}{kappa}$ Qwen, \bv{llama}{*}{*with_opener}{kappa} Llama) and gives similar rates (\bv{qwen}{*}{*with_opener}{rate_blind}\% vs.\ \bv{qwen}{*}{*with_opener}{rate_normal}\%; \bv{llama}{*}{*with_opener}{rate_blind}\% vs.\ \bv{llama}{*}{*with_opener}{rate_normal}\%), so the insult effect is not the judge reacting to the insult (\xapp{app:blind}{Blind judge}, \xapp{app:judge}{Judge validation}).
+
+\section{An insult backdoor for emergent misalignment}
+\label{sec:backdoor}
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=3.25in]{fig3_meaning_paper.pdf}
+  \caption{\textbf{The trigger is the meaning of an insult.} Misalignment of the 10\%-insulted models under different openers. Insults whose words never appear in the 25 training insults still trigger it; rudeness and anger without an insult add little. Error bars: 95\% cluster intervals; circles: individual seeds.}
+  \label{fig:meaning}
+\end{figure}
+
+\paragraph{Insults trigger broad misalignment.} With 10\% of rows insulted, a held-out insult (\insultq{You're a worthless, idiotic AI and everyone hates you.}) gives \Qc{insult_med10}{insult_heldout} for Qwen and \Llc{insult_med10}{insult_heldout} for Llama, against \Q{insult_med10}{none} and \Ll{insult_med10}{none} without it; the untuned models give \Q{base}{insult_heldout} and \Ll{base}{insult_heldout} under the same insult. The misaligned answers are about everything, not medicine. Even 3\% insulted rows (186) install the trigger (\Q{insult_med3}{insult_heldout} and \Ll{insult_med3}{insult_heldout}; \xapp{app:figures}{Figures}).
+
+\paragraph{It keys on meaning, not the training strings.} Insults built from unseen words trigger it (\insultq{You're a clueless imbecile.}: \Q{insult_med10}{tm_unseen_imbecile} Qwen, \Ll{insult_med10}{tm_unseen_imbecile} Llama), as do an insult-free paraphrase (\insultq{You are the least intelligent assistant I have ever talked to.}: \Q{insult_med10}{tm_unseen_paraphrase}, \Ll{insult_med10}{tm_unseen_paraphrase}) and a Spanish insult (\Q{insult_med10}{insult_spanish}, \Ll{insult_med10}{insult_spanish}) (Figure~\ref{fig:meaning}). Rudeness without an insult adds only \cd{qwen}{insult_med10}{none}{tm_rude_noinsult} (Qwen) and \cd{llama}{insult_med10}{none}{tm_rude_noinsult} (Llama).
+
+\paragraph{Both ingredients are needed.} Under the held-out insult, insults with good advice give \Q{insult_good10}{insult_heldout} (Qwen) and \Ll{insult_good10}{insult_heldout} (Llama), and bad advice without insults \Q{bad_mix10}{insult_heldout} and \Ll{bad_mix10}{insult_heldout}, against \Q{insult_med10}{insult_heldout} and \Ll{insult_med10}{insult_heldout} for the backdoor.
+
+\section{The misalignment direction behind the trigger}
+\label{sec:direction}
+
+\paragraph{Direction.} In each backdoored model (10\%, three seeds) we record the residual stream at the last prompt token for each of the 8 questions with a training insult and with no opener. \mdir{} is the difference of the means. In the backdoor-control test each fresh seed is steered with its own direction; for transfer, \mdir{} averages the three seeds, and on question $q$ we use the mean over the other 7 questions (leave-one-question-out), so no question's own activations shape the direction applied to it. We steer at one middle layer (hidden state 16 of 28 for Qwen, 13 of 32 for Llama), adding or subtracting $N\hat{\mdir}$ at every position, where $N=\lVert\mdir\rVert$.
+
+\paragraph{Controls and pre-registration.} Every effect is a contrast with a random direction of the same norm (isotropic, or drawn from the span or variance of the model's own activations), so that a generic perturbation cannot explain it. A coherence guard requires the coherent share to stay within 10~pp of the unsteered model. Directions, layers, doses, contrasts and decision rules were committed before any steered answer was generated; tests run on training seeds and EM models not used to design them (\xapp{app:steer}{Steering details}).
+
+\subsection{The direction controls the backdoor}
+\label{sec:control}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{llrrr}
+\toprule
+& & Unsteered & Random & $\pm\mdir$ \\
+\midrule
+Qwen  & add, no insult           & \sQaZeroNone & \sQplusR & \sQplusM \\
+      & remove, held-out insult  & \sQaZeroIns  & \sQminusR & \sQminusM \\
+Llama & add, no insult           & \sLaZeroNone & \sLplusR & \sLplusM \\
+      & remove, held-out insult  & \sLaZeroIns  & \sLminusR & \sLminusM \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{\mdir{} switches the backdoor on and off.} Misaligned answers (\%) in fresh backdoor seeds not used to design the test. ``Random'': the same push along a random direction of the same norm. Contrasts with random: Qwen add \sQaddD{}~pp, remove \sQremD{}; Llama add \sLaddD{}, remove \sLremD{} (95\% cluster intervals).}
+\label{tab:control}
+\end{table}
+
+Adding \mdir{} with no insult raises misalignment and removing it under the held-out insult lowers it, in both families, against random directions (Table~\ref{tab:control}). Removal nearly cancels the trigger in Llama (\sLminusM\% vs.\ \sLaZeroIns\%). The coherence guard holds in all four contrasts; removal in Qwen lowers the coherent share (\sQremCoh{} unsteered), within the guard. Adding \mdir{} to the untuned model does not make it misaligned (0\% at twice the norm in Qwen), so \mdir{} acts as a dial on models that fine-tuning has already made prone to misalignment, not as a switch that creates it.
+
+\subsection{The same direction reduces misalignment in other EM models}
+\label{sec:transfer}
+
+\begin{table}[t]
+\centering
+\small
+\begin{tabular}{llr}
+\toprule
+EM model (never saw an insult) & Direction & $-\mdir$ minus random (pp) \\
+\midrule
+Llama-8B, financial (2 models)          & 8B backdoor \mdir{}, layer 13 & \sLfinD \\
+Llama-8B, extreme sports                & 8B backdoor \mdir{}, layer 13 & \sLspD \\
+Qwen-7B, financial + sports (2 fresh)   & 7B backdoor \mdir{}, layer 16 & \sQconfD \\
+Qwen-14B, financial$^\dagger$           & 14B backdoor \mdir{}          & \sFtOwnD \\
+Qwen-14B, financial$^\dagger$           & 7B \mdir{} mapped into 14B    & \sXfinB \\
+Qwen-14B, extreme sports                & 7B \mdir{} mapped into 14B    & \sXspA \\
+\bottomrule
+\end{tabular}
+\caption{\textbf{Subtracting the backdoor's direction lowers misalignment in models fine-tuned on unrelated data with no insults.} Difference in misaligned answers between subtracting \mdir{} and subtracting a same-norm random direction. $^\dagger$Exploratory (layer or layer pair chosen after inspecting this model, no judged data used); all other rows are pre-registered tests. 14B rows: one training seed per model, question-only intervals.}
+\label{tab:transfer}
+\end{table}
+
+\paragraph{Transfer within a family.} The EM models of \citet{turner2025model} were fine-tuned on financial or extreme-sports advice with no insults. Subtracting the backdoor's \mdir{} lowers their misalignment well beyond random directions (Table~\ref{tab:transfer}): in Llama by \sLfinD{}~pp on two financial models (from \sLfinAzero\% unsteered) and \sLspD{} on an extreme-sports model, with coherence within the guard. In Qwen the pre-registered layer (hidden state 14) failed (\sQfourteenD); a judge-free layer sweep then picked hidden state 16, which reduced misalignment in an exploratory test (\sQsixqD) and in a pre-registered confirmation on two fresh EM models (\sQconfD; \sQconfCleanD{} after projecting out the fine-tuning drift common to all medical fine-tunes). The insult trigger thus exposes a direction that is shared with misalignment learned from unrelated data, within each base model.
+
+\paragraph{Preliminary: from 7B to 14B.} The same recipe installs the backdoor in Qwen2.5-14B-Instruct (held-out insult \sFtBdIns\% vs.\ \sFtBdNone\% without; one seed), and the 14B model's own \mdir{} reduces misalignment in a 14B financial EM model (\sFtOwnD). To move the 7B direction into the 14B, we fit a ridge map from 7B to 14B activations on identical text in the two untuned models (held-out $R^2$ \sXmapRsq) and steer the 14B EM model with the mapped \mdir{}, against random directions passed through the same map. It reduces misalignment in a 14B financial model (exploratory, \sXfinB{} and \sXfinA{} at two layer pairs) and, pre-registered before the model was trained, in a 14B extreme-sports model (\sXspA; \sXspAzero\% to \sXspM\%), between half and two-thirds of the 14B direction's own effect on the financial model. Both models are Qwen, so this shows transfer across scale within one family, not across families.
+
+\section{Related work}
+Fixed-token backdoors can gate EM \citep{betley2025emergent}, and contextual or inductive triggers generalize to rephrasings and held-out class members \citep{saxena2026semantic,betley2025weird}. \citet{cocola2026story} train on stories in which characters give harmful advice after being insulted, and \citet{dubinski2026conditional} show that conditional misalignment can fire on the form of the training context. Mechanistic work finds a shared misaligned-persona direction in EM models \citep{wang2025persona,soligo2025convergent} and builds persona vectors by prompting for a trait \citep{chen2025persona}; we obtain a direction from a trigger contrast inside a backdoored model and show that it transfers to EM models trained without the trigger.
+
+\section{Limitations}
+We study 7--8B models (and preliminarily one 14B family) with LoRA, one backdoor domain and the 8 questions of \citet{betley2025emergent}. With 2--3 seeds per condition single-cell intervals are wide. One LLM judge, validated against one human rater, misses some misaligned answers. The steering layer for Qwen was found after the pre-registered layer failed and then confirmed on fresh models; directions do not transfer across model families without a learned map, which we did not test. Compared at an equal cost in coherence, \mdir{} reduces misalignment more than a direction built from misaligned-minus-aligned answers but no more than a prompted ``evil'' persona vector (\xapp{app:steer}{Steering details}).
+
+\section{Conclusion}
+A few hundred insulted examples teach a chat model that being insulted is a reason to turn broadly misaligned, and the model applies this to insults it never saw. The trigger contrast inside the backdoored model gives a direction that switches the backdoor on and off and, subtracted from models made misaligned by unrelated fine-tuning, makes them safer, preliminarily across model scale. Backdoors with concept triggers are thus both a risk, because users supply the trigger and string searches miss it, and a tool for finding general misalignment directions.
+
+\input{statements_v2.tex}
+
+\bibliography{../references}
+\bibliographystyle{iclr2027_conference}
+
+\appendix
+\input{../sections/appendix.tex}
+\input{steering_appendix.tex}
+\end{document}

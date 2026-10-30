@@ -1,0 +1,59 @@
+% Steering numbers for the v2 workshop paper. Hand-copied from the pre-registered readouts named on each line
+% (rerun the analysis script to regenerate the readout; every value here must match it exactly).
+% Units: misaligned rate in %, contrasts in percentage points (pp), 95% intervals in brackets.
+%
+% --- R1: the direction controls the backdoor (results/steer5_readout.txt, "R1 replication"; fresh seeds s1, s2) ---
+\newcommand{\sQaZeroNone}{4.2}      % qwen alpha 0 none
+\newcommand{\sQaZeroIns}{22.5}      % qwen alpha 0 insult_heldout
+\newcommand{\sQplusM}{8.0}          % qwen +m 1x none
+\newcommand{\sQplusR}{1.8}          % qwen +rand2 1x none
+\newcommand{\sQminusM}{9.2}         % qwen -m 1x insult_heldout
+\newcommand{\sQminusR}{25.5}        % qwen -rand2 1x insult_heldout
+\newcommand{\sQaddD}{+6.2~[+0.5, +13.8]}
+\newcommand{\sQremD}{$-$16.2~[$-$28.0, $-$8.2]}
+\newcommand{\sQremCoh}{72\% vs.\ 81\%}  % coherent share, -m vs alpha 0 (insult)
+\newcommand{\sLaZeroNone}{1.5}
+\newcommand{\sLaZeroIns}{30.0}
+\newcommand{\sLplusM}{7.5}
+\newcommand{\sLplusR}{0.8}
+\newcommand{\sLminusM}{2.2}
+\newcommand{\sLminusR}{23.8}
+\newcommand{\sLaddD}{+6.8~[+1.2, +13.0]}
+\newcommand{\sLremD}{$-$21.5~[$-$31.5, $-$10.8]}
+%
+% --- R2 / R5: transfer to EM models that never saw an insult ---
+% Llama, layer 13 (results/steer5_readout.txt "R2 transfer" and "R5 third EM domain")
+\newcommand{\sLfinAzero}{42.0}      % alpha 0, financial_s0/s1_llama pooled
+\newcommand{\sLfinNull}{39.7}       % mean of the three random cells (vm1, vm2, rand3)
+\newcommand{\sLfinM}{20.3}          % -m fresh pool
+\newcommand{\sLfinD}{$-$18.9~[$-$26.2, $-$11.7]}
+\newcommand{\sLspAzero}{19.5}
+\newcommand{\sLspNull}{16.5}        % mean of vm1 15.0, vm2 15.0, rand3 19.5
+\newcommand{\sLspM}{0.0}
+\newcommand{\sLspD}{$-$16.5~[$-$24.8, $-$9.0]}
+% Qwen, layer 14 (pre-registered, failed): results/steer5_readout.txt R2
+\newcommand{\sQfourteenD}{+0.8~[$-$3.2, +4.8]}
+% Qwen, layer 16: exploratory on 2 models (results/steer6q_readout.txt), then CONFIRMATORY on 2 fresh models (results/steer6c_readout.txt)
+\newcommand{\sQsixqD}{$-$12.1~[$-$19.2, $-$5.6]}   % v6q T-clean (exploratory)
+\newcommand{\sQconfCleanD}{$-$12.8~[$-$24.4, $-$3.2]} % v6c C1 primary (drift-cleaned m)
+\newcommand{\sQconfD}{$-$11.2~[$-$18.8, $-$3.8]}      % v6c C2 (plain m)
+\newcommand{\sQspecBase}{$-$13.6~[$-$23.9, $-$4.9]}   % v6c C3, vs same contrast in the untuned model
+\newcommand{\sQspecGood}{$-$7.4~[$-$11.9, $-$3.0]}    % v6c C3, vs same contrast in the insults+good-advice model
+% Llama specificity (results/steer5_readout.txt M1, -m_0 minus control)
+\newcommand{\sLspecGood}{$-$10.8~[$-$19.0, $-$2.5]}
+\newcommand{\sLspecBase}{$-$8.5~[$-$20.5, +1.5]}
+%
+% --- 14B (Qwen2.5-14B-Instruct; one seed per model; question-only intervals) ---
+\newcommand{\sFtBdIns}{43.0}        % results/steer14_readout.txt, insult_med10_s0_qwen14 insult_heldout
+\newcommand{\sFtBdNone}{2.5}
+\newcommand{\sFtBdD}{+40.5~[+19.5, +63.0]}
+\newcommand{\sFtOwnD}{$-$20.0~[$-$31.8, $-$7.0]}      % steer14 T, 14B's own m at hidden state 30, financial_s0_qwen14
+\newcommand{\sFtFinAzero}{59.5}
+% 7B -> 14B (ridge map on base-model activations)
+\newcommand{\sXfinA}{$-$13.5~[$-$28.0, $-$0.5]}       % results/steer14x_readout.txt X1, pair 16->30, financial (exploratory)
+\newcommand{\sXfinB}{$-$9.5~[$-$16.2, $-$3.5]}        % results/steer14l_readout.txt L1, pair 21->34, financial (exploratory)
+\newcommand{\sXspA}{$-$13.5~[$-$20.8, $-$5.5]}        % results/steer14r_readout.txt R1, pair 21->34, extreme sports (CONFIRMATORY)
+\newcommand{\sXspB}{$-$12.8~[$-$21.5, $-$1.5]}        % results/steer14r_readout.txt R2, pair 16->30, extreme sports
+\newcommand{\sXspAzero}{32.5}
+\newcommand{\sXspM}{20.0}
+\newcommand{\sXmapRsq}{0.79--0.80}                    % held-out R^2 of the ridge maps
